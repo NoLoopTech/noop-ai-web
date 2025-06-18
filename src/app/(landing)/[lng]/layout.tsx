@@ -42,9 +42,9 @@ export default async function RootLayout({
         >
           <NextAuthProvider>
             <NavBase />
+            {children}
+            <FooterBase t={t} lng={lng} />
           </NextAuthProvider>
-          {children}
-          <FooterBase t={t} lng={lng} />
         </ThemeProvider>
       </body>
     </html>

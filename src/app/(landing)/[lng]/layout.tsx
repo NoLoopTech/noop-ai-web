@@ -1,7 +1,7 @@
 import "@/app/globals.css"
 import "@/styles/typography.css"
 import { dir } from "i18next"
-import { languages } from "@/i18n/settings"
+// import { languages } from "@/i18n/settings"
 import { Inter } from "next/font/google"
 import { FooterBase } from "@/components/layout/FooterBase"
 import { useTranslation } from "@/i18n"
@@ -11,11 +11,11 @@ import NextAuthProvider from "@/components/layout/NextAuthProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export async function generateStaticParams(): Promise<
-  Array<Record<string, string>>
-> {
-  return languages.map(lng => ({ lng }))
-}
+// export async function generateStaticParams(): Promise<
+//   Array<Record<string, string>>
+// > {
+//   return languages.map(lng => ({ lng }))
+// }
 
 export const metadata = {
   title: "Create Next App",
@@ -42,9 +42,9 @@ export default async function RootLayout({
         >
           <NextAuthProvider>
             <NavBase />
-            {children}
-            <FooterBase t={t} lng={lng} />
           </NextAuthProvider>
+          {children}
+          <FooterBase t={t} lng={lng} />
         </ThemeProvider>
       </body>
     </html>

@@ -1,113 +1,245 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
+import { useApiQuery } from "@/query"
+import {
+  type PaginatedChats,
+  type ChatConversation,
+  type ChatMessage,
+  type GroupedConversations
+} from "@/models/conversation"
+import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
+import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
+import { useParams, useRouter } from "next/navigation"
 
 // Mock data for chat conversations
-const MOCK_CHATS = [
-  {
-    id: 1,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 2,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 3,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 4,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 5,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 6,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 7,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 8,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 9,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
-  },
-  {
-    id: 10,
-    country: "es",
-    userName: "Michael Wilson",
-    email: "example@gmail.com",
-    scoring: "Positive",
-    duration: "10 mins",
-    summary: "A small description of the ai chat"
+// const MOCK_CHATS = [
+//   {
+//     id: 1,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 2,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 3,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 4,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 5,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 6,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 7,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 8,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 9,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   },
+//   {
+//     id: 10,
+//     country: "es",
+//     userName: "Michael Wilson",
+//     email: "example@gmail.com",
+//     scoring: "Positive",
+//     duration: "10 mins",
+//     summary: "A small description of the ai chat"
+//   }
+// ]
+
+export interface PaginatedResult<T> {
+  data: T[]
+  total: number
+}
+
+const groupConversationsByThread = (
+  messages: ChatMessage[]
+): GroupedConversations => {
+  if (!messages) return {}
+  return messages.reduce<GroupedConversations>((acc, message) => {
+    const { threadId } = message
+    if (!acc[threadId]) {
+      acc[threadId] = []
+    }
+    acc[threadId].push(message)
+    return acc
+  }, {})
+}
+
+const calculateConversationDuration = (
+  startTime: string,
+  endTime: string
+): string => {
+  if (!startTime || !endTime) {
+    return "0 secs"
   }
-]
+
+  const durationMs = new Date(endTime).getTime() - new Date(startTime).getTime()
+
+  if (durationMs <= 0) {
+    return "0 secs"
+  }
+
+  const totalSeconds = Math.round(durationMs / 1000)
+
+  if (totalSeconds < 60) {
+    return "< 1min"
+  }
+
+  const totalMinutes = Math.round(totalSeconds / 60)
+
+  if (totalMinutes < 60) {
+    return `${totalMinutes} mins`
+  }
+
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  const hourString = `${hours} h`
+  const minuteString = minutes > 0 ? ` ${minutes} mins` : ""
+
+  return `${hourString}${minuteString}`
+}
 
 export default function ChatsPage(): JSX.Element {
+  const router = useRouter()
+  const params = useParams()
+  const { lng } = params as { lng: string }
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
-  const [selectedRows, setSelectedRows] = useState<number[]>([])
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
-  const [currentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  const projectId = 4
+
+  const {
+    data: paginatedData,
+    isLoading: isChatsLoading,
+    isFetching,
+    refetch
+  } = useApiQuery<PaginatedChats>(
+    ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
+    `/conversation/project-conversations?projectId=${projectId}&page=${currentPage}&limit=${rowsPerPage}&search=${searchTerm}`,
+    () => ({
+      method: "get"
+    })
+  )
+
+  const chatConversations = useMemo((): ChatConversation[] => {
+    if (!paginatedData?.data) {
+      return []
+    }
+
+    const grouped = groupConversationsByThread(paginatedData.data)
+
+    const conversations = Object.entries(grouped).map(
+      ([threadId, messages]) => {
+        const firstMessage = messages[0]
+        const lastMessage = messages[messages.length - 1]
+
+        return {
+          id: threadId,
+          country: lastMessage.country ?? "lk",
+          userName: lastMessage.userName ?? "Anonymous",
+          email: lastMessage.email ?? "No email",
+          scoring: "N/A",
+          duration: calculateConversationDuration(
+            firstMessage.createdAt,
+            lastMessage.createdAt
+          ),
+          summary:
+            messages.find(m => m.sender === "user")?.content.substring(0, 30) ??
+            "No summary",
+          messages,
+          chatbotCode: firstMessage.project.chatbotCode ?? ""
+        }
+      }
+    )
+
+    conversations.sort((a, b) => {
+      const lastMessageA = a.messages[a.messages.length - 1]
+      const lastMessageB = b.messages[b.messages.length - 1]
+      return (
+        new Date(lastMessageB.createdAt).getTime() -
+        new Date(lastMessageA.createdAt).getTime()
+      )
+    })
+
+    return conversations
+  }, [paginatedData])
+
+  const totalPages = paginatedData?.total
+    ? Math.ceil(paginatedData.total / rowsPerPage)
+    : 1
+
+  const handleRowClick = (threadId: string): void => {
+    router.push(`/${lng}/admin/dashboard/chats/${threadId}`)
+  }
+
   // Toggle row selection
-  const toggleRowSelection = (id: number): void => {
+  const toggleRowSelection = (id: string): void => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter(rowId => rowId !== id))
     } else {
@@ -117,16 +249,21 @@ export default function ChatsPage(): JSX.Element {
 
   // Toggle all rows selection
   const toggleAllRows = (): void => {
-    if (selectedRows.length === MOCK_CHATS.length) {
+    if (selectedRows.length === chatConversations.length) {
       setSelectedRows([])
     } else {
-      setSelectedRows(MOCK_CHATS.map(chat => chat.id))
+      setSelectedRows(chatConversations.map(chat => chat.id))
     }
   }
 
   return (
     <div className="flex flex-col p-6 gap-6">
-      <h1 className="text-2xl font-semibold">Chats</h1>
+      <div className="w-max flex items-center space-x-2">
+        <h1 className="text-2xl font-semibold">Chats</h1>
+        <p className="text-base text-gray-900/75 dark:text-gray-400/75">
+          ( {chatConversations[0]?.messages[0]?.project.chatbotCode} )
+        </p>
+      </div>
 
       <Card className="p-0 overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b">
@@ -164,31 +301,51 @@ export default function ChatsPage(): JSX.Element {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <svg
-              className="w-5 h-5 text-gray-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search by user name..."
-              className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value)
+          <div className="flex items-center space-x-3.5">
+            <button
+              onClick={() => {
+                void refetch()
               }}
-            />
+              disabled={isFetching}
+              className="p-1 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+              aria-label="Refresh data"
+            >
+              <RefreshIcon
+                className={`w-5 h-5 fill-gray-500 ${
+                  isFetching ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+
+            <div className="w-0.5 h-7 bg-gray-500/50" />
+
+            <div className="flex items-center space-x-2.5">
+              <input
+                type="text"
+                placeholder="Search by user name..."
+                className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value)
+                }}
+              />
+
+              <svg
+                className="w-5 h-5 text-gray-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800">
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900/50">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <button className="flex items-center border rounded-md px-2 py-1 text-sm">
@@ -283,93 +440,111 @@ export default function ChatsPage(): JSX.Element {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800 text-left">
-              <tr>
-                <th className="p-4 w-8">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.length === MOCK_CHATS.length}
-                    onChange={toggleAllRows}
-                    className="rounded"
-                  />
-                </th>
-                <th className="p-4 text-sm font-medium">Country</th>
-                <th className="p-4 text-sm font-medium">User Name</th>
-                <th className="p-4 text-sm font-medium">Email</th>
-                <th className="p-4 text-sm font-medium">AI Scoring</th>
-                <th className="p-4 text-sm font-medium">Duration</th>
-                <th className="p-4 text-sm font-medium">Chat Summary</th>
-                <th className="p-4 w-8"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {MOCK_CHATS.map(chat => (
-                <tr
-                  key={chat.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="p-4">
+          {isChatsLoading ? (
+            <div className="w-full h-96 flex justify-center items-center">
+              <LoadingIcon
+                className={`w-40 h-40 font-thin fill-gray-500/50 ${
+                  isChatsLoading
+                    ? "animate-pulse animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both"
+                    : ""
+                }`}
+              />
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-900/75 text-left">
+                <tr>
+                  <th className="p-4 w-8">
                     <input
                       type="checkbox"
-                      checked={selectedRows.includes(chat.id)}
-                      onChange={() => {
-                        toggleRowSelection(chat.id)
-                      }}
+                      checked={selectedRows.length === chatConversations.length}
+                      onChange={toggleAllRows}
                       className="rounded"
                     />
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center">
+                  </th>
+                  <th className="p-4 w-5 text-sm font-medium">Country</th>
+                  <th className="p-4 text-sm font-medium">User Name</th>
+                  <th className="p-4 text-sm font-medium">Email</th>
+                  <th className="p-4 text-sm font-medium">AI Scoring</th>
+                  <th className="p-4 text-sm font-medium">Duration</th>
+                  <th className="p-4 text-sm font-medium">Chat Summary</th>
+                  <th className="p-4 w-8"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {chatConversations.map(chat => (
+                  <tr
+                    key={chat.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
+                    onClick={() => {
+                      handleRowClick(chat.id)
+                    }}
+                  >
+                    <td
+                      className="p-4"
+                      onClick={e => {
+                        e.stopPropagation()
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.includes(chat.id)}
+                        onChange={() => {
+                          toggleRowSelection(chat.id)
+                        }}
+                        className="rounded"
+                      />
+                    </td>
+                    <td className="h-full pl-5">
                       <Image
                         src={`/assets/flags/${chat.country}.svg`}
                         alt={`${chat.country} flag`}
                         width={24}
                         height={16}
-                        className="w-6 h-4 mr-2"
-                        onError={e => {
-                          // Fallback for missing flag images
-                          ;(e.target as HTMLImageElement).src =
-                            "https://via.placeholder.com/24x16"
-                        }}
+                        // className="w-6 h-4 mr-2"
                       />
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm">{chat.userName}</td>
-                  <td className="p-4 text-sm">{chat.email}</td>
-                  <td className="p-4 text-sm text-green-600">{chat.scoring}</td>
-                  <td className="p-4 text-sm">{chat.duration}</td>
-                  <td className="p-4 text-sm">{chat.summary}</td>
-                  <td className="p-4">
-                    <button className="text-gray-500 hover:text-gray-700">
-                      <svg
-                        className="w-5 h-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td className="p-4 text-sm">{chat.userName}</td>
+                    <td className="p-4 text-sm">{chat.email}</td>
+                    <td className="p-4 text-sm text-green-600">
+                      {chat.scoring}
+                    </td>
+                    <td className="p-4 text-sm">{chat.duration}</td>
+                    <td className="p-4 text-sm">{chat.summary}</td>
+                    <td className="p-4">
+                      <button className="text-gray-500 hover:text-gray-700">
+                        <svg
+                          className="w-5 h-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="flex items-center justify-between p-4 border-t">
           <div className="text-sm text-gray-500">
             {selectedRows.length > 0
-              ? `${selectedRows.length} of ${MOCK_CHATS.length} row(s) selected.`
-              : `0 of ${MOCK_CHATS.length} row(s) selected.`}
+              ? `${selectedRows.length} of ${
+                  paginatedData?.total ?? 0
+                } row(s) selected.`
+              : `0 of ${paginatedData?.total ?? 0} row(s) selected.`}
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <span className="text-sm">Rows per page</span>
             <select
               value={rowsPerPage}
               onChange={e => {
                 setRowsPerPage(Number(e.target.value))
+                setCurrentPage(1)
               }}
               className="border rounded px-2 py-1 text-sm"
             >
@@ -378,41 +553,68 @@ export default function ChatsPage(): JSX.Element {
               <option value="50">50</option>
             </select>
 
-            <div className="flex items-center space-x-1 ml-4">
-              <span className="text-sm">Page 1 of 10</span>
+            <div className="flex items-center space-x-2 ml-4">
+              <p className="text-sm">
+                Page {currentPage} of {totalPages}
+              </p>
 
-              <button
+              <div className="">
+                <button
+                  className={`p-1 rounded ${
+                    currentPage === 1
+                      ? "hover:bg-gray-100/25 dark:hover:bg-gray-700/25 cursor-not-allowed"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(prev - 1, 1))
+                  }}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+
+                <button
+                  className={`p-1 rounded ${
+                    currentPage === totalPages
+                      ? "hover:bg-gray-100/25 dark:hover:bg-gray-700/25 cursor-not-allowed"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages))
+                  }}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* <button
                 className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                disabled={currentPage === 1}
+                disabled={currentPage === totalPages}
+                onClick={() => {
+                  setCurrentPage(totalPages)
+                }}
               >
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-
-              <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-
-              <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
                 <svg
                   className="w-5 h-5"
                   viewBox="0 0 20 20"
@@ -424,7 +626,7 @@ export default function ChatsPage(): JSX.Element {
                     clipRule="evenodd"
                   />
                 </svg>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

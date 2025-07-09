@@ -10,10 +10,11 @@ import {
   type ChatMessage,
   type GroupedConversations
 } from "@/models/conversation"
-import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
-import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import { useParams, useRouter } from "next/navigation"
 import { calculateConversationDuration } from "@/utils/calculateConversationDuration"
+import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
+import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
+import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 
 // Mock data for chat conversations
 // const MOCK_CHATS = [
@@ -126,7 +127,10 @@ const groupConversationsByThread = (
 export default function ChatsPage(): JSX.Element {
   const router = useRouter()
   const params = useParams()
-  const { lng } = params as { lng: string }
+  const { lng, projectId: projectIdFromUrl } = params as {
+    lng: string
+    projectId: string
+  }
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
@@ -134,7 +138,7 @@ export default function ChatsPage(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const projectId = 4
+  const projectId = parseInt(projectIdFromUrl, 10)
 
   const {
     data: paginatedData,
@@ -403,7 +407,7 @@ export default function ChatsPage(): JSX.Element {
                 }`}
               />
             </div>
-          ) : (
+          ) : chatConversations.length > 0 ? (
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/75 text-left">
                 <tr>
@@ -479,6 +483,11 @@ export default function ChatsPage(): JSX.Element {
                 ))}
               </tbody>
             </table>
+          ) : (
+            <div className="w-full h-96 flex flex-col justify-center items-center">
+              <NoDataIcon className="w-40 h-40 fill-gray-500/50" />
+              <p className="text-lg text-gray-500/75">No chats available</p>
+            </div>
           )}
         </div>
 

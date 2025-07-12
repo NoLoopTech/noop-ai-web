@@ -168,7 +168,7 @@ export default function ChatsPage(): JSX.Element {
         return {
           id: threadId,
           country: lastMessage.country ?? "lk",
-          userName: lastMessage.userName ?? "Anonymous",
+          userName: lastMessage.userName ?? "Guest User",
           email: lastMessage.email ?? "No email",
           scoring: "N/A",
           duration: calculateConversationDuration(
@@ -192,7 +192,7 @@ export default function ChatsPage(): JSX.Element {
     : 1
 
   const handleRowClick = (threadId: string): void => {
-    router.push(`/${lng}/admin/dashboard/chats/${threadId}`)
+    router.push(`/${lng}/admin/dashboard/${projectId}/chats/${threadId}`)
   }
 
   // Toggle row selection

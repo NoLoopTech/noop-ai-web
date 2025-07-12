@@ -217,9 +217,6 @@ export default function ChatsPage(): JSX.Element {
     <div className="flex flex-col p-6 gap-6">
       <div className="w-max flex items-center space-x-2">
         <h1 className="text-2xl font-semibold">Chats</h1>
-        <p className="text-base text-gray-900/75 dark:text-gray-400/75">
-          ( {chatConversations[0]?.messages[0]?.project.chatbotCode} )
-        </p>
       </div>
 
       <Card className="p-0 overflow-hidden">

@@ -4,4 +4,5 @@ export interface UserProject {
   userId: number
   botType: string
   chatbotCode: string
+  projectName: string
 }

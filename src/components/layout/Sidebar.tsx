@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { useParams, usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   BarChart3,
@@ -23,8 +23,9 @@ import {
 } from "lucide-react"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { signOut, useSession } from "next-auth/react"
-import { useState, useRef, useEffect, useMemo } from "react"
-import { useProjectSwitcher } from "@/app/(portal)/[lng]/admin/dashboard/hooks/useProjectSwitcher"
+import { useState, useRef, useEffect, useMemo, useTransition } from "react"
+import { useApiQuery } from "@/query"
+import { type UserProject } from "@/models/project"
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -81,20 +82,55 @@ export function Sidebar({
   setIsCollapsed
 }: SidebarProps): JSX.Element {
   const pathname = usePathname()
+  const params = useParams()
+  const router = useRouter()
 
-  const {
-    selectedProjectId,
-    isProjectSwitcherOpen,
-    projectSwitcherRef,
-    memoizedProjects,
-    selectedProjectChatbotCode,
-    handleProjectsSwitcher,
-    handleSelectProject,
-    isUserProjectsLoading
-  } = useProjectSwitcher()
+  const [isProjectSwitcherOpen, setProjectSwitcherOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
-  const pathParts = pathname.split("/").filter(p => p)
-  const lng = pathParts[0] ?? "en"
+  const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
+    UserProject[]
+  >(["user-projects"], `user/me/projects`, () => ({
+    method: "get"
+  }))
+
+  const selectedProjectId = useMemo(() => {
+    const projectIdFromParams = params.projectId as string
+    if (projectIdFromParams) {
+      const projectId = parseInt(projectIdFromParams, 10)
+      return !isNaN(projectId) ? projectId : undefined
+    }
+    return undefined
+  }, [params.projectId])
+
+  const memoizedProjects = useMemo(() => {
+    const projects = userProjects ?? []
+    return projects.map((project, index) => ({
+      id: project.id,
+      projectName: project.projectName ?? `Project ${index + 1}`
+    }))
+  }, [userProjects])
+
+  const selectedProjectName =
+    memoizedProjects.find(p => p.id === selectedProjectId)?.projectName ??
+    "Select Project"
+
+  const handleSelectProject = (projectId: number): void => {
+    setProjectSwitcherOpen(false)
+
+    startTransition(() => {
+      const pathParts = pathname.split("/").filter(p => p)
+      if (pathParts.length >= 4) {
+        const currentPage = pathParts.slice(4).join("/")
+        const newPath = `/${pathParts[0]}/admin/dashboard/${projectId}/${currentPage}`
+        router.push(newPath)
+      }
+    })
+  }
+
+  const projectSwitcherRef = useRef<HTMLDivElement>(null)
+
+  const lng = (params.lng as string) ?? "en"
   const prefix = `${lng}/admin/dashboard`
 
   const { data: session } = useSession()
@@ -154,6 +190,13 @@ export function Sidebar({
         !buttonRef.current.contains(event.target as Node)
       ) {
         setDropdownOpen(false)
+      }
+
+      if (
+        projectSwitcherRef.current &&
+        !projectSwitcherRef.current.contains(event.target as Node)
+      ) {
+        setProjectSwitcherOpen(false)
       }
     }
 
@@ -261,6 +304,10 @@ export function Sidebar({
     ]
   }
 
+  const handleProjectsSwitcher = (): void => {
+    setProjectSwitcherOpen(prev => !prev)
+  }
+
   // Function to handle mini profile click
   const handleMiniProfileClick = (event: React.MouseEvent): void => {
     // Get button position for proper popup placement
@@ -288,7 +335,7 @@ export function Sidebar({
         onClick={handleProjectsSwitcher}
         className="relative flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-zinc-700 cursor-pointer"
       >
-        {isUserProjectsLoading ? (
+        {isUserProjectsLoading || isPending ? (
           <div className="flex items-center space-x-2">
             <div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-zinc-700 animate-pulse"></div>
             {!isCollapsed && (
@@ -299,15 +346,13 @@ export function Sidebar({
           <div className="w-full flex items-center justify-between space-x-1">
             {!isCollapsed && (
               <div className="flex items-center gap-2">
-                <span className="font-semibold">
-                  {selectedProjectChatbotCode}
-                </span>
+                <span className="font-semibold">{selectedProjectName}</span>
               </div>
             )}
 
             {isCollapsed && (
               <div className="w-full flex justify-center text-2xl font-bold">
-                {selectedProjectChatbotCode.charAt(0)}
+                {selectedProjectName.charAt(0)}
               </div>
             )}
 
@@ -340,7 +385,7 @@ export function Sidebar({
                   }}
                   className="w-full text-left hover:bg-slate-200/60 dark:hover:bg-slate-200/10 text-gray-700 dark:text-white p-1 pl-2.5 rounded-md"
                 >
-                  {project.chatbotCode}
+                  {project.projectName}
                 </button>
               ))}
             </div>
@@ -624,7 +669,7 @@ export function Sidebar({
             {/* Menu Options */}
             <div>
               <Link
-                href={`/${prefix}/${selectedProjectId ?? 0}/profile`}
+                href={`/${prefix}/profile`}
                 className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
                 onClick={() => {
                   setDropdownOpen(false)

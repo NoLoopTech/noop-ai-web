@@ -10,11 +10,12 @@ import {
   type ChatMessage,
   type GroupedConversations
 } from "@/models/conversation"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { calculateConversationDuration } from "@/utils/calculateConversationDuration"
 import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
+import { useProjectId } from "@/lib/hooks/useProjectId"
 
 // Mock data for chat conversations
 // const MOCK_CHATS = [
@@ -126,11 +127,6 @@ const groupConversationsByThread = (
 
 export default function ChatsPage(): JSX.Element {
   const router = useRouter()
-  const params = useParams()
-  const { lng, projectId: projectIdFromUrl } = params as {
-    lng: string
-    projectId: string
-  }
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
@@ -138,7 +134,7 @@ export default function ChatsPage(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const projectId = parseInt(projectIdFromUrl, 10)
+  const projectId = useProjectId()
 
   const {
     data: paginatedData,
@@ -147,7 +143,9 @@ export default function ChatsPage(): JSX.Element {
     refetch
   } = useApiQuery<PaginatedChats>(
     ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
-    `/conversation/project-conversations?projectId=${projectId}&page=${currentPage}&limit=${rowsPerPage}&search=${searchTerm}`,
+    `/conversation/project-conversations?projectId=${
+      projectId ?? 0
+    }&page=${currentPage}&limit=${rowsPerPage}&search=${searchTerm}`,
     () => ({
       method: "get"
     })
@@ -192,7 +190,7 @@ export default function ChatsPage(): JSX.Element {
     : 1
 
   const handleRowClick = (threadId: string): void => {
-    router.push(`/${lng}/admin/dashboard/${projectId}/chats/${threadId}`)
+    router.push(threadId)
   }
 
   // Toggle row selection

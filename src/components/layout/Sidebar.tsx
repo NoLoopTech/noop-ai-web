@@ -115,23 +115,22 @@ export function Sidebar({
     memoizedProjects.find(p => p.id === selectedProjectId)?.projectName ??
     "Select Project"
 
+  const lng = (params.lng as string) ?? "en"
+  const prefix = `${lng}/admin/dashboard`
+
   const handleSelectProject = (projectId: number): void => {
     setProjectSwitcherOpen(false)
 
     startTransition(() => {
       const pathParts = pathname.split("/").filter(p => p)
       if (pathParts.length >= 4) {
-        const currentPage = pathParts.slice(4).join("/")
-        const newPath = `/${pathParts[0]}/admin/dashboard/${projectId}/${currentPage}`
+        const newPath = `/${prefix}/${projectId}/overview`
         router.push(newPath)
       }
     })
   }
 
   const projectSwitcherRef = useRef<HTMLDivElement>(null)
-
-  const lng = (params.lng as string) ?? "en"
-  const prefix = `${lng}/admin/dashboard`
 
   const { data: session } = useSession()
   const [dropdownOpen, setDropdownOpen] = useState(false)

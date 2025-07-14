@@ -121,7 +121,7 @@ const DetailsSkeleton = (): JSX.Element => (
 export default function ChatDetailsPage(): JSX.Element {
   const router = useRouter()
   const params = useParams()
-  const { id: threadId, lng } = params as { id: string; lng: string }
+  const { id: threadId } = params as { id: string }
   const sidebarScrollRef = useRef<HTMLDivElement>(null)
   const chatContentRef = useRef<HTMLDivElement>(null)
 
@@ -207,7 +207,7 @@ export default function ChatDetailsPage(): JSX.Element {
 
   const handleConversationSelect = (newThreadId: string): void => {
     startTransition(() => {
-      router.push(`/${lng}/admin/dashboard/${projectId}/chats/${newThreadId}`)
+      router.push(`/admin/dashboard/${projectId}/chats/${newThreadId}`)
     })
   }
 
@@ -345,7 +345,7 @@ export default function ChatDetailsPage(): JSX.Element {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    router.push(`/${lng}/admin/dashboard/${projectId}/chats`)
+                    router.push(`/admin/dashboard/${projectId}/chats`)
                   }}
                 >
                   Back to List View

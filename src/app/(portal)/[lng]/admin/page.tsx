@@ -1,5 +1,12 @@
 import { redirect } from "next/navigation"
+import apiCaller from "@/lib/apiCaller"
+import { type UserProject } from "@/models/project"
 
 export default async function AdminPage(): Promise<JSX.Element> {
-  redirect("/admin/dashboard/overview")
+  const userData = await apiCaller<UserProject[], { iosDeviceToken: string }>({
+    url: "user/me/projects",
+    method: "GET"
+  })
+
+  redirect(`/admin/dashboard/${userData[0].id}/overview`)
 }

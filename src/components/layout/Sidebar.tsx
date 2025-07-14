@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { useParams, usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   BarChart3,
@@ -23,10 +23,9 @@ import {
 } from "lucide-react"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { signOut, useSession } from "next-auth/react"
-import { useState, useRef, useEffect, useMemo } from "react"
-// import Logo from "@/../public/assets/navbar-logo.png"
-import NltLogoCircles from "@/../public/assets/nlt-logo-circles.svg"
-import NltLogo from "@/../public/assets/nlt-logo.svg"
+import { useState, useRef, useEffect, useMemo, useTransition } from "react"
+import { useApiQuery } from "@/query"
+import { type UserProject } from "@/models/project"
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -83,26 +82,60 @@ export function Sidebar({
   setIsCollapsed
 }: SidebarProps): JSX.Element {
   const pathname = usePathname()
-  // Extract language from pathname
-  // const lng = pathname.split("/")[1]
+  const params = useParams()
+  const router = useRouter()
 
-  let prefixForLinks: string
-  const pathParts = pathname.split("/")
+  const [isProjectSwitcherOpen, setProjectSwitcherOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
-  if (pathParts.length > 3 && pathParts[1] && pathParts[2]) {
-    prefixForLinks = `${pathParts[2]}/${pathParts[3]}`
-  } else if (pathParts.length > 2 && pathParts[1]) {
-    prefixForLinks = pathParts[1]
-  } else {
-    prefixForLinks = pathParts[1] || ""
+  const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
+    UserProject[]
+  >(["user-projects"], `user/me/projects`, () => ({
+    method: "get"
+  }))
+
+  const selectedProjectId = useMemo(() => {
+    const projectIdFromParams = params.projectId as string
+    if (projectIdFromParams) {
+      const projectId = parseInt(projectIdFromParams, 10)
+      return !isNaN(projectId) ? projectId : undefined
+    }
+    return undefined
+  }, [params.projectId])
+
+  const memoizedProjects = useMemo(() => {
+    const projects = userProjects ?? []
+    return projects.map((project, index) => ({
+      id: project.id,
+      projectName: project.projectName ?? `Project ${index + 1}`
+    }))
+  }, [userProjects])
+
+  const selectedProjectName =
+    memoizedProjects.find(p => p.id === selectedProjectId)?.projectName ??
+    "Select Project"
+
+  const lng = (params.lng as string) ?? "en"
+  const prefix = `${lng}/admin/dashboard`
+
+  const handleSelectProject = (projectId: number): void => {
+    setProjectSwitcherOpen(false)
+
+    startTransition(() => {
+      const pathParts = pathname.split("/").filter(p => p)
+      if (pathParts.length >= 4) {
+        const newPath = `/${prefix}/${projectId}/overview`
+        router.push(newPath)
+      }
+    })
   }
 
-  const prefix = prefixForLinks
+  const projectSwitcherRef = useRef<HTMLDivElement>(null)
 
   const { data: session } = useSession()
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   // State for mini profile dropdown position
   const [miniDropdownPosition, setMiniDropdownPosition] = useState({
@@ -119,7 +152,7 @@ export function Sidebar({
 
     if (session?.user) {
       // For email - available in both auth types
-      email = session.user.email
+      email = session.user.email ?? ""
 
       // For name - try different sources with fallbacks
       if ("name" in session.user && session.user.name) {
@@ -134,9 +167,6 @@ export function Sidebar({
       } else if ("picture" in session.user && session.user.picture) {
         profileImage = session.user.picture as string
       }
-
-      // Debug to console to help troubleshoot what data we're getting
-      console.log("Session user data:", session.user)
     }
 
     return {
@@ -159,6 +189,13 @@ export function Sidebar({
         !buttonRef.current.contains(event.target as Node)
       ) {
         setDropdownOpen(false)
+      }
+
+      if (
+        projectSwitcherRef.current &&
+        !projectSwitcherRef.current.contains(event.target as Node)
+      ) {
+        setProjectSwitcherOpen(false)
       }
     }
 
@@ -189,7 +226,7 @@ export function Sidebar({
       : routePath
 
     // For overview specifically, we want to match /{lng}/overview with or without trailing slash
-    if (routePath.includes("/overview")) {
+    if (routePath.includes(`/${prefix}/overview`)) {
       return normalizedPathname === normalizedRoutePath
     }
 
@@ -202,71 +239,73 @@ export function Sidebar({
       {
         title: "Overview",
         icon: LayoutDashboard,
-        href: `/${prefix}/overview`
+        href: `/${prefix}/${selectedProjectId ?? 0}/overview`
       },
       {
         title: "Chats",
         icon: MessageSquare,
-        href: `/${prefix}/chats`
+        href: `/${prefix}/${selectedProjectId ?? 0}/chats`
       },
       {
         title: "Tickets",
         icon: Ticket,
-        href: `/${prefix}/tickets`
+        href: `/${prefix}/${selectedProjectId ?? 0}/tickets`
       },
       {
         title: "Leads",
         icon: User,
-        href: `/${prefix}/leads`
+        href: `/${prefix}/${selectedProjectId ?? 0}/leads`
       },
       {
         title: "Analytics",
         icon: BarChart3,
-        href: `/${prefix}/analytics`
+        href: `/${prefix}/${selectedProjectId ?? 0}/analytics`
       },
       {
         title: "Integrations",
         icon: LinkIcon,
-        href: `/${prefix}/integrations`
+        href: `/${prefix}/${selectedProjectId ?? 0}/integrations`
       },
       {
         title: "Bot Settings",
         icon: Settings,
-        href: `/${prefix}/bot-settings`
+        href: `/${prefix}/${selectedProjectId ?? 0}/bot-settings`
       }
     ],
     management: [
       {
         title: "Team and Membership",
         icon: Users,
-        href: `/${prefix}/team`
+        href: `/${prefix}/${selectedProjectId ?? 0}/team`
       },
       {
         title: "Market Place",
         icon: Store,
-        href: `/${prefix}/market-place`
+        href: `/${prefix}/${selectedProjectId ?? 0}/market-place`
       },
       {
         title: "Plans & Billings",
         icon: CreditCard,
-        href: `/${prefix}/plans-billings`
+        href: `/${prefix}/${selectedProjectId ?? 0}/plans-billings`
       }
     ],
     support: [
       {
         title: "Help & Support",
         icon: HelpCircle,
-        href: `/${prefix}/help-support`
+        href: `/${prefix}/${selectedProjectId ?? 0}/help-support`
       },
       {
         title: "Settings",
         icon: Settings,
-        href: `/${prefix}/settings`
+        href: `/${prefix}/${selectedProjectId ?? 0}/settings`
       }
     ]
   }
 
-  // User menu options
+  const handleProjectsSwitcher = (): void => {
+    setProjectSwitcherOpen(prev => !prev)
+  }
 
   // Function to handle mini profile click
   const handleMiniProfileClick = (event: React.MouseEvent): void => {
@@ -290,49 +329,67 @@ export function Sidebar({
       )}
     >
       {/* Header with Logo and Title */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-zinc-700">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              {/* <Image
-                src={Logo}
-                alt="Logo"
-                className="h-8 w-auto"
-                height={32}
-                width={32}
-              /> */}
-              <NltLogo className="h-8 w-auto fill-black dark:fill-white" />
-            </Link>
-          </div>
-        )}
-        {isCollapsed && (
-          <div className="w-full flex justify-center">
-            {/* <Image
-              src={Logo}
-              alt="Logo"
-              className="h-7 w-7"
-              height={28}
-              width={28}
-            /> */}
-            <Link href="/">
-              <NltLogoCircles className="h-7 w-auto fill-black dark:fill-white" />
-            </Link>
-          </div>
-        )}
-        <button
-          onClick={() => {
-            setIsCollapsed(!isCollapsed)
-          }}
-          className="h-5 w-5 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <ChevronDown
-            className={cn(
-              "h-4 w-4 transition-transform",
-              isCollapsed && "-rotate-90",
-              !isCollapsed && "rotate-0"
+      <div
+        ref={projectSwitcherRef}
+        onClick={handleProjectsSwitcher}
+        className="relative flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-zinc-700 cursor-pointer"
+      >
+        {isUserProjectsLoading || isPending ? (
+          <div className="flex items-center space-x-2">
+            <div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-zinc-700 animate-pulse"></div>
+            {!isCollapsed && (
+              <div className="h-4 w-24 bg-gray-200 dark:bg-zinc-700 rounded-md animate-pulse"></div>
             )}
-          />
-        </button>
+          </div>
+        ) : (
+          <div className="w-full flex items-center justify-between space-x-1">
+            {!isCollapsed && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{selectedProjectName}</span>
+              </div>
+            )}
+
+            {isCollapsed && (
+              <div className="w-full flex justify-center text-2xl font-bold">
+                {selectedProjectName.charAt(0)}
+              </div>
+            )}
+
+            <div className="h-5 w-5 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform ease-in-out duration-300",
+                  isProjectSwitcherOpen && "-rotate-90"
+                )}
+              />
+            </div>
+          </div>
+        )}
+
+        <div
+          className={`absolute min-w-[230px] max-w-full top-0 bg-white dark:bg-zinc-900 rounded-lg z-10  ${
+            isProjectSwitcherOpen
+              ? "shadow-lg border border-gray-200 dark:border-zinc-700"
+              : ""
+          } ${isCollapsed ? "-right-60" : "-right-60"}`}
+        >
+          {isProjectSwitcherOpen && (
+            <div className="flex flex-col w-full p-1.5 space-y-1">
+              {memoizedProjects.map(project => (
+                <button
+                  key={project.id}
+                  onClick={e => {
+                    e.stopPropagation()
+                    handleSelectProject(project.id)
+                  }}
+                  className="w-full text-left hover:bg-slate-200/60 dark:hover:bg-slate-200/10 text-gray-700 dark:text-white p-1 pl-2.5 rounded-md"
+                >
+                  {project.projectName}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Navigation */}
@@ -512,8 +569,9 @@ export function Sidebar({
                   className="h-full w-full object-cover"
                   onError={e => {
                     // If image fails to load, replace with initials avatar
-                    e.currentTarget.style.display = "none"
-                    const parent = e.currentTarget.parentElement
+                    const target = e.target as HTMLImageElement
+                    target.style.display = "none"
+                    const parent = target.parentElement
                     if (parent) {
                       parent.classList.add(...userInfo.color.split(" "))
                       parent.innerHTML = `<div class="h-full w-full flex items-center justify-center text-white font-medium">${userInfo.initials}</div>`

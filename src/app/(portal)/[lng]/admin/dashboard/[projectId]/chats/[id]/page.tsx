@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useRef, useEffect } from "react"
+import { useMemo, useState, useRef, useEffect, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { useApiQuery } from "@/query"
@@ -12,7 +12,7 @@ import {
 } from "@/models/conversation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
+// import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Markdown from "react-markdown"
 
@@ -55,15 +55,79 @@ const formatTimestamp = (timestamp: string): string => {
   })
 }
 
+const SidebarSkeleton = (): JSX.Element => (
+  <aside className="w-80 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900/50 relative">
+    <div className="p-4 border-b">
+      <div className="h-7 bg-gray-300 rounded w-32 animate-pulse" />
+    </div>
+    <div className="overflow-y-auto h-[calc(100%-4.5rem)]">
+      <nav>
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="w-full p-4 border-b">
+            <div className="h-4 bg-gray-300 rounded w-24 animate-pulse mb-2" />
+            <div className="h-3 bg-gray-300 rounded w-40 animate-pulse" />
+          </div>
+        ))}
+      </nav>
+    </div>
+  </aside>
+)
+
+const ChatSkeleton = (): JSX.Element => (
+  <div className="flex-1 p-6 space-y-4">
+    {[...Array(5)].map((_, i) => (
+      <div
+        key={i}
+        className={`flex items-end gap-2 ${
+          i % 2 === 0 ? "justify-start" : "justify-end"
+        }`}
+      >
+        {i % 2 === 0 && (
+          <div className="h-8 w-8 bg-gray-300 rounded-full animate-pulse" />
+        )}
+        <div className={`max-w-xl rounded-lg px-4 py-2`}>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-300 rounded animate-pulse" />
+            <div className="h-4 bg-gray-300 rounded w-3/4 animate-pulse" />
+          </div>
+          <div className="h-3 bg-gray-300 rounded w-16 mt-2 animate-pulse" />
+        </div>
+        {i % 2 === 1 && (
+          <div className="h-8 w-8 bg-gray-300 rounded-full animate-pulse" />
+        )}
+      </div>
+    ))}
+  </div>
+)
+
+const DetailsSkeleton = (): JSX.Element => (
+  <Card>
+    <CardHeader>
+      <CardTitle>Details</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-6 bg-gray-300 rounded animate-pulse" />
+        <div className="h-4 bg-gray-300 rounded w-24 animate-pulse" />
+      </div>
+      <div className="text-sm space-y-2">
+        <div className="h-4 bg-gray-300 rounded w-12 animate-pulse" />
+        <div className="h-4 bg-gray-300 rounded w-32 animate-pulse" />
+      </div>
+    </CardContent>
+  </Card>
+)
+
 export default function ChatDetailsPage(): JSX.Element {
   const router = useRouter()
   const params = useParams()
-  const { id: threadId, lng } = params as { id: string; lng: string }
+  const { id: threadId } = params as { id: string }
   const sidebarScrollRef = useRef<HTMLDivElement>(null)
   const chatContentRef = useRef<HTMLDivElement>(null)
 
   const [visibleConversationsCount, setVisibleConversationsCount] = useState(10)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   const { data: initialThreadMessages, isLoading: isInitialLoading } =
     useApiQuery<ChatMessage[]>(
@@ -93,7 +157,7 @@ export default function ChatDetailsPage(): JSX.Element {
         return {
           id: threadId,
           country: lastMessage.country ?? "lk",
-          userName: lastMessage.userName ?? "Anonymous",
+          userName: lastMessage.userName ?? "Guest User",
           email: lastMessage.email ?? "No email",
           scoring: "N/A",
           duration: calculateConversationDuration(
@@ -142,7 +206,9 @@ export default function ChatDetailsPage(): JSX.Element {
   }, [messages])
 
   const handleConversationSelect = (newThreadId: string): void => {
-    router.push(`/${lng}/admin/dashboard/chats/${newThreadId}`)
+    startTransition(() => {
+      router.push(`/admin/dashboard/${projectId}/chats/${newThreadId}`)
+    })
   }
 
   const handleLoadMore = (): void => {
@@ -157,6 +223,13 @@ export default function ChatDetailsPage(): JSX.Element {
     sidebarScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
+  const isShowingSkeleton =
+    isInitialLoading ||
+    (isConversationsLoading && !selectedConversation) ||
+    isPending
+
+  const isShowingSidebarSkeleton = isInitialLoading || isConversationsLoading
+
   return (
     <div className="flex h-[calc(100vh-4rem)] border-t">
       {/* Sidebar */}
@@ -169,8 +242,8 @@ export default function ChatDetailsPage(): JSX.Element {
           onScroll={handleSidebarScroll}
           className="overflow-y-auto h-[calc(100%-4.5rem)]"
         >
-          {isConversationsLoading && conversationList.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">Loading...</div>
+          {isShowingSidebarSkeleton ? (
+            <SidebarSkeleton />
           ) : (
             <nav>
               {conversationList
@@ -236,10 +309,24 @@ export default function ChatDetailsPage(): JSX.Element {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {isInitialLoading ||
-        (isConversationsLoading && !selectedConversation) ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <LoadingIcon className="w-20 h-20 animate-spin text-gray-300" />
+        {isShowingSkeleton ? (
+          <div className="flex h-full">
+            {/* Chat Area Skeleton */}
+            <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900">
+              <div className="p-4 border-b flex items-center justify-between">
+                <div className="h-7 bg-gray-300 rounded w-48 animate-pulse" />
+                <div className="h-9 bg-gray-300 rounded w-32 animate-pulse" />
+              </div>
+              <ChatSkeleton />
+              <div className="p-4 border-t bg-white dark:bg-gray-900">
+                <div className="h-10 bg-gray-300 rounded animate-pulse" />
+              </div>
+            </div>
+
+            {/* Details Panel Skeleton */}
+            <div className="w-80 border-l p-4">
+              <DetailsSkeleton />
+            </div>
           </div>
         ) : !selectedConversation ? (
           <div className="flex h-full w-full flex-col items-center justify-center">
@@ -258,7 +345,7 @@ export default function ChatDetailsPage(): JSX.Element {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    router.push(`/${lng}/admin/dashboard/chats`)
+                    router.push(`/admin/dashboard/${projectId}/chats`)
                   }}
                 >
                   Back to List View

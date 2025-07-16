@@ -31,9 +31,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "In progress",
     priority: "High",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 2,
@@ -42,9 +41,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "In progress",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 3,
@@ -53,9 +51,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "In progress",
     priority: "Medium",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 4,
@@ -64,9 +61,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "Done",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 5,
@@ -75,9 +71,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "Todo",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 6,
@@ -86,9 +81,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "In progress",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 7,
@@ -97,9 +91,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "In progress",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 8,
@@ -108,9 +101,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "Closed",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 9,
@@ -119,9 +111,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "Closed",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   },
   {
     id: 10,
@@ -130,9 +121,8 @@ const MOCK_TICKETS = [
     email: "example@gmail.com",
     status: "In progress",
     priority: "Low",
-    bot: "Sales Bot",
-    createdOn: "April 10, 2025",
-    assignedTo: "Sofia Davis"
+    type: "Sales Bot",
+    createdOn: "April 10, 2025"
   }
 ]
 
@@ -383,12 +373,11 @@ export default function ChatsPage(): JSX.Element {
                   <th className="p-4 text-sm font-medium text-gray-500">
                     Priority
                   </th>
-                  <th className="p-4 text-sm font-medium text-gray-500">Bot</th>
                   <th className="p-4 text-sm font-medium text-gray-500">
-                    Created On
+                    Type
                   </th>
                   <th className="p-4 text-sm font-medium text-gray-500">
-                    Assigned to
+                    Created On
                   </th>
                   <th className="p-4 w-8"></th>
                 </tr>
@@ -462,9 +451,8 @@ export default function ChatsPage(): JSX.Element {
                         <span className="text-gray-500">{ticket.priority}</span>
                       </div>
                     </td>
-                    <td className="p-4 text-sm">{ticket.bot}</td>
+                    <td className="p-4 text-sm">{ticket.type}</td>
                     <td className="p-4 text-sm">{ticket.createdOn}</td>
-                    <td className="p-4 text-sm">{ticket.assignedTo}</td>
                     <td className="p-4">
                       <button className="text-gray-500 hover:text-gray-700">
                         <svg
@@ -613,36 +601,40 @@ export default function ChatsPage(): JSX.Element {
             </DialogHeader>
 
             {selectedTicket && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-1">
-                <div className="space-y-2">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                <div className="space-y-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Ticket ID
                     </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
                       {selectedTicket.ticketId}
                     </p>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      User Information
+                      User Name
                     </span>
-                    <div className="mt-0.5 space-y-0.5">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedTicket.userName}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-300">
-                        {selectedTicket.email}
-                      </p>
-                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      {selectedTicket.userName}
+                    </p>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Email
+                    </span>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      {selectedTicket.email}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Status
                     </span>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-1">
                       {selectedTicket.status === "Done" ? (
                         <DoneIcon className="w-4 h-4 text-green-600" />
                       ) : selectedTicket.status === "Todo" ? (
@@ -669,12 +661,14 @@ export default function ChatsPage(): JSX.Element {
                       </span>
                     </div>
                   </div>
+                </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                <div className="space-y-3">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Priority
                     </span>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-1">
                       {selectedTicket.priority === "High" ? (
                         <ArrowUpIcon className="w-4 h-4 text-red-500" />
                       ) : selectedTicket.priority === "Medium" ? (
@@ -695,41 +689,23 @@ export default function ChatsPage(): JSX.Element {
                       </span>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Bot
+                      Type
                     </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
-                      {selectedTicket.bot}
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      {selectedTicket.type}
                     </p>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Created On
                     </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
                       {selectedTicket.createdOn}
                     </p>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Assigned To
-                    </span>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-medium">
-                          {selectedTicket.assignedTo.charAt(0)}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {selectedTicket.assignedTo}
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>

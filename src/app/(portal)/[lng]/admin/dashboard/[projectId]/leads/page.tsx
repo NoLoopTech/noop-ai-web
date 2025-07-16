@@ -633,7 +633,14 @@ export default function ChatsPage(): JSX.Element {
                     Content
                   </span>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                    {selectedLead.content}
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd gshdgsdhfghsd
+                    gshdgsdhfghsd gshdgsdhfghsd
                   </p>
                 </div>
               </>

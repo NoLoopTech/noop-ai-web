@@ -5,7 +5,6 @@ import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
 import {
-  type PaginatedChats,
   type ChatConversation,
   type ChatMessage,
   type GroupedConversations
@@ -16,100 +15,9 @@ import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
+import { type PaginatedResult } from "@/types/paginatedData"
 
-// Mock data for chat conversations
-// const MOCK_CHATS = [
-//   {
-//     id: 1,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 2,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 3,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 4,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 5,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 6,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 7,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 8,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 9,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   },
-//   {
-//     id: 10,
-//     country: "es",
-//     userName: "Michael Wilson",
-//     email: "example@gmail.com",
-//     scoring: "Positive",
-//     duration: "10 mins",
-//     summary: "A small description of the ai chat"
-//   }
-// ]
+type PaginatedChats = PaginatedResult<ChatMessage>
 
 const groupConversationsByThread = (
   messages: ChatMessage[]
@@ -209,6 +117,13 @@ export default function ChatsPage(): JSX.Element {
     } else {
       setSelectedRows(chatConversations.map(chat => chat.id))
     }
+  }
+
+  const handleRowsPerPageChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
+    setRowsPerPage(Number(e.target.value))
+    setCurrentPage(1)
   }
 
   return (
@@ -499,10 +414,7 @@ export default function ChatsPage(): JSX.Element {
             <span className="text-sm">Rows per page</span>
             <select
               value={rowsPerPage}
-              onChange={e => {
-                setRowsPerPage(Number(e.target.value))
-                setCurrentPage(1)
-              }}
+              onChange={handleRowsPerPageChange}
               className="border rounded px-2 py-1 text-sm"
             >
               <option value="10">10</option>

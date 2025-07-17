@@ -10,8 +10,3 @@ export interface Lead {
   threadId: string
   timestamp: string
 }
-
-export interface PaginatedLeads {
-  data: Lead[]
-  total: number
-}

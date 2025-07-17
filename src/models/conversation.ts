@@ -37,3 +37,8 @@ export interface ChatConversation {
 }
 
 export type GroupedConversations = Record<string, ChatMessage[]>
+
+export interface PaginatedChats {
+  data: ChatMessage[]
+  total: number
+}

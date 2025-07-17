@@ -165,7 +165,7 @@ export default function ChatsPage(): JSX.Element {
     return MOCK_TICKETS.slice(startIndex, endIndex)
   }, [currentPage, rowsPerPage])
 
-  const handleRowClick = (ticketId: string): void => {
+  const handleRowClick = (ticketId: string) => () => {
     const ticket = MOCK_TICKETS.find(t => t.id.toString() === ticketId)
     if (ticket) {
       setSelectedTicket(ticket)
@@ -174,7 +174,7 @@ export default function ChatsPage(): JSX.Element {
   }
 
   // Toggle row selection
-  const toggleRowSelection = (id: string): void => {
+  const toggleRowSelection = (id: string) => () => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter(rowId => rowId !== id))
     } else {
@@ -189,6 +189,10 @@ export default function ChatsPage(): JSX.Element {
     } else {
       setSelectedRows(MOCK_TICKETS.map(ticket => ticket.id.toString()))
     }
+  }
+
+  const handleRowCheckboxChange = (id: string) => () => {
+    toggleRowSelection(id)
   }
 
   return (
@@ -387,9 +391,7 @@ export default function ChatsPage(): JSX.Element {
                   <tr
                     key={ticket.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
-                    onClick={() => {
-                      handleRowClick(ticket.id.toString())
-                    }}
+                    onClick={handleRowClick(ticket.id.toString())}
                   >
                     <td
                       className="p-4"
@@ -400,9 +402,7 @@ export default function ChatsPage(): JSX.Element {
                       <input
                         type="checkbox"
                         checked={selectedRows.includes(ticket.id.toString())}
-                        onChange={() => {
-                          toggleRowSelection(ticket.id.toString())
-                        }}
+                        onChange={handleRowCheckboxChange(ticket.id.toString())}
                         className="rounded"
                       />
                     </td>

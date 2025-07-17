@@ -183,7 +183,7 @@ export default function ChatsPage(): JSX.Element {
   }
 
   // Toggle all rows selection
-  const toggleAllRows = () => () => {
+  const toggleAllRows = (): void => {
     if (selectedRows.length === MOCK_TICKETS.length) {
       setSelectedRows([])
     } else {

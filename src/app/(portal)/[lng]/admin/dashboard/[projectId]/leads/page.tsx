@@ -15,6 +15,7 @@ import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
+import { formatDate } from "@/utils/formatDate"
 
 export default function ChatsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
@@ -42,10 +43,6 @@ export default function ChatsPage(): JSX.Element {
       method: "get"
     })
   )
-
-  // TODO: change /lead/project-leads to /leads?.... from both BE & FE
-
-  console.log("paginatedData", paginatedData)
 
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []
@@ -316,9 +313,7 @@ export default function ChatsPage(): JSX.Element {
                   <tr
                     key={lead.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
-                    onClick={() => {
-                      handleRowClick(lead.id)
-                    }}
+                    onClick={handleRowClick(lead.id)}
                   >
                     <td
                       className="p-4"
@@ -342,7 +337,9 @@ export default function ChatsPage(): JSX.Element {
                     </td>
                     <td className="p-4 text-sm">5</td>
                     <td className="p-4 text-sm">new</td>
-                    <td className="p-4 text-sm">{lead.timestamp}</td>
+                    <td className="p-4 text-sm">
+                      {formatDate(lead.timestamp)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -536,10 +533,10 @@ export default function ChatsPage(): JSX.Element {
 
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
                       <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Created On
+                        Date
                       </span>
                       <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                        {selectedLead.timestamp}
+                        {formatDate(selectedLead.timestamp)}
                       </p>
                     </div>
                   </div>

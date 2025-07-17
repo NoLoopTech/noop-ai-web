@@ -17,8 +17,6 @@ import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type PaginatedResult } from "@/types/paginatedData"
 
-type PaginatedChats = PaginatedResult<ChatMessage>
-
 const groupConversationsByThread = (
   messages: ChatMessage[]
 ): GroupedConversations => {
@@ -49,7 +47,7 @@ export default function ChatsPage(): JSX.Element {
     isLoading: isChatsLoading,
     isFetching,
     refetch
-  } = useApiQuery<PaginatedChats>(
+  } = useApiQuery<PaginatedResult<ChatMessage>>(
     ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
     `/conversation/project-conversations?projectId=${
       projectId ?? 0
@@ -58,6 +56,8 @@ export default function ChatsPage(): JSX.Element {
       method: "get"
     })
   )
+
+  // TODO: change /conversation/project-conversations to /conversations?.... from both BE & FE
 
   const chatConversations = useMemo((): ChatConversation[] => {
     if (!paginatedData?.data) {
@@ -124,6 +124,10 @@ export default function ChatsPage(): JSX.Element {
   ): void => {
     setRowsPerPage(Number(e.target.value))
     setCurrentPage(1)
+  }
+
+  const handleRowCheckboxChange = (id: string) => () => {
+    toggleRowSelection(id)
   }
 
   return (
@@ -357,7 +361,7 @@ export default function ChatsPage(): JSX.Element {
                         type="checkbox"
                         checked={selectedRows.includes(chat.id)}
                         onChange={() => {
-                          toggleRowSelection(chat.id)
+                          handleRowCheckboxChange(chat.id)
                         }}
                         className="rounded"
                       />

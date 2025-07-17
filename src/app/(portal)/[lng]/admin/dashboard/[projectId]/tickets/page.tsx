@@ -191,6 +191,10 @@ export default function ChatsPage(): JSX.Element {
     }
   }
 
+  const handleRowCheckboxChange = (id: string) => () => {
+    toggleRowSelection(id)
+  }
+
   return (
     <div className="flex flex-col p-6 gap-6">
       <div className="w-max flex items-center space-x-2">
@@ -401,7 +405,7 @@ export default function ChatsPage(): JSX.Element {
                         type="checkbox"
                         checked={selectedRows.includes(ticket.id.toString())}
                         onChange={() => {
-                          toggleRowSelection(ticket.id.toString())
+                          handleRowCheckboxChange(ticket.id.toString())
                         }}
                         className="rounded"
                       />

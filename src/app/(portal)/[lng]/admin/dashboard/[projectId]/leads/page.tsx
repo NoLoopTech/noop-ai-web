@@ -16,8 +16,6 @@ import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 
-type PaginatedLeads = PaginatedResult<Lead>
-
 export default function ChatsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
@@ -35,15 +33,17 @@ export default function ChatsPage(): JSX.Element {
     isLoading: isLeadsLoading,
     isFetching,
     refetch
-  } = useApiQuery<PaginatedLeads>(
+  } = useApiQuery<PaginatedResult<Lead>>(
     ["project-leads", projectId, currentPage, rowsPerPage, searchTerm],
-    `/lead/project-leads?projectId=${
+    `/leads?projectId=${
       projectId ?? 0
     }&page=${currentPage}&limit=${rowsPerPage}`,
     () => ({
       method: "get"
     })
   )
+
+  // TODO: change /lead/project-leads to /leads?.... from both BE & FE
 
   console.log("paginatedData", paginatedData)
 
@@ -63,7 +63,7 @@ export default function ChatsPage(): JSX.Element {
     ? Math.ceil(paginatedData.total / rowsPerPage)
     : 1
 
-  const handleRowClick = (leadId: string | number): void => {
+  const handleRowClick = (leadId: string | number) => () => {
     const lead = leads.find(l => l.id === leadId)
     if (lead) {
       setSelectedLead(lead)
@@ -72,7 +72,7 @@ export default function ChatsPage(): JSX.Element {
   }
 
   // Toggle row selection
-  const toggleRowSelection = (id: string): void => {
+  const toggleRowSelection = (id: string) => () => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter(rowId => rowId !== id))
     } else {
@@ -81,7 +81,7 @@ export default function ChatsPage(): JSX.Element {
   }
 
   // Toggle all rows selection
-  const toggleAllRows = (): void => {
+  const toggleAllRows = () => () => {
     if (selectedRows.length === leads.length) {
       setSelectedRows([])
     } else {
@@ -89,11 +89,14 @@ export default function ChatsPage(): JSX.Element {
     }
   }
 
-  const handleRowsPerPageChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
-    setRowsPerPage(Number(e.target.value))
-    setCurrentPage(1)
+  const handleRowsPerPageChange =
+    (e: React.ChangeEvent<HTMLSelectElement>) => () => {
+      setRowsPerPage(Number(e.target.value))
+      setCurrentPage(1)
+    }
+
+  const handleRowCheckboxChange = (id: string) => () => {
+    toggleRowSelection(id)()
   }
 
   return (
@@ -327,7 +330,7 @@ export default function ChatsPage(): JSX.Element {
                         type="checkbox"
                         checked={selectedRows.includes(lead.id.toString())}
                         onChange={() => {
-                          toggleRowSelection(lead.id.toString())
+                          handleRowCheckboxChange(lead.id.toString())
                         }}
                         className="rounded"
                       />

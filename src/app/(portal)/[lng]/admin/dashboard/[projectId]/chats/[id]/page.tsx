@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 // import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Markdown from "react-markdown"
+import { formatDate } from "@/utils/formatDate"
 
 const groupConversationsByThread = (
   messages: ChatMessage[]
@@ -46,13 +47,6 @@ const calculateConversationDuration = (
   const hourString = `${hours} h`
   const minuteString = minutes > 0 ? ` ${minutes} mins` : ""
   return `${hourString}${minuteString}`
-}
-
-const formatTimestamp = (timestamp: string): string => {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  })
 }
 
 const SidebarSkeleton = (): JSX.Element => (
@@ -444,7 +438,7 @@ export default function ChatDetailsPage(): JSX.Element {
                             : "text-gray-500"
                         }`}
                       >
-                        {formatTimestamp(message.createdAt)}
+                        {formatDate(message.createdAt)}
                       </p>
                     </div>
                     {message.sender === "user" && (

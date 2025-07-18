@@ -8,9 +8,6 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
-// import { useApiQuery } from "@/query"
-// import { type PaginatedChats } from "@/models/conversation"
-// import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import TimerIcon from "@/../public/assets/icons/timer.svg"
@@ -20,111 +17,12 @@ import ClosedIcon from "@/../public/assets/icons/closed.svg"
 import ArrowUpIcon from "@/../public/assets/icons/arrow-up.svg"
 import ArrowDownIcon from "@/../public/assets/icons/arrow-down.svg"
 import ArrowRightIcon from "@/../public/assets/icons/arrow-right.svg"
-// import { useProjectId } from "@/lib/hooks/useProjectId"
-
-// Mock data for tickets
-const MOCK_TICKETS = [
-  {
-    id: 1,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "In progress",
-    priority: "High",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 2,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "In progress",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 3,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "In progress",
-    priority: "Medium",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 4,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "Done",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 5,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "Todo",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 6,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "In progress",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 7,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "In progress",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 8,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "Closed",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 9,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "Closed",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  },
-  {
-    id: 10,
-    ticketId: "#1234",
-    userName: "William Kim",
-    email: "example@gmail.com",
-    status: "In progress",
-    priority: "Low",
-    type: "Sales Bot",
-    createdOn: "April 10, 2025"
-  }
-]
+import { useProjectId } from "@/lib/hooks/useProjectId"
+import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
+import { useApiQuery } from "@/query"
+import { type PaginatedResult } from "@/types/paginatedData"
+import { type Ticket } from "@/models/ticket"
+import { formatDate } from "@/utils/formatDate"
 
 export default function ChatsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
@@ -134,39 +32,44 @@ export default function ChatsPage(): JSX.Element {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [statusFilter, setStatusFilter] = useState("Status")
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
-  const [selectedTicket, setSelectedTicket] = useState<
-    (typeof MOCK_TICKETS)[0] | null
-  >(null)
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isChatsLoading] = useState(false)
 
-  //   const projectId = useProjectId()
+  const projectId = useProjectId()
 
-  //   const {
-  //     isLoading: isChatsLoading,
-  //     isFetching,
-  //     refetch
-  //   } = useApiQuery<PaginatedChats>(
-  //     ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
-  //     `/conversation/project-conversations?projectId=${
-  //       projectId ?? 0
-  //     }&page=${currentPage}&limit=${rowsPerPage}&search=${searchTerm}`,
-  //     () => ({
-  //       method: "get"
-  //     })
-  //   )
+  const {
+    data: paginatedData,
+    isLoading: isTicketsLoading,
+    isFetching,
+    refetch
+  } = useApiQuery<PaginatedResult<Ticket>>(
+    ["project-tickets", projectId, currentPage, rowsPerPage, searchTerm],
+    `/tickets?projectId=${
+      projectId ?? 0
+    }&page=${currentPage}&limit=${rowsPerPage}`,
+    () => ({
+      method: "get"
+    })
+  )
 
-  const totalPages = Math.ceil(MOCK_TICKETS.length / rowsPerPage)
+  const tickets = useMemo((): Ticket[] => {
+    if (!paginatedData?.data) return []
+    if (searchTerm) {
+      return paginatedData.data.filter(
+        ticket =>
+          ticket.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          ticket.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+    return paginatedData.data
+  }, [paginatedData, searchTerm])
 
-  // Get current page tickets
-  const currentPageTickets = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage
-    const endIndex = startIndex + rowsPerPage
-    return MOCK_TICKETS.slice(startIndex, endIndex)
-  }, [currentPage, rowsPerPage])
+  const totalPages = paginatedData?.total
+    ? Math.ceil(paginatedData.total / rowsPerPage)
+    : 1
 
   const handleRowClick = (ticketId: string) => () => {
-    const ticket = MOCK_TICKETS.find(t => t.id.toString() === ticketId)
+    const ticket = tickets.find(t => t.id.toString() === ticketId)
     if (ticket) {
       setSelectedTicket(ticket)
       setIsModalOpen(true)
@@ -184,10 +87,10 @@ export default function ChatsPage(): JSX.Element {
 
   // Toggle all rows selection
   const toggleAllRows = (): void => {
-    if (selectedRows.length === MOCK_TICKETS.length) {
+    if (selectedRows.length === tickets.length) {
       setSelectedRows([])
     } else {
-      setSelectedRows(MOCK_TICKETS.map(ticket => ticket.id.toString()))
+      setSelectedRows(tickets.map(ticket => ticket.id.toString()))
     }
   }
 
@@ -238,7 +141,7 @@ export default function ChatsPage(): JSX.Element {
           </div>
 
           <div className="flex items-center space-x-3.5">
-            {/* <button
+            <button
               onClick={() => {
                 void refetch()
               }}
@@ -251,7 +154,7 @@ export default function ChatsPage(): JSX.Element {
                   isFetching ? "animate-spin" : ""
                 }`}
               />
-            </button> */}
+            </button>
           </div>
         </div>
 
@@ -340,29 +243,29 @@ export default function ChatsPage(): JSX.Element {
         </div>
 
         <div className="overflow-x-auto">
-          {isChatsLoading ? (
+          {isTicketsLoading ? (
             <div className="w-full h-96 flex justify-center items-center">
               <LoadingIcon
                 className={`w-40 h-40 font-thin fill-gray-500/50 ${
-                  isChatsLoading
+                  isTicketsLoading
                     ? "animate-pulse animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both"
                     : ""
                 }`}
               />
             </div>
-          ) : currentPageTickets.length > 0 ? (
+          ) : tickets.length > 0 ? (
             <table className="w-full">
               <thead className="bg-gray-100 dark:bg-gray-900/75 text-left">
                 <tr>
                   <th className="p-4 w-8">
                     <input
                       type="checkbox"
-                      checked={selectedRows.length === MOCK_TICKETS.length}
+                      checked={selectedRows.length === tickets.length}
                       onChange={toggleAllRows}
                       className="rounded"
                     />
                   </th>
-                  <th className="p-4 w-5 text-sm font-medium text-gray-500">
+                  <th className="py-4 px-1 text-sm font-medium text-gray-500">
                     Ticket ID
                   </th>
                   <th className="p-4 text-sm font-medium text-gray-500">
@@ -370,6 +273,9 @@ export default function ChatsPage(): JSX.Element {
                   </th>
                   <th className="p-4 text-sm font-medium text-gray-500">
                     Email
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Phone Number
                   </th>
                   <th className="p-4 text-sm font-medium text-gray-500">
                     Status
@@ -387,7 +293,7 @@ export default function ChatsPage(): JSX.Element {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {currentPageTickets.map(ticket => (
+                {tickets.map(ticket => (
                   <tr
                     key={ticket.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
@@ -406,11 +312,10 @@ export default function ChatsPage(): JSX.Element {
                         className="rounded"
                       />
                     </td>
-                    <td className="p-4 text-sm font-medium">
-                      {ticket.ticketId}
-                    </td>
+                    <td className="p-4 text-sm font-medium">{ticket.id}</td>
                     <td className="p-4 text-sm">{ticket.userName}</td>
                     <td className="p-4 text-sm">{ticket.email}</td>
+                    <td className="p-4 text-sm">{ticket.phoneNumber}</td>
                     <td className="p-4 text-sm">
                       <div className="flex items-center space-x-2">
                         {ticket.status === "Done" ? (
@@ -435,7 +340,7 @@ export default function ChatsPage(): JSX.Element {
                               : "text-gray-500"
                           }`}
                         >
-                          {ticket.status}
+                          {ticket.status ?? "New"}
                         </span>
                       </div>
                     </td>
@@ -448,11 +353,15 @@ export default function ChatsPage(): JSX.Element {
                         ) : ticket.priority === "Low" ? (
                           <ArrowDownIcon className="w-4 h-4 text-gray-500" />
                         ) : null}
-                        <span className="text-gray-500">{ticket.priority}</span>
+                        <span className="text-gray-500">
+                          {ticket.priority ?? "medium"}
+                        </span>
                       </div>
                     </td>
-                    <td className="p-4 text-sm">{ticket.type}</td>
-                    <td className="p-4 text-sm">{ticket.createdOn}</td>
+                    <td className="p-4 text-sm">{ticket.type ?? "General"}</td>
+                    <td className="p-4 text-sm">
+                      {formatDate(ticket.timestamp)}
+                    </td>
                     <td className="p-4">
                       <button className="text-gray-500 hover:text-gray-700">
                         <svg
@@ -479,8 +388,8 @@ export default function ChatsPage(): JSX.Element {
         <div className="flex items-center justify-between p-4 border-t">
           <div className="text-sm text-gray-500">
             {selectedRows.length > 0
-              ? `${selectedRows.length} of ${MOCK_TICKETS.length} row(s) selected.`
-              : `0 of ${MOCK_TICKETS.length} row(s) selected.`}
+              ? `${selectedRows.length} of ${tickets.length} row(s) selected.`
+              : `0 of ${tickets.length} row(s) selected.`}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -601,114 +510,132 @@ export default function ChatsPage(): JSX.Element {
             </DialogHeader>
 
             {selectedTicket && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
-                <div className="space-y-3">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Ticket ID
-                    </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {selectedTicket.ticketId}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      User Name
-                    </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {selectedTicket.userName}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Email
-                    </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {selectedTicket.email}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Status
-                    </span>
-                    <div className="flex items-center gap-2 mt-1">
-                      {selectedTicket.status === "Done" ? (
-                        <DoneIcon className="w-4 h-4 text-green-600" />
-                      ) : selectedTicket.status === "Todo" ? (
-                        <TodoIcon className="w-4 h-4 text-yellow-600" />
-                      ) : selectedTicket.status === "Closed" ? (
-                        <ClosedIcon className="w-4 h-4 text-gray-600" />
-                      ) : (
-                        <TimerIcon className="w-4 h-4 text-blue-600" />
-                      )}
-                      <span
-                        className={`text-sm font-semibold ${
-                          selectedTicket.status === "Done"
-                            ? "text-green-600"
-                            : selectedTicket.status === "In progress"
-                            ? "text-blue-600"
-                            : selectedTicket.status === "Todo"
-                            ? "text-yellow-600"
-                            : selectedTicket.status === "Closed"
-                            ? "text-gray-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {selectedTicket.status}
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Ticket ID
                       </span>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {selectedTicket.id}
+                      </p>
                     </div>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Priority
-                    </span>
-                    <div className="flex items-center gap-2 mt-1">
-                      {selectedTicket.priority === "High" ? (
-                        <ArrowUpIcon className="w-4 h-4 text-red-500" />
-                      ) : selectedTicket.priority === "Medium" ? (
-                        <ArrowRightIcon className="w-4 h-4 text-yellow-500" />
-                      ) : selectedTicket.priority === "Low" ? (
-                        <ArrowDownIcon className="w-4 h-4 text-green-500" />
-                      ) : null}
-                      <span
-                        className={`text-sm font-semibold ${
-                          selectedTicket.priority === "High"
-                            ? "text-red-600"
-                            : selectedTicket.priority === "Medium"
-                            ? "text-yellow-600"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {selectedTicket.priority}
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        User Name
                       </span>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {selectedTicket.userName}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Email
+                      </span>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {selectedTicket.email}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Phone Number
+                      </span>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {selectedTicket.phoneNumber ?? "N/A"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Type
-                    </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {selectedTicket.type}
-                    </p>
-                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Status
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {selectedTicket.status === "Done" ? (
+                          <DoneIcon className="w-4 h-4 text-green-600" />
+                        ) : selectedTicket.status === "Todo" ? (
+                          <TodoIcon className="w-4 h-4 text-yellow-600" />
+                        ) : selectedTicket.status === "Closed" ? (
+                          <ClosedIcon className="w-4 h-4 text-gray-600" />
+                        ) : (
+                          <TimerIcon className="w-4 h-4 text-blue-600" />
+                        )}
+                        <span
+                          className={`text-sm font-semibold ${
+                            selectedTicket.status === "Done"
+                              ? "text-green-600"
+                              : selectedTicket.status === "In progress"
+                              ? "text-blue-600"
+                              : selectedTicket.status === "Todo"
+                              ? "text-yellow-600"
+                              : selectedTicket.status === "Closed"
+                              ? "text-gray-600"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {selectedTicket.status ?? "New"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Priority
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {selectedTicket.priority === "High" ? (
+                          <ArrowUpIcon className="w-4 h-4 text-red-500" />
+                        ) : selectedTicket.priority === "Medium" ? (
+                          <ArrowRightIcon className="w-4 h-4 text-yellow-500" />
+                        ) : selectedTicket.priority === "Low" ? (
+                          <ArrowDownIcon className="w-4 h-4 text-green-500" />
+                        ) : null}
+                        <span
+                          className={`text-sm font-semibold ${
+                            selectedTicket.priority === "High"
+                              ? "text-red-600"
+                              : selectedTicket.priority === "Medium"
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {selectedTicket.priority ?? "medium"}
+                        </span>
+                      </div>
+                    </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Created On
-                    </span>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                      {selectedTicket.createdOn}
-                    </p>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Type
+                      </span>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {selectedTicket.type ?? "General"}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Created On
+                      </span>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                        {formatDate(selectedTicket.timestamp)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 min-h-16 flex flex-col justify-center">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Content
+                  </span>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                    {selectedTicket.content}
+                  </p>
+                </div>
+              </>
             )}
           </DialogContent>
         </Dialog>

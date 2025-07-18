@@ -49,15 +49,13 @@ export default function ChatsPage(): JSX.Element {
     refetch
   } = useApiQuery<PaginatedResult<ChatMessage>>(
     ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
-    `/conversation/project-conversations?projectId=${
+    `/conversations?projectId=${
       projectId ?? 0
     }&page=${currentPage}&limit=${rowsPerPage}&search=${searchTerm}`,
     () => ({
       method: "get"
     })
   )
-
-  // TODO: change /conversation/project-conversations to /conversations?.... from both BE & FE
 
   const chatConversations = useMemo((): ChatConversation[] => {
     if (!paginatedData?.data) {

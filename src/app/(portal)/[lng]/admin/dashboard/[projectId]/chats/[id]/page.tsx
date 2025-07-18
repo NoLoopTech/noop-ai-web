@@ -132,7 +132,7 @@ export default function ChatDetailsPage(): JSX.Element {
   const { data: initialThreadMessages, isLoading: isInitialLoading } =
     useApiQuery<ChatMessage[]>(
       ["chat-thread", threadId],
-      `/conversation/thread?threadId=${threadId}`,
+      `/conversations/thread?threadId=${threadId}`,
       () => ({ method: "get" }),
       { enabled: !!threadId }
     )
@@ -142,7 +142,7 @@ export default function ChatDetailsPage(): JSX.Element {
   const { data: paginatedData, isLoading: isConversationsLoading } =
     useApiQuery<PaginatedChats>(
       ["project-conversations", projectId],
-      `/conversation/project-conversations?projectId=${projectId}&page=1&limit=1000`,
+      `/conversations?projectId=${projectId}&page=1&limit=1000`,
       () => ({ method: "get" }),
       { enabled: !!projectId }
     )

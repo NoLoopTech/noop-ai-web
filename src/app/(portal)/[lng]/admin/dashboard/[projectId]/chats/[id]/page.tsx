@@ -4,50 +4,17 @@ import { useMemo, useState, useRef, useEffect, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { useApiQuery } from "@/query"
-import {
-  type ChatMessage,
-  type PaginatedChats,
-  type GroupedConversations,
-  type ChatConversation
-} from "@/models/conversation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-// import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Markdown from "react-markdown"
 import { formatDate } from "@/utils/formatDate"
-
-const groupConversationsByThread = (
-  messages: ChatMessage[]
-): GroupedConversations => {
-  if (!messages) return {}
-  return messages.reduce<GroupedConversations>((acc, message) => {
-    const { threadId } = message
-    if (!acc[threadId]) {
-      acc[threadId] = []
-    }
-    acc[threadId].push(message)
-    return acc
-  }, {})
-}
-
-const calculateConversationDuration = (
-  startTime: string,
-  endTime: string
-): string => {
-  if (!startTime || !endTime) return "0 secs"
-  const durationMs = new Date(endTime).getTime() - new Date(startTime).getTime()
-  if (durationMs <= 0) return "0 secs"
-  const totalSeconds = Math.round(durationMs / 1000)
-  if (totalSeconds < 60) return "< 1min"
-  const totalMinutes = Math.round(totalSeconds / 60)
-  if (totalMinutes < 60) return `${totalMinutes} mins`
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  const hourString = `${hours} h`
-  const minuteString = minutes > 0 ? ` ${minutes} mins` : ""
-  return `${hourString}${minuteString}`
-}
+import { type PaginatedResult } from "@/types/paginatedData"
+import {
+  type ChatMessage,
+  type ChatSessionResponse
+} from "@/models/conversation"
+import { useProjectId } from "@/lib/hooks/useProjectId"
 
 const SidebarSkeleton = (): JSX.Element => (
   <aside className="w-80 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900/50 relative">
@@ -123,73 +90,56 @@ export default function ChatDetailsPage(): JSX.Element {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isPending, startTransition] = useTransition()
 
+  const projectId = useProjectId()
+
+  const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
+    PaginatedResult<ChatSessionResponse>
+  >(
+    ["message-thread", projectId],
+    `/conversations?projectId=${
+      projectId ?? 0
+    }&page=${1}&limit=${10}&sortBy=createdAt&sortDir=DESC`,
+    () => ({
+      method: "get"
+    })
+  )
+
   const { data: initialThreadMessages, isLoading: isInitialLoading } =
-    useApiQuery<ChatMessage[]>(
+    useApiQuery<PaginatedResult<ChatMessage>>(
       ["chat-thread", threadId],
       `/conversations/thread?threadId=${threadId}`,
       () => ({ method: "get" }),
       { enabled: !!threadId }
     )
 
-  const projectId = initialThreadMessages?.[0]?.project?.id ?? ""
-
-  const { data: paginatedData, isLoading: isConversationsLoading } =
-    useApiQuery<PaginatedChats>(
-      ["project-conversations", projectId],
-      `/conversations?projectId=${projectId}&page=1&limit=1000`,
-      () => ({ method: "get" }),
-      { enabled: !!projectId }
-    )
-
-  const conversationList = useMemo((): ChatConversation[] => {
+  const conversationList = useMemo(() => {
     if (!paginatedData?.data) return []
-    const grouped = groupConversationsByThread(paginatedData.data)
-    const conversations = Object.entries(grouped).map(
-      ([threadId, messages]) => {
-        const firstMessage = messages[0]
-        const lastMessage = messages[messages.length - 1]
-        return {
-          id: threadId,
-          country: lastMessage.country ?? "lk",
-          userName: lastMessage.userName ?? "Guest User",
-          email: lastMessage.email ?? "No email",
-          scoring: "N/A",
-          duration: calculateConversationDuration(
-            firstMessage.createdAt,
-            lastMessage.createdAt
-          ),
-          summary:
-            messages.find(m => m.sender === "user")?.content.substring(0, 35) ??
-            "No summary",
-          messages,
-          chatbotCode: firstMessage.project.chatbotCode ?? ""
-        }
-      }
-    )
-    conversations.sort((a, b) => {
-      const lastMessageA = a.messages[a.messages.length - 1]
-      const lastMessageB = b.messages[b.messages.length - 1]
-      return (
-        new Date(lastMessageB.createdAt).getTime() -
-        new Date(lastMessageA.createdAt).getTime()
-      )
-    })
-    return conversations
+    return paginatedData.data.map(session => ({
+      id: session.session.threadId,
+      userName: session.session.country ?? "Guest User",
+      summary: session.session.summary ?? "No summary",
+      country: session.session.country ?? "lk"
+    }))
   }, [paginatedData])
 
-  const selectedConversation = useMemo(
-    () => conversationList.find(c => c.id === threadId),
-    [conversationList, threadId]
-  )
+  const selectedConversation = useMemo(() => {
+    const base = conversationList.find(c => c.id === threadId)
+    if (!base) return undefined
+    return {
+      ...base,
+      messages: initialThreadMessages?.data ?? []
+    }
+  }, [conversationList, threadId, initialThreadMessages])
 
   const messages = selectedConversation?.messages ?? []
+
   const conversationDetails = useMemo(() => {
-    if (!selectedConversation) return null
+    if (!selectedConversation?.messages.length) return null
+    const firstMsg = selectedConversation.messages[0]
     return {
-      userName: selectedConversation.userName,
-      email: selectedConversation.email,
-      country: selectedConversation.country,
-      chatbotCode: selectedConversation.messages[0].project.chatbotCode
+      userName: firstMsg.userName ?? "Guest User",
+      email: firstMsg.email ?? "No email",
+      country: firstMsg.country ?? "lk"
     }
   }, [selectedConversation])
 
@@ -201,7 +151,9 @@ export default function ChatDetailsPage(): JSX.Element {
 
   const handleConversationSelect = (newThreadId: string): void => {
     startTransition(() => {
-      router.push(`/admin/dashboard/${projectId}/chats/${newThreadId}`)
+      router.push(
+        `/admin/dashboard/${String(projectId ?? 0)}/chats/${newThreadId}`
+      )
     })
   }
 
@@ -218,11 +170,9 @@ export default function ChatDetailsPage(): JSX.Element {
   }
 
   const isShowingSkeleton =
-    isInitialLoading ||
-    (isConversationsLoading && !selectedConversation) ||
-    isPending
+    isInitialLoading || (isChatsLoading && !selectedConversation) || isPending
 
-  const isShowingSidebarSkeleton = isInitialLoading || isConversationsLoading
+  const isShowingSidebarSkeleton = isInitialLoading || isChatsLoading
 
   return (
     <div className="flex h-[calc(100vh-4rem)] border-t">
@@ -262,7 +212,7 @@ export default function ChatDetailsPage(): JSX.Element {
                 ))}
             </nav>
           )}
-          {!isConversationsLoading && conversationList.length > 0 && (
+          {!isChatsLoading && conversationList.length > 0 && (
             <div className="p-4 text-center">
               {visibleConversationsCount < conversationList.length ? (
                 <Button variant="outline" onClick={handleLoadMore}>
@@ -339,7 +289,7 @@ export default function ChatDetailsPage(): JSX.Element {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    router.push(`/admin/dashboard/${projectId}/chats`)
+                    router.push(`/admin/dashboard/${projectId ?? 0}/chats`)
                   }}
                 >
                   Back to List View

@@ -118,7 +118,7 @@ export default function ChatDetailsPage(): JSX.Element {
       id: session.session.threadId,
       userName: session.session.country ?? "Guest User",
       summary: session.session.summary ?? "No summary",
-      country: session.session.country ?? "lk"
+      country: session.session.country ?? "N/A"
     }))
   }, [paginatedData])
 

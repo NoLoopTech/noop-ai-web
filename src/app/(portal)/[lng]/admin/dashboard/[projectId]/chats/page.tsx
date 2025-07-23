@@ -4,32 +4,14 @@ import { useMemo, useState } from "react"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
-import {
-  type ChatConversation,
-  type ChatMessage,
-  type GroupedConversations
-} from "@/models/conversation"
+import { type ChatSessionResponse } from "@/models/conversation"
 import { useRouter } from "next/navigation"
-import { calculateConversationDuration } from "@/utils/calculateConversationDuration"
 import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type PaginatedResult } from "@/types/paginatedData"
-
-const groupConversationsByThread = (
-  messages: ChatMessage[]
-): GroupedConversations => {
-  if (!messages) return {}
-  return messages.reduce<GroupedConversations>((acc, message) => {
-    const { threadId } = message
-    if (!acc[threadId]) {
-      acc[threadId] = []
-    }
-    acc[threadId].push(message)
-    return acc
-  }, {})
-}
+import { formatDate } from "@/utils/formatDate"
 
 export default function ChatsPage(): JSX.Element {
   const router = useRouter()
@@ -47,55 +29,27 @@ export default function ChatsPage(): JSX.Element {
     isLoading: isChatsLoading,
     isFetching,
     refetch
-  } = useApiQuery<PaginatedResult<ChatMessage>>(
+  } = useApiQuery<PaginatedResult<ChatSessionResponse>>(
     ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
     `/conversations?projectId=${
       projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}&search=${searchTerm}`,
+    }&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC`,
     () => ({
       method: "get"
     })
   )
 
-  const chatConversations = useMemo((): ChatConversation[] => {
-    if (!paginatedData?.data) {
-      return []
-    }
-
-    const grouped = groupConversationsByThread(paginatedData.data)
-
-    const conversations = Object.entries(grouped).map(
-      ([threadId, messages]) => {
-        const firstMessage = messages[0]
-        const lastMessage = messages[messages.length - 1]
-
-        return {
-          id: threadId,
-          country: lastMessage.country ?? "lk",
-          userName: lastMessage.userName ?? "Guest User",
-          email: lastMessage.email ?? "No email",
-          scoring: "N/A",
-          duration: calculateConversationDuration(
-            firstMessage.createdAt,
-            lastMessage.createdAt
-          ),
-          summary:
-            messages.find(m => m.sender === "user")?.content.substring(0, 30) ??
-            "No summary",
-          messages,
-          chatbotCode: firstMessage.project.chatbotCode ?? ""
-        }
-      }
-    )
-
-    return conversations
-  }, [paginatedData])
+  const chatConversations = useMemo((): ChatSessionResponse[] => {
+    if (!paginatedData?.data) return []
+    return paginatedData.data
+  }, [paginatedData, searchTerm])
 
   const totalPages = paginatedData?.total
     ? Math.ceil(paginatedData.total / rowsPerPage)
     : 1
 
   const handleRowClick = (threadId: string): void => {
+    console.log("Row clicked:", threadId)
     router.push(threadId)
   }
 
@@ -113,7 +67,7 @@ export default function ChatsPage(): JSX.Element {
     if (selectedRows.length === chatConversations.length) {
       setSelectedRows([])
     } else {
-      setSelectedRows(chatConversations.map(chat => chat.id))
+      setSelectedRows(chatConversations.map(chat => chat.session.id.toString()))
     }
   }
 
@@ -126,6 +80,14 @@ export default function ChatsPage(): JSX.Element {
 
   const handleRowCheckboxChange = (id: string) => () => {
     toggleRowSelection(id)
+  }
+
+  const secondsToMinutes = (seconds: number): string => {
+    if (seconds <= 60) {
+      return "< 1min"
+    }
+    const minutes = Math.floor(seconds / 60)
+    return `${minutes} min${minutes > 1 ? "s" : ""}`
   }
 
   return (
@@ -331,22 +293,27 @@ export default function ChatsPage(): JSX.Element {
                       className="rounded"
                     />
                   </th>
-                  <th className="p-4 w-5 text-sm font-medium">Country</th>
-                  <th className="p-4 text-sm font-medium">User Name</th>
-                  <th className="p-4 text-sm font-medium">Email</th>
-                  <th className="p-4 text-sm font-medium">AI Scoring</th>
-                  <th className="p-4 text-sm font-medium">Duration</th>
+                  <th className="py-4 w-32 text-sm font-medium text-center">
+                    Country
+                  </th>
+                  <th className="py-4 w-32 text-sm font-medium text-center">
+                    AI Scoring
+                  </th>
+                  <th className="py-4 w-32 text-sm font-medium text-center">
+                    Duration
+                  </th>
                   <th className="p-4 text-sm font-medium">Chat Summary</th>
+                  <th className="p-4 text-sm font-medium">Date/Time</th>
                   <th className="p-4 w-8"></th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {chatConversations.map(chat => (
                   <tr
-                    key={chat.id}
+                    key={chat.session.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
                     onClick={() => {
-                      handleRowClick(chat.id)
+                      handleRowClick(chat.session.threadId)
                     }}
                   >
                     <td
@@ -357,29 +324,38 @@ export default function ChatsPage(): JSX.Element {
                     >
                       <input
                         type="checkbox"
-                        checked={selectedRows.includes(chat.id)}
+                        checked={selectedRows.includes(
+                          chat.session.id.toString()
+                        )}
                         onChange={() => {
-                          handleRowCheckboxChange(chat.id)
+                          handleRowCheckboxChange(chat.session.id.toString())
                         }}
                         className="rounded"
                       />
                     </td>
-                    <td className="h-full pl-5">
+                    <td className="h-full w-32">
                       <Image
-                        src={`/assets/flags/${chat.country}.svg`}
-                        alt={`${chat.country} flag`}
+                        src={`/assets/flags/${chat.session.country}.svg`}
+                        alt={`${
+                          chat.session.country
+                            ? chat.session.country + " flag"
+                            : "N/A"
+                        }`}
                         width={24}
                         height={16}
-                        // className="w-6 h-4 mr-2"
+                        className="w-32 max-h-4 flex justify-center items-center text-xs"
                       />
                     </td>
-                    <td className="p-4 text-sm">{chat.userName}</td>
-                    <td className="p-4 text-sm">{chat.email}</td>
-                    <td className="p-4 text-sm text-green-600">
-                      {chat.scoring}
+                    <td className="w-32 text-center align-middle p-4 text-sm text-green-600">
+                      {chat.session.score}
                     </td>
-                    <td className="p-4 text-sm">{chat.duration}</td>
-                    <td className="p-4 text-sm">{chat.summary}</td>
+                    <td className="w-32 text-center align-middle p-4 text-sm">
+                      {secondsToMinutes(chat.duration)}
+                    </td>
+                    <td className="p-4 text-sm">{chat.session.summary}</td>
+                    <td className="w-48 p-4 text-sm">
+                      {formatDate(chat.session.createdAt)}
+                    </td>
                     <td className="p-4">
                       <button className="text-gray-500 hover:text-gray-700">
                         <svg

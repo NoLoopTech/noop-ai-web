@@ -14,7 +14,7 @@ import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
-import { type Lead } from "@/models/lead"
+import { LeadScoreType, type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
 
@@ -357,8 +357,20 @@ export default function LeadsPage(): JSX.Element {
                     <td className="p-4 text-sm">
                       {scoreMutation && scoreMutation.status === "pending" ? (
                         <div className="animate-pulse h-4 w-10 bg-gray-200 dark:bg-gray-700 rounded" />
-                      ) : typeof (lead as any).score !== "undefined" ? (
-                        (lead as any).score
+                      ) : typeof lead.score !== "undefined" ? (
+                        <span
+                          className={
+                            lead.score === LeadScoreType.Cold
+                              ? "text-blue-600 font-semibold"
+                              : lead.score === LeadScoreType.Warm
+                              ? "text-orange-500 font-semibold"
+                              : lead.score === LeadScoreType.Hot
+                              ? "text-red-600 font-semibold"
+                              : "text-yellow-600 font-semibold"
+                          }
+                        >
+                          {lead.score}
+                        </span>
                       ) : (
                         "N/A"
                       )}
@@ -544,7 +556,7 @@ export default function LeadsPage(): JSX.Element {
                       </span>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-sm font-semibold text-yellow-600">
-                          N/A
+                          {selectedLead.score}
                         </span>
                       </div>
                     </div>

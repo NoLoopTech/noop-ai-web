@@ -5,15 +5,18 @@ const compat = new FlatCompat({
 })
 
 const eslintConfig = [
+  {
+    ignores: ["eslint.config.mjs"]
+  },
   ...compat.config({
     extends: [
       "next",
       "next/typescript",
       "plugin:react/recommended",
-      "standard-with-typescript",
       "next/core-web-vitals",
       "plugin:prettier/recommended"
     ],
+    parser: "@typescript-eslint/parser",
     parserOptions: {
       project: "./tsconfig.json"
     },

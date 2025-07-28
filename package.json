@@ -49,6 +49,7 @@
     "daisyui": "^5.0.16",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
+    "eslint": "^9",
     "i18next": "^23.2.8",
     "i18next-browser-languagedetector": "^7.1.0",
     "i18next-resources-to-backend": "^1.1.4",
@@ -59,8 +60,8 @@
     "next-themes": "^0.4.6",
     "postcss": "8.4.24",
     "react": "19.0.0",
-    "react-dom": "19.0.0",
     "react-day-picker": "^9.8.0",
+    "react-dom": "19.0.0",
     "react-hook-form": "^7.53.2",
     "react-i18next": "^13.0.1",
     "react-markdown": "^10.1.0",
@@ -71,27 +72,26 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.7.3",
     "vaul": "^1.1.2",
-    "zod": "^3.23.8",
-    "eslint": "^9"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@svgr/webpack": "^8.1.0",
-    "@types/react-simple-maps": "^3.0.6",
     "@types/node": "^20.17.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-simple-maps": "^3.0.6",
     "@typescript-eslint/eslint-plugin": "^8.29.1",
     "@typescript-eslint/parser": "^8.38.0",
     "eslint-config-next": "15.1.7",
-    "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "eslint-plugin-n": "^17.18.0",
-    "eslint-plugin-import": "2.31.0",
     "eslint-config-prettier": "10.1.1",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-n": "^17.18.0",
     "eslint-plugin-prettier": "5.2.6",
     "eslint-plugin-promise": "7.2.1",
-    "eslint-plugin-react": "7.37.5"
+    "eslint-plugin-react": "7.37.5",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }

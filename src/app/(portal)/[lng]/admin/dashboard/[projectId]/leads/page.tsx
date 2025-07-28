@@ -361,12 +361,12 @@ export default function LeadsPage(): JSX.Element {
                         <span
                           className={
                             lead.score === LeadScoreType.Cold
-                              ? "text-blue-600 font-semibold"
+                              ? "text-blue-500 font-normal"
                               : lead.score === LeadScoreType.Warm
-                              ? "text-orange-500 font-semibold"
+                              ? "text-orange-500 font-normal"
                               : lead.score === LeadScoreType.Hot
-                              ? "text-red-600 font-semibold"
-                              : "text-yellow-600 font-semibold"
+                              ? "text-red-600 font-normal"
+                              : "text-yellow-600 font-normal"
                           }
                         >
                           {lead.score}

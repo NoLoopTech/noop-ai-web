@@ -100,7 +100,7 @@ export default function ChatsPage(): JSX.Element {
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center space-x-2">
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center border rounded-md px-2 py-1 text-sm font-semibold">
                 Last 7 Days
                 <svg
                   className="w-4 h-4 ml-1"
@@ -128,11 +128,40 @@ export default function ChatsPage(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm">{dateRange}</span>
+              <span className="text-sm font-semibold">{dateRange}</span>
             </div>
           </div>
 
           <div className="flex items-center space-x-3.5">
+            <div className="flex space-x-2">
+              <div className="flex border rounded-md overflow-hidden">
+                <button
+                  className={`px-4 py-1 text-sm font-medium border-r first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                    selectedTab === "history"
+                      ? "bg-white text-gray-900"
+                      : "bg-gray-100 text-gray-400 opacity-60"
+                  }`}
+                  onClick={() => {
+                    setSelectedTab("history")
+                  }}
+                >
+                  Chat history
+                </button>
+                <button
+                  className={`px-4 py-1 text-sm font-medium border-r first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                    selectedTab === "live"
+                      ? "bg-white text-gray-900"
+                      : "bg-gray-100 text-gray-400 opacity-60"
+                  }`}
+                  onClick={() => {
+                    setSelectedTab("live")
+                  }}
+                >
+                  Live chat
+                </button>
+              </div>
+            </div>
+            <div className="w-0.5 h-7 bg-gray-500/50" />
             <button
               onClick={() => {
                 void refetch()
@@ -147,21 +176,24 @@ export default function ChatsPage(): JSX.Element {
                 }`}
               />
             </button>
+          </div>
+        </div>
 
-            <div className="w-0.5 h-7 bg-gray-500/50" />
-
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900/50">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2.5">
               <input
                 type="text"
                 placeholder="Search by user name..."
-                className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56n font-semibold"
                 value={searchTerm}
                 onChange={e => {
                   setSearchTerm(e.target.value)
                 }}
               />
 
-              <svg
+              {/*  Search icon */}
+              {/* <svg
                 className="w-5 h-5 text-gray-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -171,15 +203,11 @@ export default function ChatsPage(): JSX.Element {
                   d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
                   clipRule="evenodd"
                 />
-              </svg>
+              </svg> */}
             </div>
-          </div>
-        </div>
 
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900/50">
-          <div className="flex items-center space-x-4">
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center border rounded-md px-2 py-2 text-sm font-semibold">
                 Country
                 <svg
                   className="w-4 h-4 ml-1"
@@ -196,7 +224,7 @@ export default function ChatsPage(): JSX.Element {
             </div>
 
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center border rounded-md px-2 py-2 text-sm font-semibold">
                 Scoring
                 <svg
                   className="w-4 h-4 ml-1"
@@ -213,7 +241,7 @@ export default function ChatsPage(): JSX.Element {
             </div>
 
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center border rounded-md px-2 py-2 text-sm font-semibold">
                 Duration
                 <svg
                   className="w-4 h-4 ml-1"
@@ -231,41 +259,23 @@ export default function ChatsPage(): JSX.Element {
           </div>
 
           <div className="flex space-x-2">
-            <div className="flex border rounded-md overflow-hidden">
-              <button
-                className={`px-4 py-1 text-sm ${
-                  selectedTab === "history"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setSelectedTab("history")
-                }}
+            <button className="flex items-center border rounded-md px-3 py-2 text-sm">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2"
               >
-                Chat history
-              </button>
-              <button
-                className={`px-4 py-1 text-sm ${
-                  selectedTab === "live"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setSelectedTab("live")
-                }}
-              >
-                Live chat
-              </button>
-            </div>
-
-            <button className="border rounded-md px-2 py-1 text-sm">
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
-                  fillRule="evenodd"
-                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z"
-                  clipRule="evenodd"
+                  d="M13.3333 4.66699H7.33329M9.33329 11.3337H3.33329M9.33329 11.3337C9.33329 12.4382 10.2287 13.3337 11.3333 13.3337C12.4379 13.3337 13.3333 12.4382 13.3333 11.3337C13.3333 10.2291 12.4379 9.33366 11.3333 9.33366C10.2287 9.33366 9.33329 10.2291 9.33329 11.3337ZM6.66663 4.66699C6.66663 5.77156 5.7712 6.66699 4.66663 6.66699C3.56206 6.66699 2.66663 5.77156 2.66663 4.66699C2.66663 3.56242 3.56206 2.66699 4.66663 2.66699C5.7712 2.66699 6.66663 3.56242 6.66663 4.66699Z"
+                  stroke="#0F172A"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 />
               </svg>
+              View
             </button>
           </div>
         </div>

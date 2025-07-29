@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
+import countryDataJson from "@/lib/countryData.json"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
@@ -12,17 +13,194 @@ import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
+import {
+  durationOptions,
+  scoringOptions,
+  dateRangeOptions,
+  type DateRangeType
+} from "@/models/filterOptions"
 
 export default function ChatsPage(): JSX.Element {
+  interface ChatFilters {
+    username: string
+    startDate: string
+    endDate: string
+    country: string
+    scoring: string[]
+    intent: string
+    duration: string
+  }
+
+  function buildQueryString(filters: ChatFilters): string {
+    const params = [
+      `username=${encodeURIComponent(filters.username || "")}`,
+      `startDate=${encodeURIComponent(filters.startDate || "")}`,
+      `endDate=${encodeURIComponent(filters.endDate || "")}`,
+      `country=${encodeURIComponent(filters.country || "")}`,
+      `scoring=${encodeURIComponent(filters.scoring.join(",") || "")}`,
+      `intent=${encodeURIComponent(filters.intent || "")}`,
+      `duration=${encodeURIComponent(filters.duration || "")}`
+    ]
+    return params.join("&")
+  }
+  // Generic dropdown open state and refs
+  const [dropdownOpen, setDropdownOpen] = useState({
+    duration: false,
+    country: false,
+    scoring: false,
+    dateRange: false
+  })
+  const dropdownRefs = {
+    duration: useRef<HTMLDivElement>(null),
+    country: useRef<HTMLDivElement>(null),
+    scoring: useRef<HTMLDivElement>(null),
+    dateRange: useRef<HTMLDivElement>(null)
+  }
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent): void {
+      Object.entries(dropdownOpen).forEach(([key, isOpen]) => {
+        if (
+          isOpen &&
+          dropdownRefs[key as keyof typeof dropdownRefs].current &&
+          !dropdownRefs[key as keyof typeof dropdownRefs].current?.contains(
+            event.target as Node
+          )
+        ) {
+          setDropdownOpen(prev => ({ ...prev, [key]: false }))
+        }
+      })
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [dropdownOpen])
+  const toggleScoringDropdown = (): void => {
+    setDropdownOpen(prev => ({ ...prev, scoring: !prev.scoring }))
+  }
+  const handleScoringCheckboxChange = (value: string): void => {
+    setSelectedScoring(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+    )
+  }
+  const [selectedDateRange, setSelectedDateRange] = useState("last7")
+  const todayInit = new Date()
+  const startInit = new Date(todayInit)
+  startInit.setDate(todayInit.getDate() - 6)
+  const [startDate, setStartDate] = useState(() =>
+    startInit.toISOString().slice(0, 10)
+  )
+  const [endDate, setEndDate] = useState(() =>
+    todayInit.toISOString().slice(0, 10)
+  )
+  const [displayDateRange, setDisplayDateRange] = useState(
+    () =>
+      `${startInit.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      })} - ${todayInit.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      })}`
+  )
+
+  // Helper to format date as yyyy-mm-dd
+  const formatDateISO = (d: Date): string => {
+    return d.toISOString().slice(0, 10)
+  }
+
+  const handleDateRangeChange = (value: DateRangeType): void => {
+    setSelectedDateRange(value)
+    const today = new Date()
+    const ranges: Record<string, number | null> = {
+      today: 0,
+      yesterday: 1,
+      last7: 6,
+      last30: 29,
+      last90: 89
+    }
+    if (ranges[value] !== undefined) {
+      const start = new Date(today)
+      start.setDate(today.getDate() - (ranges[value] as number))
+      const end = new Date(today)
+      if (value === "today" || value === "yesterday") {
+        setStartDate(formatDateISO(start))
+        setEndDate(formatDateISO(start))
+        setDisplayDateRange(
+          start.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric"
+          })
+        )
+      } else {
+        setStartDate(formatDateISO(start))
+        setEndDate(formatDateISO(end))
+        setDisplayDateRange(
+          `${start.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric"
+          })} - ${end.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric"
+          })}`
+        )
+      }
+    } else {
+      setStartDate("")
+      setEndDate("")
+      setDisplayDateRange("")
+    }
+  }
+  const [selectedScoring, setSelectedScoring] = useState<string[]>([])
+  const [selectedIntent, setSelectedIntent] = useState("")
+  const handleIntentChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
+    setSelectedIntent(e.target.value)
+  }
+  const [selectedDuration, setSelectedDuration] = useState("")
+
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
-  const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
+  const [selectedCountry, setSelectedCountry] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const projectId = useProjectId()
+
+  const [countrySearch, setCountrySearch] = useState("")
+  const filteredCountries = useMemo(() => {
+    if (!countrySearch) return countryDataJson
+    return countryDataJson.filter(c =>
+      c.name.toLowerCase().includes(countrySearch.toLowerCase())
+    )
+  }, [countrySearch])
+
+  const filters: ChatFilters = {
+    username: searchTerm,
+    startDate,
+    endDate,
+    country: selectedCountry,
+    scoring: selectedScoring,
+    intent: selectedIntent,
+    duration: selectedDuration
+  }
+
+  const queryString =
+    `/conversations?projectId=${projectId ?? 0}` +
+    `&page=${currentPage}` +
+    `&limit=${rowsPerPage}` +
+    `&sortBy=createdAt` +
+    `&sortDir=DESC` +
+    `&${buildQueryString(filters)}`
 
   const {
     data: paginatedData,
@@ -30,10 +208,17 @@ export default function ChatsPage(): JSX.Element {
     isFetching,
     refetch
   } = useApiQuery<PaginatedResult<ChatSessionResponse>>(
-    ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
-    `/conversations?projectId=${
-      projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC`,
+    [
+      "project-conversations",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      searchTerm,
+      startDate,
+      endDate,
+      selectedDuration
+    ],
+    queryString,
     () => ({
       method: "get"
     })
@@ -100,20 +285,48 @@ export default function ChatsPage(): JSX.Element {
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center space-x-2">
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm font-semibold">
-                Last 7 Days
-                <svg
-                  className="w-4 h-4 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+              <button
+                type="button"
+                className="border rounded-md px-3 py-2 text-sm font-semibold w-40 text-left bg-white"
+                onClick={() => {
+                  setDropdownOpen(prev => ({
+                    ...prev,
+                    dateRange: !prev.dateRange
+                  }))
+                }}
+              >
+                {(() => {
+                  const labels: Record<DateRangeType, string> = {
+                    today: "Today",
+                    yesterday: "Yesterday",
+                    last7: "Last 7 Days",
+                    last30: "Last 30 Days",
+                    last90: "Last 90 Days",
+                    "": "Date Range"
+                  }
+                  return (
+                    labels[selectedDateRange as DateRangeType] ?? "Date Range"
+                  )
+                })()}
               </button>
+              {dropdownOpen.dateRange && (
+                <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                  {dateRangeOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
+                        selectedDateRange === opt.value ? " font-bold" : ""
+                      }`}
+                      onClick={() => {
+                        handleDateRangeChange(opt.value)
+                        setDropdownOpen(prev => ({ ...prev, dateRange: false }))
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center space-x-2 pl-2 border-l">
@@ -128,7 +341,7 @@ export default function ChatsPage(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm font-semibold">{dateRange}</span>
+              <span className="text-sm font-semibold">{displayDateRange}</span>
             </div>
           </div>
 
@@ -171,8 +384,8 @@ export default function ChatsPage(): JSX.Element {
               aria-label="Refresh data"
             >
               <RefreshIcon
-                className={`w-5 h-5 fill-gray-500 ${
-                  isFetching ? "animate-spin" : ""
+                className={`w-5 h-5 fill-gray-500${
+                  isFetching ? " animate-spin" : ""
                 }`}
               />
             </button>
@@ -185,76 +398,182 @@ export default function ChatsPage(): JSX.Element {
               <input
                 type="text"
                 placeholder="Search by user name..."
-                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56n font-semibold"
+                className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56 font-semibold"
                 value={searchTerm}
                 onChange={e => {
                   setSearchTerm(e.target.value)
                 }}
               />
+            </div>
 
-              {/*  Search icon */}
-              {/* <svg
-                className="w-5 h-5 text-gray-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+            <div className="relative w-44">
+              <div ref={dropdownRefs.country}>
+                <button
+                  type="button"
+                  className="border rounded-md px-3 py-2 text-sm font-semibold w-full text-left bg-white"
+                  onClick={() => {
+                    setDropdownOpen(prev => ({
+                      ...prev,
+                      country: !prev.country
+                    }))
+                  }}
+                >
+                  {selectedCountry
+                    ? countryDataJson.find((c: { code: string }) => {
+                        return c.code === selectedCountry
+                      })?.name
+                    : "Country"}
+                </button>
+                {dropdownOpen.country && (
+                  <div className="absolute z-10 w-full bg-white border rounded shadow-lg max-h-48 overflow-y-auto mt-1">
+                    <input
+                      type="text"
+                      className="border-b px-2 py-1 text-sm font-semibold w-full mb-1"
+                      placeholder="Search..."
+                      value={countrySearch}
+                      autoFocus
+                      onChange={e => {
+                        setCountrySearch(e.target.value)
+                      }}
+                    />
+                    <div
+                      className="px-2 py-1 text-sm cursor-pointer"
+                      onClick={() => {
+                        setSelectedCountry("")
+                        setCountrySearch("")
+                        setDropdownOpen(prev => ({ ...prev, country: false }))
+                      }}
+                      style={{
+                        background: selectedCountry === "" ? "#f3f4f6" : ""
+                      }}
+                    >
+                      Country
+                    </div>
+                    {filteredCountries.map(
+                      (country: { code: string; name: string }) => (
+                        <div
+                          key={country.code}
+                          className={`px-2 py-1 text-sm cursor-pointer${
+                            selectedCountry === country.code
+                              ? " bg-gray-100"
+                              : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedCountry(country.code)
+                            setCountrySearch(country.name)
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              country: false
+                            }))
+                          }}
+                        >
+                          {country.name}
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div ref={dropdownRefs.scoring}>
+                <button
+                  type="button"
+                  className="border rounded-md px-3 py-2 text-sm font-semibold w-32 text-left bg-white"
+                  onClick={toggleScoringDropdown}
+                >
+                  {selectedScoring.length > 0
+                    ? scoringOptions
+                        .filter(opt => selectedScoring.includes(opt.value))
+                        .map(opt => opt.label)
+                        .join(", ")
+                    : "Scoring"}
+                </button>
+                {dropdownOpen.scoring && (
+                  <div className="absolute z-10 mt-1 w-32 bg-white border rounded shadow-lg">
+                    {scoringOptions.map(opt => (
+                      <label
+                        key={opt.value}
+                        className="flex items-center px-2 py-1 cursor-pointer text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedScoring.includes(opt.value)}
+                          onChange={() => {
+                            handleScoringCheckboxChange(opt.value)
+                          }}
+                          className="mr-2"
+                        />
+                        {opt.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
+              <select
+                className="border rounded-md px-3 py-2 text-sm font-semibold appearance-none"
+                style={{ backgroundImage: "none" }}
+                value={selectedIntent}
+                onChange={handleIntentChange}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                  clipRule="evenodd"
-                />
-              </svg> */}
+                <option value="">Intent</option>
+              </select>
             </div>
 
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-2 text-sm font-semibold">
-                Country
-                <svg
-                  className="w-4 h-4 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+              <div ref={dropdownRefs.duration}>
+                <button
+                  type="button"
+                  className="border rounded-md px-3 py-2 text-sm font-semibold w-40 text-left bg-white"
+                  onClick={() => {
+                    setDropdownOpen(prev => ({
+                      ...prev,
+                      duration: !prev.duration
+                    }))
+                  }}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-2 text-sm font-semibold">
-                Scoring
-                <svg
-                  className="w-4 h-4 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-2 text-sm font-semibold">
-                Duration
-                <svg
-                  className="w-4 h-4 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+                  {durationOptions.find(opt => opt.value === selectedDuration)
+                    ?.label ?? "Duration"}
+                </button>
+                {dropdownOpen.duration && (
+                  <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                    <button
+                      className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
+                        selectedDuration === "" ? " font-bold" : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedDuration("")
+                        setDropdownOpen(prev => ({ ...prev, duration: false }))
+                      }}
+                    >
+                      All
+                    </button>
+                    {durationOptions
+                      .filter(opt => opt.value !== "")
+                      .map(opt => (
+                        <button
+                          key={opt.value}
+                          className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
+                            selectedDuration === opt.value ? " font-bold" : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedDuration(opt.value)
+                            setDropdownOpen(prev => ({
+                              ...prev,
+                              duration: false
+                            }))
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -284,9 +603,9 @@ export default function ChatsPage(): JSX.Element {
           {isChatsLoading ? (
             <div className="w-full h-96 flex justify-center items-center">
               <LoadingIcon
-                className={`w-40 h-40 font-thin fill-gray-500/50 ${
+                className={`w-40 h-40 font-thin fill-gray-500/50${
                   isChatsLoading
-                    ? "animate-pulse animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both"
+                    ? " animate-pulse animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both"
                     : ""
                 }`}
               />

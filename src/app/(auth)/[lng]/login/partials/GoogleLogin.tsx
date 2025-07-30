@@ -32,7 +32,7 @@ export default function GoogleLogin(): React.ReactNode {
   }
   return (
     <div>
-      <div className="flex flex-col items-center pb-4 gap-x-4">
+      <div className="flex flex-col items-center gap-x-4 pb-4">
         {loading ? (
           <span className="loading loading-dots loading-lg text-black dark:text-slate-200"></span>
         ) : (

@@ -1,14 +1,15 @@
 import { languages } from "@/i18n/settings"
 import Link from "next/link"
+import { JSX } from "react"
 
 interface Props {
-  t: any
+  // t: any
   lng: string
 }
 
-export const FooterBase = ({ t, lng }: Props): JSX.Element => {
+export const FooterBase = ({ lng }: Props): JSX.Element => {
   return (
-    <footer className="w-full bg-white dark:bg-black text-black dark:text-white py-4 px-6 flex justify-center items-center text-sm transition-colors duration-300">
+    <footer className="flex w-full items-center justify-center bg-white px-6 py-4 text-sm text-black transition-colors duration-300 dark:bg-black dark:text-white">
       {languages
         .filter(l => lng !== l)
         .map((l, index) => {
@@ -19,7 +20,7 @@ export const FooterBase = ({ t, lng }: Props): JSX.Element => {
               <Link
                 href={`/${l}/`}
                 prefetch={false}
-                className="underline hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                className="underline transition-colors hover:text-gray-700 dark:hover:text-gray-300"
               >
                 {l}
               </Link>

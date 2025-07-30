@@ -18,9 +18,9 @@ export default function ClientSideRoot(): React.ReactNode {
   }
 
   return (
-    <div className="grid grid-cols-2 text-white p-4">
+    <div className="grid grid-cols-2 p-4 text-white">
       <div>
-        <h1 className="leading-loose text-[5rem] font-extrabold text-accent">
+        <h1 className="text-accent text-[5rem] leading-loose font-extrabold">
           Hi {session?.user.fullname}!
         </h1>
       </div>

@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useParams, usePathname, useRouter } from "next/navigation"
@@ -23,7 +22,7 @@ import {
 } from "lucide-react"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { signOut, useSession } from "next-auth/react"
-import { useState, useRef, useEffect, useMemo, useTransition } from "react"
+import { useState, useRef, useEffect, useMemo, useTransition, JSX } from "react"
 import { useApiQuery } from "@/query"
 import { type UserProject } from "@/models/project"
 
@@ -308,7 +307,7 @@ export function Sidebar({
   }
 
   // Function to handle mini profile click
-  const handleMiniProfileClick = (event: React.MouseEvent): void => {
+  const handleMiniProfileClick = (): void => {
     // Get button position for proper popup placement
     if (isCollapsed && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
@@ -323,26 +322,26 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        "flex flex-col transition-all duration-300 rounded-lg m-2 shadow-md",
+        "m-2 flex flex-col rounded-lg shadow-md transition-all duration-300",
         isCollapsed ? "w-16" : "w-64",
-        "bg-white dark:bg-zinc-900 text-black dark:text-white border border-gray-200 dark:border-zinc-700"
+        "border border-gray-200 bg-white text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
       )}
     >
       {/* Header with Logo and Title */}
       <div
         ref={projectSwitcherRef}
         onClick={handleProjectsSwitcher}
-        className="relative flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-zinc-700 cursor-pointer"
+        className="relative flex h-16 cursor-pointer items-center justify-between border-b border-gray-200 px-4 dark:border-zinc-700"
       >
         {isUserProjectsLoading || isPending ? (
           <div className="flex items-center space-x-2">
-            <div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-zinc-700 animate-pulse"></div>
+            <div className="h-6 w-6 animate-pulse rounded-full bg-gray-200 dark:bg-zinc-700"></div>
             {!isCollapsed && (
-              <div className="h-4 w-24 bg-gray-200 dark:bg-zinc-700 rounded-md animate-pulse"></div>
+              <div className="h-4 w-24 animate-pulse rounded-md bg-gray-200 dark:bg-zinc-700"></div>
             )}
           </div>
         ) : (
-          <div className="w-full flex items-center justify-between space-x-1">
+          <div className="flex w-full items-center justify-between space-x-1">
             {!isCollapsed && (
               <div className="flex items-center gap-2">
                 <span className="font-semibold">{selectedProjectName}</span>
@@ -350,15 +349,15 @@ export function Sidebar({
             )}
 
             {isCollapsed && (
-              <div className="w-full flex justify-center text-2xl font-bold">
+              <div className="flex w-full justify-center text-2xl font-bold">
                 {selectedProjectName.charAt(0)}
               </div>
             )}
 
-            <div className="h-5 w-5 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <div className="flex h-5 w-5 items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 transition-transform ease-in-out duration-300",
+                  "h-4 w-4 transition-transform duration-300 ease-in-out",
                   isProjectSwitcherOpen && "-rotate-90"
                 )}
               />
@@ -367,14 +366,14 @@ export function Sidebar({
         )}
 
         <div
-          className={`absolute min-w-[230px] max-w-full top-0 bg-white dark:bg-zinc-900 rounded-lg z-10  ${
+          className={`absolute top-0 z-10 max-w-full min-w-[230px] rounded-lg bg-white dark:bg-zinc-900 ${
             isProjectSwitcherOpen
-              ? "shadow-lg border border-gray-200 dark:border-zinc-700"
+              ? "border border-gray-200 shadow-lg dark:border-zinc-700"
               : ""
           } ${isCollapsed ? "-right-60" : "-right-60"}`}
         >
           {isProjectSwitcherOpen && (
-            <div className="flex flex-col w-full p-1.5 space-y-1">
+            <div className="flex w-full flex-col space-y-1 p-1.5">
               {memoizedProjects.map(project => (
                 <button
                   key={project.id}
@@ -382,7 +381,7 @@ export function Sidebar({
                     e.stopPropagation()
                     handleSelectProject(project.id)
                   }}
-                  className="w-full text-left hover:bg-slate-200/60 dark:hover:bg-slate-200/10 text-gray-700 dark:text-white p-1 pl-2.5 rounded-md"
+                  className="w-full rounded-md p-1 pl-2.5 text-left text-gray-700 hover:bg-slate-200/60 dark:text-white dark:hover:bg-slate-200/10"
                 >
                   {project.projectName}
                 </button>
@@ -397,8 +396,8 @@ export function Sidebar({
         {/* Workspace Section */}
         <div className="py-4">
           {!isCollapsed && (
-            <div className="px-3 mb-3">
-              <h2 className="text-xs uppercase font-medium text-gray-500 dark:text-gray-400">
+            <div className="mb-3 px-3">
+              <h2 className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                 Workspace
               </h2>
             </div>
@@ -411,16 +410,16 @@ export function Sidebar({
                   key={route.href}
                   href={route.href}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 text-sm font-medium rounded-md transition-colors duration-200",
+                    "flex items-center gap-3 rounded-md py-2.5 text-sm font-medium transition-colors duration-200",
                     active
-                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground relative before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-3/5 before:w-1 before:rounded-r-full before:bg-primary"
+                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground before:bg-primary relative before:absolute before:top-1/2 before:left-0 before:h-3/5 before:w-1 before:-translate-y-1/2 before:rounded-r-full"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-700/50 dark:hover:text-white",
                     isCollapsed ? "justify-center px-0" : "px-3"
                   )}
                 >
                   <route.icon
                     className={cn(
-                      "flex-shrink-0 h-5 w-5",
+                      "h-5 w-5 flex-shrink-0",
                       active
                         ? "text-primary dark:text-primary"
                         : "text-gray-500 dark:text-gray-400"
@@ -446,8 +445,8 @@ export function Sidebar({
         {/* Management Section */}
         <div className="py-2">
           {!isCollapsed && (
-            <div className="px-3 mb-3">
-              <h2 className="text-xs uppercase font-medium text-gray-500 dark:text-gray-400">
+            <div className="mb-3 px-3">
+              <h2 className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                 Management
               </h2>
             </div>
@@ -460,16 +459,16 @@ export function Sidebar({
                   key={route.href}
                   href={route.href}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 text-sm font-medium rounded-md transition-colors duration-200",
+                    "flex items-center gap-3 rounded-md py-2.5 text-sm font-medium transition-colors duration-200",
                     active
-                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground relative before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-3/5 before:w-1 before:rounded-r-full before:bg-primary"
+                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground before:bg-primary relative before:absolute before:top-1/2 before:left-0 before:h-3/5 before:w-1 before:-translate-y-1/2 before:rounded-r-full"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-700/50 dark:hover:text-white",
                     isCollapsed ? "justify-center px-0" : "px-3"
                   )}
                 >
                   <route.icon
                     className={cn(
-                      "flex-shrink-0 h-5 w-5",
+                      "h-5 w-5 flex-shrink-0",
                       active
                         ? "text-primary dark:text-primary"
                         : "text-gray-500 dark:text-gray-400"
@@ -495,8 +494,8 @@ export function Sidebar({
         {/* Support Center Section */}
         <div className="py-2">
           {!isCollapsed && (
-            <div className="px-3 mb-3">
-              <h2 className="text-xs uppercase font-medium text-gray-500 dark:text-gray-400">
+            <div className="mb-3 px-3">
+              <h2 className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                 Support Center
               </h2>
             </div>
@@ -509,16 +508,16 @@ export function Sidebar({
                   key={route.href}
                   href={route.href}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 text-sm font-medium rounded-md transition-colors duration-200",
+                    "flex items-center gap-3 rounded-md py-2.5 text-sm font-medium transition-colors duration-200",
                     active
-                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground relative before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-3/5 before:w-1 before:rounded-r-full before:bg-primary"
+                      ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground before:bg-primary relative before:absolute before:top-1/2 before:left-0 before:h-3/5 before:w-1 before:-translate-y-1/2 before:rounded-r-full"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-zinc-700/50 dark:hover:text-white",
                     isCollapsed ? "justify-center px-0" : "px-3"
                   )}
                 >
                   <route.icon
                     className={cn(
-                      "flex-shrink-0 h-5 w-5",
+                      "h-5 w-5 flex-shrink-0",
                       active
                         ? "text-primary dark:text-primary"
                         : "text-gray-500 dark:text-gray-400"
@@ -543,7 +542,7 @@ export function Sidebar({
       </div>
 
       {/* User Profile Footer */}
-      <div className="relative mt-auto border-t border-gray-200 dark:border-zinc-700 p-4">
+      <div className="relative mt-auto border-t border-gray-200 p-4 dark:border-zinc-700">
         <div
           className={cn(
             "flex items-center justify-between",
@@ -555,12 +554,12 @@ export function Sidebar({
             onClick={handleMiniProfileClick}
             className={cn(
               "flex items-center",
-              isCollapsed ? "justify-center" : "gap-3 w-full"
+              isCollapsed ? "justify-center" : "w-full gap-3"
             )}
           >
             {/* User Avatar - With error handling for image loading */}
             {userInfo.profileImage ? (
-              <div className="h-9 w-9 rounded-full overflow-hidden">
+              <div className="h-9 w-9 overflow-hidden rounded-full">
                 <Image
                   src={userInfo.profileImage}
                   alt={userInfo.displayName}
@@ -582,7 +581,7 @@ export function Sidebar({
             ) : (
               <div
                 className={cn(
-                  "h-9 w-9 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 text-white font-medium",
+                  "flex h-9 w-9 items-center justify-center overflow-hidden rounded-full font-medium text-white transition-all duration-300",
                   userInfo.color
                 )}
               >
@@ -592,10 +591,10 @@ export function Sidebar({
 
             {!isCollapsed && (
               <div className="flex-1 text-left">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[160px]">
+                <p className="max-w-[160px] truncate text-sm font-medium text-gray-900 dark:text-white">
                   {userInfo.displayName}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[160px]">
+                <p className="max-w-[160px] truncate text-xs text-gray-500 dark:text-gray-400">
                   {userInfo.email}
                 </p>
               </div>
@@ -603,8 +602,8 @@ export function Sidebar({
             {!isCollapsed && (
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200",
-                  dropdownOpen && "transform rotate-180"
+                  "h-4 w-4 text-gray-500 transition-transform duration-200 dark:text-gray-400",
+                  dropdownOpen && "rotate-180 transform"
                 )}
               />
             )}
@@ -622,12 +621,12 @@ export function Sidebar({
         {dropdownOpen && !isCollapsed && (
           <div
             ref={dropdownRef}
-            className="absolute bottom-0 left-full ml-2 w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 py-0 z-50 animate-fadeIn overflow-hidden"
+            className="animate-fadeIn absolute bottom-0 left-full z-50 ml-2 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white py-0 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
           >
             {/* User Info Panel */}
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-3">
+            <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-zinc-700">
               {userInfo.profileImage ? (
-                <div className="h-10 w-10 rounded-full overflow-hidden">
+                <div className="h-10 w-10 overflow-hidden rounded-full">
                   <Image
                     src={userInfo.profileImage}
                     alt={userInfo.displayName}
@@ -648,7 +647,7 @@ export function Sidebar({
               ) : (
                 <div
                   className={cn(
-                    "h-10 w-10 rounded-full overflow-hidden flex items-center justify-center text-white text-base font-medium",
+                    "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-base font-medium text-white",
                     userInfo.color
                   )}
                 >
@@ -669,7 +668,7 @@ export function Sidebar({
             <div>
               <Link
                 href={`/${prefix}/profile`}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
+                className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
                 onClick={() => {
                   setDropdownOpen(false)
                 }}
@@ -679,7 +678,7 @@ export function Sidebar({
               </Link>
               <Link
                 href={`/${prefix}/billing`}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
+                className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
                 onClick={() => {
                   setDropdownOpen(false)
                 }}
@@ -689,7 +688,7 @@ export function Sidebar({
               </Link>
               <Link
                 href={`/${prefix}/notifications`}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
+                className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
                 onClick={() => {
                   setDropdownOpen(false)
                 }}
@@ -701,7 +700,7 @@ export function Sidebar({
                 onClick={() => {
                   handleLogout()
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800"
               >
                 <LogOut className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <span>Log out</span>
@@ -719,12 +718,12 @@ export function Sidebar({
               top: `${miniDropdownPosition.top}px`,
               left: `${miniDropdownPosition.left}px`
             }}
-            className="w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 py-0 z-50 animate-fadeIn overflow-hidden"
+            className="animate-fadeIn z-50 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white py-0 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
           >
             {/* User Info Panel */}
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700 flex items-center gap-3">
+            <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-zinc-700">
               {userInfo.profileImage ? (
-                <div className="h-10 w-10 rounded-full overflow-hidden">
+                <div className="h-10 w-10 overflow-hidden rounded-full">
                   <Image
                     src={userInfo.profileImage}
                     alt={userInfo.displayName}
@@ -745,7 +744,7 @@ export function Sidebar({
               ) : (
                 <div
                   className={cn(
-                    "h-10 w-10 rounded-full overflow-hidden flex items-center justify-center text-white text-base font-medium",
+                    "flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-base font-medium text-white",
                     userInfo.color
                   )}
                 >
@@ -766,7 +765,7 @@ export function Sidebar({
             <div>
               <Link
                 href={`/${prefix}/profile`}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
+                className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
                 onClick={() => {
                   setDropdownOpen(false)
                 }}
@@ -776,7 +775,7 @@ export function Sidebar({
               </Link>
               <Link
                 href={`/${prefix}/billing`}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
+                className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
                 onClick={() => {
                   setDropdownOpen(false)
                 }}
@@ -786,7 +785,7 @@ export function Sidebar({
               </Link>
               <Link
                 href={`/${prefix}/notifications`}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700"
+                className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
                 onClick={() => {
                   setDropdownOpen(false)
                 }}
@@ -798,7 +797,7 @@ export function Sidebar({
                 onClick={() => {
                   handleLogout()
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800"
               >
                 <LogOut className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <span>Log out</span>

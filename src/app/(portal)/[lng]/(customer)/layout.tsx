@@ -6,6 +6,7 @@ import NextAuthProvider from "@/components/layout/NextAuthProvider"
 import ReactQueryWrapper from "@/components/layout/ReactQueryWrapper"
 import { ThemeProvider } from "@/components/layout/ThemeProvider"
 import NavBase from "@/components/layout/NavBase"
+import { JSX } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 

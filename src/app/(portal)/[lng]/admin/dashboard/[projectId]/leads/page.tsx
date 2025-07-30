@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { JSX, useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
 import {
@@ -97,19 +97,19 @@ export default function ChatsPage(): JSX.Element {
   }
 
   return (
-    <div className="flex flex-col p-6 gap-6">
-      <div className="w-max flex items-center space-x-2">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex w-max items-center space-x-2">
         <h1 className="text-2xl font-semibold">Chats</h1>
       </div>
 
-      <Card className="p-0 overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center space-x-2">
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
                 Last 7 Days
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -122,9 +122,9 @@ export default function ChatsPage(): JSX.Element {
               </button>
             </div>
 
-            <div className="flex items-center space-x-2 pl-2 border-l">
+            <div className="flex items-center space-x-2 border-l pl-2">
               <svg
-                className="w-5 h-5 text-gray-500"
+                className="h-5 w-5 text-gray-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -144,23 +144,23 @@ export default function ChatsPage(): JSX.Element {
                 void refetch()
               }}
               disabled={isFetching}
-              className="p-1 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+              className="rounded-md border p-1 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
               aria-label="Refresh data"
             >
               <RefreshIcon
-                className={`w-5 h-5 fill-gray-500 ${
+                className={`h-5 w-5 fill-gray-500 ${
                   isFetching ? "animate-spin" : ""
                 }`}
               />
             </button>
 
-            <div className="w-0.5 h-7 bg-gray-500/50" />
+            <div className="h-7 w-0.5 bg-gray-500/50" />
 
             <div className="flex items-center space-x-2.5">
               <input
                 type="text"
                 placeholder="Search by user name..."
-                className="border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-md border px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 value={searchTerm}
                 onChange={e => {
                   setSearchTerm(e.target.value)
@@ -168,7 +168,7 @@ export default function ChatsPage(): JSX.Element {
               />
 
               <svg
-                className="w-5 h-5 text-gray-500"
+                className="h-5 w-5 text-gray-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -182,13 +182,13 @@ export default function ChatsPage(): JSX.Element {
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900/50">
+        <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
                 Country
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -202,10 +202,10 @@ export default function ChatsPage(): JSX.Element {
             </div>
 
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
                 Scoring
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -219,10 +219,10 @@ export default function ChatsPage(): JSX.Element {
             </div>
 
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
                 Duration
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -237,7 +237,7 @@ export default function ChatsPage(): JSX.Element {
           </div>
 
           <div className="flex space-x-2">
-            <div className="flex border rounded-md overflow-hidden">
+            <div className="flex overflow-hidden rounded-md border">
               <button
                 className={`px-4 py-1 text-sm ${
                   selectedTab === "history"
@@ -264,8 +264,8 @@ export default function ChatsPage(): JSX.Element {
               </button>
             </div>
 
-            <button className="border rounded-md px-2 py-1 text-sm">
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <button className="rounded-md border px-2 py-1 text-sm">
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
                   d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z"
@@ -278,20 +278,20 @@ export default function ChatsPage(): JSX.Element {
 
         <div className="overflow-x-auto">
           {isLeadsLoading ? (
-            <div className="w-full h-96 flex justify-center items-center">
+            <div className="flex h-96 w-full items-center justify-center">
               <LoadingIcon
-                className={`w-40 h-40 font-thin fill-gray-500/50 ${
+                className={`h-40 w-40 fill-gray-500/50 font-thin ${
                   isLeadsLoading
-                    ? "animate-pulse animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both"
+                    ? "animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both animate-pulse"
                     : ""
                 }`}
               />
             </div>
           ) : leads.length > 0 ? (
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900/75 text-left">
+              <thead className="bg-gray-50 text-left dark:bg-gray-900/75">
                 <tr>
-                  <th className="p-4 w-8">
+                  <th className="w-8 p-4">
                     <input
                       type="checkbox"
                       checked={selectedRows.length === leads.length}
@@ -305,14 +305,14 @@ export default function ChatsPage(): JSX.Element {
                   <th className="p-4 text-sm font-medium">Lead Score</th>
                   <th className="p-4 text-sm font-medium">Status</th>
                   <th className="p-4 text-sm font-medium">Date</th>
-                  <th className="p-4 w-8"></th>
+                  <th className="w-8 p-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {leads.map(lead => (
                   <tr
                     key={lead.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
+                    className="cursor-pointer align-middle hover:bg-gray-50 dark:hover:bg-gray-800"
                     onClick={handleRowClick(lead.id)}
                   >
                     <td
@@ -345,14 +345,14 @@ export default function ChatsPage(): JSX.Element {
               </tbody>
             </table>
           ) : (
-            <div className="w-full h-96 flex flex-col justify-center items-center">
-              <NoDataIcon className="w-40 h-40 fill-gray-500/50" />
+            <div className="flex h-96 w-full flex-col items-center justify-center">
+              <NoDataIcon className="h-40 w-40 fill-gray-500/50" />
               <p className="text-lg text-gray-500/75">No chats available</p>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between p-4 border-t">
+        <div className="flex items-center justify-between border-t p-4">
           <div className="text-sm text-gray-500">
             {selectedRows.length > 0
               ? `${selectedRows.length} of ${
@@ -366,23 +366,23 @@ export default function ChatsPage(): JSX.Element {
             <select
               value={rowsPerPage}
               onChange={handleRowsPerPageChange}
-              className="border rounded px-2 py-1 text-sm"
+              className="rounded border px-2 py-1 text-sm"
             >
               <option value="10">10</option>
               <option value="25">25</option>
               <option value="50">50</option>
             </select>
 
-            <div className="flex items-center space-x-2 ml-4">
+            <div className="ml-4 flex items-center space-x-2">
               <p className="text-sm">
                 Page {currentPage} of {totalPages}
               </p>
 
               <div className="">
                 <button
-                  className={`p-1 rounded ${
+                  className={`rounded p-1 ${
                     currentPage === 1
-                      ? "hover:bg-gray-100/25 dark:hover:bg-gray-700/25 cursor-not-allowed"
+                      ? "cursor-not-allowed hover:bg-gray-100/25 dark:hover:bg-gray-700/25"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === 1}
@@ -391,7 +391,7 @@ export default function ChatsPage(): JSX.Element {
                   }}
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -404,9 +404,9 @@ export default function ChatsPage(): JSX.Element {
                 </button>
 
                 <button
-                  className={`p-1 rounded ${
+                  className={`rounded p-1 ${
                     currentPage === totalPages
-                      ? "hover:bg-gray-100/25 dark:hover:bg-gray-700/25 cursor-not-allowed"
+                      ? "cursor-not-allowed hover:bg-gray-100/25 dark:hover:bg-gray-700/25"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === totalPages}
@@ -415,7 +415,7 @@ export default function ChatsPage(): JSX.Element {
                   }}
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -456,9 +456,9 @@ export default function ChatsPage(): JSX.Element {
           <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
                   <svg
-                    className="w-3 h-3 text-blue-600 dark:text-blue-400"
+                    className="h-3 w-3 text-blue-600 dark:text-blue-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -477,32 +477,32 @@ export default function ChatsPage(): JSX.Element {
 
             {selectedLead && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                <div className="grid grid-cols-1 gap-4 py-2 md:grid-cols-2">
                   <div className="space-y-3">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         User Name
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedLead.userName}
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Email
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedLead.email}
                       </p>
                     </div>
 
                     {/* You may not have status in ChatConversation, so show N/A or add logic if available */}
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Number
                       </span>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="mt-1 flex items-center gap-2">
                         <span className="text-sm font-semibold text-blue-600">
                           {selectedLead.phoneNumber}
                         </span>
@@ -511,41 +511,41 @@ export default function ChatsPage(): JSX.Element {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Lead Score
                       </span>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="mt-1 flex items-center gap-2">
                         <span className="text-sm font-semibold text-yellow-600">
                           N/A
                         </span>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Status
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         N/A
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Date
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {formatDate(selectedLead.timestamp)}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 min-h-16 flex flex-col justify-center">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <div className="flex min-h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                  <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                     Content
                   </span>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                     {selectedLead.content}
                   </p>
                 </div>

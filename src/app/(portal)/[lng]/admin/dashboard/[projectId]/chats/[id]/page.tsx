@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useRef, useEffect, useTransition } from "react"
+import { useMemo, useState, useRef, useEffect, useTransition, JSX } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { useApiQuery } from "@/query"
@@ -17,16 +17,16 @@ import {
 import { useProjectId } from "@/lib/hooks/useProjectId"
 
 const SidebarSkeleton = (): JSX.Element => (
-  <aside className="w-80 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900/50 relative">
-    <div className="p-4 border-b">
-      <div className="h-7 bg-gray-300 rounded w-32 animate-pulse" />
+  <aside className="relative w-80 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900/50">
+    <div className="border-b p-4">
+      <div className="h-7 w-32 animate-pulse rounded bg-gray-300" />
     </div>
-    <div className="overflow-y-auto h-[calc(100%-4.5rem)]">
+    <div className="h-[calc(100%-4.5rem)] overflow-y-auto">
       <nav>
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="w-full p-4 border-b">
-            <div className="h-4 bg-gray-300 rounded w-24 animate-pulse mb-2" />
-            <div className="h-3 bg-gray-300 rounded w-40 animate-pulse" />
+          <div key={i} className="w-full border-b p-4">
+            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-300" />
+            <div className="h-3 w-40 animate-pulse rounded bg-gray-300" />
           </div>
         ))}
       </nav>
@@ -35,7 +35,7 @@ const SidebarSkeleton = (): JSX.Element => (
 )
 
 const ChatSkeleton = (): JSX.Element => (
-  <div className="flex-1 p-6 space-y-4">
+  <div className="flex-1 space-y-4 p-6">
     {[...Array(5)].map((_, i) => (
       <div
         key={i}
@@ -44,17 +44,17 @@ const ChatSkeleton = (): JSX.Element => (
         }`}
       >
         {i % 2 === 0 && (
-          <div className="h-8 w-8 bg-gray-300 rounded-full animate-pulse" />
+          <div className="h-8 w-8 animate-pulse rounded-full bg-gray-300" />
         )}
         <div className={`max-w-xl rounded-lg px-4 py-2`}>
           <div className="space-y-2">
-            <div className="h-4 bg-gray-300 rounded animate-pulse" />
-            <div className="h-4 bg-gray-300 rounded w-3/4 animate-pulse" />
+            <div className="h-4 animate-pulse rounded bg-gray-300" />
+            <div className="h-4 w-3/4 animate-pulse rounded bg-gray-300" />
           </div>
-          <div className="h-3 bg-gray-300 rounded w-16 mt-2 animate-pulse" />
+          <div className="mt-2 h-3 w-16 animate-pulse rounded bg-gray-300" />
         </div>
         {i % 2 === 1 && (
-          <div className="h-8 w-8 bg-gray-300 rounded-full animate-pulse" />
+          <div className="h-8 w-8 animate-pulse rounded-full bg-gray-300" />
         )}
       </div>
     ))}
@@ -68,12 +68,12 @@ const DetailsSkeleton = (): JSX.Element => (
     </CardHeader>
     <CardContent className="space-y-4">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-6 bg-gray-300 rounded animate-pulse" />
-        <div className="h-4 bg-gray-300 rounded w-24 animate-pulse" />
+        <div className="h-6 w-8 animate-pulse rounded bg-gray-300" />
+        <div className="h-4 w-24 animate-pulse rounded bg-gray-300" />
       </div>
-      <div className="text-sm space-y-2">
-        <div className="h-4 bg-gray-300 rounded w-12 animate-pulse" />
-        <div className="h-4 bg-gray-300 rounded w-32 animate-pulse" />
+      <div className="space-y-2 text-sm">
+        <div className="h-4 w-12 animate-pulse rounded bg-gray-300" />
+        <div className="h-4 w-32 animate-pulse rounded bg-gray-300" />
       </div>
     </CardContent>
   </Card>
@@ -177,14 +177,14 @@ export default function ChatDetailsPage(): JSX.Element {
   return (
     <div className="flex h-[calc(100vh-4rem)] border-t">
       {/* Sidebar */}
-      <aside className="w-80 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900/50 relative">
-        <div className="p-4 border-b">
+      <aside className="relative w-80 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900/50">
+        <div className="border-b p-4">
           <h2 className="text-xl font-semibold">All Chats</h2>
         </div>
         <div
           ref={sidebarScrollRef}
           onScroll={handleSidebarScroll}
-          className="overflow-y-auto h-[calc(100%-4.5rem)]"
+          className="h-[calc(100%-4.5rem)] overflow-y-auto"
         >
           {isShowingSidebarSkeleton ? (
             <SidebarSkeleton />
@@ -198,14 +198,14 @@ export default function ChatDetailsPage(): JSX.Element {
                     onClick={() => {
                       handleConversationSelect(chat.id)
                     }}
-                    className={`w-full text-left p-4 border-b ${
+                    className={`w-full border-b p-4 text-left ${
                       threadId === chat.id
                         ? "bg-blue-100 dark:bg-blue-900"
                         : "hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="font-semibold text-sm">{chat.userName}</div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <div className="text-sm font-semibold">{chat.userName}</div>
+                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">
                       {chat.summary}...
                     </p>
                   </button>
@@ -231,7 +231,7 @@ export default function ChatDetailsPage(): JSX.Element {
             variant="outline"
             size="icon"
             onClick={scrollToTop}
-            className="absolute bottom-4 right-4 rounded-full"
+            className="absolute right-4 bottom-4 rounded-full"
           >
             <svg
               className="h-5 w-5"
@@ -252,18 +252,18 @@ export default function ChatDetailsPage(): JSX.Element {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex flex-1 flex-col">
         {isShowingSkeleton ? (
           <div className="flex h-full">
             {/* Chat Area Skeleton */}
-            <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900">
-              <div className="p-4 border-b flex items-center justify-between">
-                <div className="h-7 bg-gray-300 rounded w-48 animate-pulse" />
-                <div className="h-9 bg-gray-300 rounded w-32 animate-pulse" />
+            <div className="flex h-full flex-1 flex-col bg-white dark:bg-gray-900">
+              <div className="flex items-center justify-between border-b p-4">
+                <div className="h-7 w-48 animate-pulse rounded bg-gray-300" />
+                <div className="h-9 w-32 animate-pulse rounded bg-gray-300" />
               </div>
               <ChatSkeleton />
-              <div className="p-4 border-t bg-white dark:bg-gray-900">
-                <div className="h-10 bg-gray-300 rounded animate-pulse" />
+              <div className="border-t bg-white p-4 dark:bg-gray-900">
+                <div className="h-10 animate-pulse rounded bg-gray-300" />
               </div>
             </div>
 
@@ -281,8 +281,8 @@ export default function ChatDetailsPage(): JSX.Element {
         ) : (
           <div className="flex h-full">
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900">
-              <div className="p-4 border-b flex items-center justify-between">
+            <div className="flex h-full flex-1 flex-col bg-white dark:bg-gray-900">
+              <div className="flex items-center justify-between border-b p-4">
                 <h1 className="text-xl font-semibold">
                   Conversation with {conversationDetails?.userName}
                 </h1>
@@ -297,7 +297,7 @@ export default function ChatDetailsPage(): JSX.Element {
               </div>
               <div
                 ref={chatContentRef}
-                className="flex-1 p-6 space-y-4 overflow-y-auto"
+                className="flex-1 space-y-4 overflow-y-auto p-6"
               >
                 {messages.map(message => (
                   <div
@@ -320,8 +320,8 @@ export default function ChatDetailsPage(): JSX.Element {
                     <div
                       className={`max-w-xl rounded-lg px-4 py-2 ${
                         message.sender === "user"
-                          ? "bg-blue-500 text-white rounded-br-none"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-bl-none"
+                          ? "rounded-br-none bg-blue-500 text-white"
+                          : "rounded-bl-none bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-200"
                       }`}
                     >
                       <Markdown
@@ -339,26 +339,26 @@ export default function ChatDetailsPage(): JSX.Element {
                           // Lists
                           ol: ({ node, ...props }) => (
                             <ol
-                              className="list-decimal list-outside pl-8"
+                              className="list-outside list-decimal pl-8"
                               {...props}
                             />
                           ),
                           ul: ({ node, ...props }) => (
                             <ul
-                              className="list-disc list-outside pl-8"
+                              className="list-outside list-disc pl-8"
                               {...props}
                             />
                           ),
                           li: ({ node, ...props }) => (
                             <li
-                              className="py-0.5 last-of-type:mb-1 first-of-type:mt-1"
+                              className="py-0.5 first-of-type:mt-1 last-of-type:mb-1"
                               {...props}
                             />
                           ),
                           // Links
                           a: ({ node, ...props }) => (
                             <a
-                              className="text-blue-600 font-medium hover:underline"
+                              className="font-medium text-blue-600 hover:underline"
                               target="_blank"
                               rel="noopener noreferrer"
                               {...props}
@@ -367,13 +367,13 @@ export default function ChatDetailsPage(): JSX.Element {
                           // Blockquotes
                           blockquote: ({ node, ...props }) => (
                             <blockquote
-                              className="border-l-4 border-gray-300 pl-4 italic my-2"
+                              className="my-2 border-l-4 border-gray-300 pl-4 italic"
                               {...props}
                             />
                           ),
                           pre: ({ node, ...props }) => (
                             <pre
-                              className="bg-gray-800 text-white p-2 rounded-md my-2 overflow-x-auto"
+                              className="my-2 overflow-x-auto rounded-md bg-gray-800 p-2 text-white"
                               {...props}
                             />
                           )
@@ -382,7 +382,7 @@ export default function ChatDetailsPage(): JSX.Element {
                         {message.content.replace(/<br\s*\/?>/gi, "")}
                       </Markdown>
                       <p
-                        className={`text-xs mt-1 text-right ${
+                        className={`mt-1 text-right text-xs ${
                           message.sender === "user"
                             ? "text-blue-200"
                             : "text-gray-500"
@@ -405,11 +405,11 @@ export default function ChatDetailsPage(): JSX.Element {
                   </div>
                 ))}
               </div>
-              <div className="p-4 border-t bg-white dark:bg-gray-900">
+              <div className="border-t bg-white p-4 dark:bg-gray-900">
                 <input
                   type="text"
                   placeholder="Live chat is not enabled for this view."
-                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none"
+                  className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none"
                   disabled
                 />
               </div>

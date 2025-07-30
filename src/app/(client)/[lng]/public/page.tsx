@@ -1,15 +1,16 @@
 import { getServerSession } from "next-auth/next"
 
 import { authOptions } from "@/lib/nextAuthOptions"
+import { JSX } from "react"
 
-export default async function Protected(): Promise<any> {
+export default async function Protected(): Promise<JSX.Element> {
   const session = await getServerSession(authOptions)
 
   return (
-    <div className="grid grid-cols-2 text-white p-4">
+    <div className="grid grid-cols-2 p-4 text-white">
       <div>
         {session !== null ? (
-          <h1 className="leading-loose text-[15rem] font-extrabold text-accent">
+          <h1 className="text-accent text-[15rem] leading-loose font-extrabold">
             Hi {session?.user.fullname}!
           </h1>
         ) : (

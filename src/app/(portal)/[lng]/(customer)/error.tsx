@@ -2,7 +2,7 @@
 
 import ErrorPage from "@/components/layout/ErrorPage"
 import NavBase from "@/components/layout/NavBase"
-import React from "react"
+import React, { JSX } from "react"
 
 const errorPage = ({ error }: { error: Error }): JSX.Element => {
   console.log("Error: ", error)

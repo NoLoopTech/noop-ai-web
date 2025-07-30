@@ -5,7 +5,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 // import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { JSX, useState } from "react"
 import { signOut, useSession } from "next-auth/react"
 import NltLogo from "@/../public/assets/nlt-logo.svg"
 import MobileMenuIcon from "@/../public/assets/icons/mobile-menu-icon.svg"
@@ -31,15 +31,7 @@ export default function NavBase(): JSX.Element {
   }
 
   return (
-    <header
-      className="
-      absolute inset-x-0 top-0 z-50
-      px-6 py-0
-      md:px-16 md:py-10
-      xl:px-28 xl:py-10
-      w-screen
-    "
-    >
+    <header className="absolute inset-x-0 top-0 z-50 w-screen px-6 py-0 md:px-16 md:py-10 xl:px-28 xl:py-10">
       <nav className="flex items-center justify-between" aria-label="Global">
         <div className="flex-grow lg:flex-1">
           <a href="/" className="-m-1.5 p-1.5">
@@ -51,10 +43,10 @@ export default function NavBase(): JSX.Element {
               width={96}
               height={96}
             /> */}
-            <NltLogo className="w-52 md:w-64 fill-black dark:fill-white" />
+            <NltLogo className="w-52 fill-black md:w-64 dark:fill-white" />
           </a>
         </div>
-        <div className="flex md:hidden items-center gap-3">
+        <div className="flex items-center gap-3 md:hidden">
           {/* Add theme toggle for mobile */}
           <ThemeToggle />
           <button
@@ -66,24 +58,12 @@ export default function NavBase(): JSX.Element {
             <MobileMenuIcon className="h-6 w-6 fill-black dark:fill-white" />
           </button>
         </div>
-        <div
-          className="
-          hidden md:flex
-          gap-x-4 md:gap-x-4 xl:gap-x-12
-          items-center
-        "
-        >
+        <div className="hidden items-center gap-x-4 md:flex md:gap-x-4 xl:gap-x-12">
           {navigation.map(item => (
             <Link
               key={item.name}
               href={item.href}
-              className="
-              text-balck dark:text-gray-300
-                text-lg
-                font-normal
-                hover:text-gray-500 dark:hover:text-white
-                transition-colors
-              "
+              className="text-balck text-lg font-normal transition-colors hover:text-gray-500 dark:text-gray-300 dark:hover:text-white"
             >
               {item.name}
             </Link>
@@ -91,68 +71,27 @@ export default function NavBase(): JSX.Element {
           {session && (
             <Link
               href="/admin"
-              className="
-              text-balck dark:text-gray-300
-                text-lg
-                font-normal
-                hover:text-gray-500 dark:hover:text-white
-                transition-colors
-              "
+              className="text-balck text-lg font-normal transition-colors hover:text-gray-500 dark:text-gray-300 dark:hover:text-white"
             >
               Dashboard
             </Link>
           )}
           <a
             href="/contact"
-            className="
-              text-lg
-              font-medium
-              leading-normal
-              text-balck dark:text-gray-300
-              py-2 px-4
-              rounded-full
-              border-[1px] border-white dark:border-gray-300
-              hover:bg-white hover:text-black dark:hover:bg-gray-300 dark:hover:text-black
-              hover:no-underline
-              transition-all
-            "
+            className="text-balck rounded-full border-[1px] border-white px-4 py-2 text-lg leading-normal font-medium transition-all hover:bg-white hover:text-black hover:no-underline dark:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-300 dark:hover:text-black"
           >
             Get In Touch
           </a>
           {session ? (
             <button
               onClick={handleLogout}
-              className="
-              text-lg
-              font-medium
-              leading-normal
-              text-balck dark:text-gray-300
-              py-2 px-4
-              rounded-full
-              border-[1px] border-black dark:border-gray-300
-              bg-primary/0 dark:bg-primary/0
-              hover:bg-primary hover:text-white dark:hover:bg-primary/40 dark:hover:text-white
-              transition-all
-            "
+              className="text-balck bg-primary/0 dark:bg-primary/0 hover:bg-primary dark:hover:bg-primary/40 rounded-full border-[1px] border-black px-4 py-2 text-lg leading-normal font-medium transition-all hover:text-white dark:border-gray-300 dark:text-gray-300 dark:hover:text-white"
             >
               Logout
             </button>
           ) : (
             <Link href="/en/login">
-              <button
-                className="
-              text-lg
-              font-medium
-              leading-normal
-              text-balck dark:text-gray-300
-              py-2 px-4
-              rounded-full
-              border-[1px] border-black dark:border-gray-300
-              bg-primary/0 dark:bg-primary/0
-              hover:bg-primary hover:text-white dark:hover:bg-primary/40 dark:hover:text-white
-              transition-all
-            "
-              >
+              <button className="text-balck bg-primary/0 dark:bg-primary/0 hover:bg-primary dark:hover:bg-primary/40 rounded-full border-[1px] border-black px-4 py-2 text-lg leading-normal font-medium transition-all hover:text-white dark:border-gray-300 dark:text-gray-300 dark:hover:text-white">
                 Admin Login
               </button>
             </Link>
@@ -164,7 +103,7 @@ export default function NavBase(): JSX.Element {
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent
           side="right"
-          className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-black dark:bg-zinc-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10"
+          className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-black px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 dark:bg-zinc-900"
           hideCloseButton
         >
           <div className="flex items-center justify-between">
@@ -185,7 +124,7 @@ export default function NavBase(): JSX.Element {
             </Link>
             <button
               type="button"
-              className="-m-2.5 rounded-md py-2.5 px-0 text-white dark:text-gray-300"
+              className="-m-2.5 rounded-md px-0 py-2.5 text-white dark:text-gray-300"
               onClick={handleMobileMenuToggle}
             >
               <span className="sr-only">Close menu</span>
@@ -212,7 +151,7 @@ export default function NavBase(): JSX.Element {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700/50 transition-colors duration-500 ease-in-out"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base leading-7 font-semibold text-white transition-colors duration-500 ease-in-out hover:bg-white/20 dark:text-gray-300 dark:hover:bg-gray-700/50"
                     onClick={handleMobileMenuToggle}
                   >
                     {item.name}
@@ -221,7 +160,7 @@ export default function NavBase(): JSX.Element {
                 {session && (
                   <Link
                     href="/admin"
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700/50 transition-colors duration-500 ease-in-out"
+                    className="-mx-3 block rounded-lg px-3 py-2 text-base leading-7 font-semibold text-white transition-colors duration-500 ease-in-out hover:bg-white/20 dark:text-gray-300 dark:hover:bg-gray-700/50"
                     onClick={handleMobileMenuToggle}
                   >
                     Dashboard
@@ -230,7 +169,7 @@ export default function NavBase(): JSX.Element {
                 {session ? (
                   <div
                     onClick={handleLogout}
-                    className="-mx-3 block text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 cursor-pointer bg-primary/5 text-white dark:text-gray-100 hover:bg-primary/30 dark:hover:bg-primary/10 transition-colors duration-500 ease-in-out"
+                    className="bg-primary/5 hover:bg-primary/30 dark:hover:bg-primary/10 -mx-3 block cursor-pointer rounded-lg px-3 py-2 text-left text-base leading-7 font-semibold text-white transition-colors duration-500 ease-in-out dark:text-gray-100"
                   >
                     Logout
                   </div>
@@ -238,7 +177,7 @@ export default function NavBase(): JSX.Element {
                   <Link
                     href="/en/login"
                     onClick={handleMobileMenuToggle}
-                    className="-mx-3 block text-left rounded-lg px-3 py-2 text-base font-semibold leading-7 cursor-pointer bg-primary/5 text-white dark:text-gray-100 hover:bg-primary/30 dark:hover:bg-primary/10 transition-colors duration-500 ease-in-out"
+                    className="bg-primary/5 hover:bg-primary/30 dark:hover:bg-primary/10 -mx-3 block cursor-pointer rounded-lg px-3 py-2 text-left text-base leading-7 font-semibold text-white transition-colors duration-500 ease-in-out dark:text-gray-100"
                   >
                     Admin Login
                   </Link>

@@ -4,10 +4,11 @@ import { dir } from "i18next"
 // import { languages } from "@/i18n/settings"
 import { Inter } from "next/font/google"
 import { FooterBase } from "@/components/layout/FooterBase"
-import { useTranslation } from "@/i18n"
+// import { useTranslation } from "@/i18n"
 import NavBase from "@/components/layout/NavBase"
 import { ThemeProvider } from "@/components/layout/ThemeProvider"
 import NextAuthProvider from "@/components/layout/NextAuthProvider"
+import { JSX } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,12 +25,13 @@ export const metadata = {
 
 export default async function RootLayout({
   children,
-  params: { lng }
+  params
 }: {
   children: React.ReactNode
   params: { lng: string }
 }): Promise<JSX.Element> {
-  const { t } = await useTranslation(lng, "footer")
+  const { lng } = await params
+  // const { t } = await useTranslation(lng, "footer")
 
   return (
     <html lang={lng} dir={dir(lng)} suppressHydrationWarning>
@@ -43,7 +45,9 @@ export default async function RootLayout({
           <NextAuthProvider>
             <NavBase />
             {children}
-            <FooterBase t={t} lng={lng} />
+            {/* <FooterBase t={t} lng={lng} /> */}
+            {/* INFO: Have to remove t={t} from here because useTranslation be used in a async component */}
+            <FooterBase lng={lng} />
           </NextAuthProvider>
         </ThemeProvider>
       </body>

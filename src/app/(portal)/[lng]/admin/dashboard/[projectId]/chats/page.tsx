@@ -3,6 +3,9 @@
 import { useMemo, useState, useRef, useEffect } from "react"
 import countryDataJson from "@/lib/countryData.json"
 import Image from "next/image"
+import { Combobox } from "@/components/ui/combo-box"
+import { SingleSelectDropdown } from "@/components/ui/single-select-dropdown"
+import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
 import { type ChatSessionResponse } from "@/models/conversation"
@@ -14,13 +17,26 @@ import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
 import {
+  dateRangeOptions,
   durationOptions,
   scoringOptions,
-  dateRangeOptions,
   type DateRangeType
 } from "@/models/filterOptions"
 
 export default function ChatsPage(): JSX.Element {
+  // Dropdown toggle handlers
+  const handleDropdown = (key: keyof typeof dropdownOpen) => () => {
+    setDropdownOpen(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const handleDateRangeSelect = (value: DateRangeType) => () => {
+    handleDateRangeChange(value)
+    setDropdownOpen(prev => ({ ...prev, dateRange: false }))
+  }
+
+  const handleTab = (tab: string) => () => {
+    setSelectedTab(tab)
+  }
   interface ChatFilters {
     username: string
     startDate: string
@@ -45,15 +61,9 @@ export default function ChatsPage(): JSX.Element {
   }
   // Generic dropdown open state and refs
   const [dropdownOpen, setDropdownOpen] = useState({
-    duration: false,
-    country: false,
-    scoring: false,
     dateRange: false
   })
   const dropdownRefs = {
-    duration: useRef<HTMLDivElement>(null),
-    country: useRef<HTMLDivElement>(null),
-    scoring: useRef<HTMLDivElement>(null),
     dateRange: useRef<HTMLDivElement>(null)
   }
 
@@ -76,15 +86,74 @@ export default function ChatsPage(): JSX.Element {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [dropdownOpen])
-  const toggleScoringDropdown = (): void => {
-    setDropdownOpen(prev => ({ ...prev, scoring: !prev.scoring }))
+
+  const getFormattedDateRange = (): string => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+
+    const format = (d: Date): string =>
+      d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      })
+
+    return startDate === endDate
+      ? format(start)
+      : `${format(start)} - ${format(end)}`
   }
-  const handleScoringCheckboxChange = (value: string): void => {
-    setSelectedScoring(prev =>
-      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-    )
+
+  // Helper to get the label for the current date range selection
+  const getDateRangeLabel = (): string => {
+    const today = new Date()
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    // Today
+    if (
+      start.toDateString() === today.toDateString() &&
+      end.toDateString() === today.toDateString()
+    ) {
+      return "Today"
+    }
+    // Yesterday
+    const yesterday = new Date(today)
+    yesterday.setDate(today.getDate() - 1)
+    if (
+      start.toDateString() === yesterday.toDateString() &&
+      end.toDateString() === yesterday.toDateString()
+    ) {
+      return "Yesterday"
+    }
+    // Last 7 Days
+    const last7 = new Date(today)
+    last7.setDate(today.getDate() - 6)
+    if (
+      start.toDateString() === last7.toDateString() &&
+      end.toDateString() === today.toDateString()
+    ) {
+      return "Last 7 Days"
+    }
+    // Last 30 Days
+    const last30 = new Date(today)
+    last30.setDate(today.getDate() - 29)
+    if (
+      start.toDateString() === last30.toDateString() &&
+      end.toDateString() === today.toDateString()
+    ) {
+      return "Last 30 Days"
+    }
+    // Last 90 Days
+    const last90 = new Date(today)
+    last90.setDate(today.getDate() - 89)
+    if (
+      start.toDateString() === last90.toDateString() &&
+      end.toDateString() === today.toDateString()
+    ) {
+      return "Last 90 Days"
+    }
+    // Custom
+    return `${startDate} - ${endDate}`
   }
-  const [selectedDateRange, setSelectedDateRange] = useState("last7")
   const todayInit = new Date()
   const startInit = new Date(todayInit)
   startInit.setDate(todayInit.getDate() - 6)
@@ -94,18 +163,6 @@ export default function ChatsPage(): JSX.Element {
   const [endDate, setEndDate] = useState(() =>
     todayInit.toISOString().slice(0, 10)
   )
-  const [displayDateRange, setDisplayDateRange] = useState(
-    () =>
-      `${startInit.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric"
-      })} - ${todayInit.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric"
-      })}`
-  )
 
   // Helper to format date as yyyy-mm-dd
   const formatDateISO = (d: Date): string => {
@@ -113,50 +170,31 @@ export default function ChatsPage(): JSX.Element {
   }
 
   const handleDateRangeChange = (value: DateRangeType): void => {
-    setSelectedDateRange(value)
     const today = new Date()
-    const ranges: Record<string, number | null> = {
+    const daysMap: Record<DateRangeType, number> = {
       today: 0,
       yesterday: 1,
       last7: 6,
       last30: 29,
-      last90: 89
+      last90: 89,
+      "": 0
     }
-    if (ranges[value] !== undefined) {
-      const start = new Date(today)
-      start.setDate(today.getDate() - (ranges[value] as number))
-      const end = new Date(today)
-      if (value === "today" || value === "yesterday") {
-        setStartDate(formatDateISO(start))
-        setEndDate(formatDateISO(start))
-        setDisplayDateRange(
-          start.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric"
-          })
-        )
-      } else {
-        setStartDate(formatDateISO(start))
-        setEndDate(formatDateISO(end))
-        setDisplayDateRange(
-          `${start.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric"
-          })} - ${end.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric"
-          })}`
-        )
-      }
+
+    const offset = daysMap[value]
+    const start = new Date(today)
+    const end = new Date(today)
+
+    if (value === "yesterday") {
+      start.setDate(today.getDate() - 1)
+      end.setDate(today.getDate() - 1)
     } else {
-      setStartDate("")
-      setEndDate("")
-      setDisplayDateRange("")
+      start.setDate(today.getDate() - offset)
     }
+
+    setStartDate(formatDateISO(start))
+    setEndDate(formatDateISO(end))
   }
+
   const [selectedScoring, setSelectedScoring] = useState<string[]>([])
   const [selectedIntent, setSelectedIntent] = useState("")
   const handleIntentChange = (
@@ -175,14 +213,6 @@ export default function ChatsPage(): JSX.Element {
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const projectId = useProjectId()
-
-  const [countrySearch, setCountrySearch] = useState("")
-  const filteredCountries = useMemo(() => {
-    if (!countrySearch) return countryDataJson
-    return countryDataJson.filter(c =>
-      c.name.toLowerCase().includes(countrySearch.toLowerCase())
-    )
-  }, [countrySearch])
 
   const filters: ChatFilters = {
     username: searchTerm,
@@ -287,40 +317,20 @@ export default function ChatsPage(): JSX.Element {
             <div className="relative">
               <button
                 type="button"
-                className="border rounded-md px-3 py-2 text-sm font-semibold w-40 text-left bg-white"
-                onClick={() => {
-                  setDropdownOpen(prev => ({
-                    ...prev,
-                    dateRange: !prev.dateRange
-                  }))
-                }}
+                className="border rounded-md px-3 py-2 text-sm font-semibold w-40 text-left bg-background dark:bg-background"
+                onClick={handleDropdown("dateRange")}
               >
-                {(() => {
-                  const labels: Record<DateRangeType, string> = {
-                    today: "Today",
-                    yesterday: "Yesterday",
-                    last7: "Last 7 Days",
-                    last30: "Last 30 Days",
-                    last90: "Last 90 Days",
-                    "": "Date Range"
-                  }
-                  return (
-                    labels[selectedDateRange as DateRangeType] ?? "Date Range"
-                  )
-                })()}
+                {getDateRangeLabel()}
               </button>
               {dropdownOpen.dateRange && (
-                <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                <div className="absolute top-full left-0 mt-1 w-40 bg-background dark:bg-background dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
                   {dateRangeOptions.map(opt => (
                     <button
                       key={opt.value}
                       className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
-                        selectedDateRange === opt.value ? " font-bold" : ""
+                        getDateRangeLabel() === opt.label ? " font-bold" : ""
                       }`}
-                      onClick={() => {
-                        handleDateRangeChange(opt.value)
-                        setDropdownOpen(prev => ({ ...prev, dateRange: false }))
-                      }}
+                      onClick={handleDateRangeSelect(opt.value)}
                     >
                       {opt.label}
                     </button>
@@ -341,7 +351,9 @@ export default function ChatsPage(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm font-semibold">{displayDateRange}</span>
+              <span className="text-sm font-semibold">
+                {getFormattedDateRange()}
+              </span>
             </div>
           </div>
 
@@ -351,24 +363,20 @@ export default function ChatsPage(): JSX.Element {
                 <button
                   className={`px-4 py-1 text-sm font-medium border-r first:rounded-l-md last:rounded-r-md focus:outline-none ${
                     selectedTab === "history"
-                      ? "bg-white text-gray-900"
-                      : "bg-gray-100 text-gray-400 opacity-60"
+                      ? "bg-background dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 opacity-60"
                   }`}
-                  onClick={() => {
-                    setSelectedTab("history")
-                  }}
+                  onClick={handleTab("history")}
                 >
                   Chat history
                 </button>
                 <button
                   className={`px-4 py-1 text-sm font-medium border-r first:rounded-l-md last:rounded-r-md focus:outline-none ${
                     selectedTab === "live"
-                      ? "bg-white text-gray-900"
-                      : "bg-gray-100 text-gray-400 opacity-60"
+                      ? "bg-background dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 opacity-60"
                   }`}
-                  onClick={() => {
-                    setSelectedTab("live")
-                  }}
+                  onClick={handleTab("live")}
                 >
                   Live chat
                 </button>
@@ -406,174 +414,51 @@ export default function ChatsPage(): JSX.Element {
               />
             </div>
 
-            <div className="relative w-44">
-              <div ref={dropdownRefs.country}>
-                <button
-                  type="button"
-                  className="border rounded-md px-3 py-2 text-sm font-semibold w-full text-left bg-white"
-                  onClick={() => {
-                    setDropdownOpen(prev => ({
-                      ...prev,
-                      country: !prev.country
-                    }))
-                  }}
-                >
-                  {selectedCountry
-                    ? countryDataJson.find((c: { code: string }) => {
-                        return c.code === selectedCountry
-                      })?.name
-                    : "Country"}
-                </button>
-                {dropdownOpen.country && (
-                  <div className="absolute z-10 w-full bg-white border rounded shadow-lg max-h-48 overflow-y-auto mt-1">
-                    <input
-                      type="text"
-                      className="border-b px-2 py-1 text-sm font-semibold w-full mb-1"
-                      placeholder="Search..."
-                      value={countrySearch}
-                      autoFocus
-                      onChange={e => {
-                        setCountrySearch(e.target.value)
-                      }}
-                    />
-                    <div
-                      className="px-2 py-1 text-sm cursor-pointer"
-                      onClick={() => {
-                        setSelectedCountry("")
-                        setCountrySearch("")
-                        setDropdownOpen(prev => ({ ...prev, country: false }))
-                      }}
-                      style={{
-                        background: selectedCountry === "" ? "#f3f4f6" : ""
-                      }}
-                    >
-                      Country
-                    </div>
-                    {filteredCountries.map(
-                      (country: { code: string; name: string }) => (
-                        <div
-                          key={country.code}
-                          className={`px-2 py-1 text-sm cursor-pointer${
-                            selectedCountry === country.code
-                              ? " bg-gray-100"
-                              : ""
-                          }`}
-                          onClick={() => {
-                            setSelectedCountry(country.code)
-                            setCountrySearch(country.name)
-                            setDropdownOpen(prev => ({
-                              ...prev,
-                              country: false
-                            }))
-                          }}
-                        >
-                          {country.name}
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
+            <div className="w-44">
+              <Combobox
+                options={countryDataJson.map(c => ({
+                  value: c.code,
+                  label: c.name
+                }))}
+                value={selectedCountry}
+                onChange={setSelectedCountry}
+                placeholder="Country"
+              />
             </div>
 
-            <div className="relative">
-              <div ref={dropdownRefs.scoring}>
-                <button
-                  type="button"
-                  className="border rounded-md px-3 py-2 text-sm font-semibold w-32 text-left bg-white"
-                  onClick={toggleScoringDropdown}
-                >
-                  {selectedScoring.length > 0
-                    ? scoringOptions
-                        .filter(opt => selectedScoring.includes(opt.value))
-                        .map(opt => opt.label)
-                        .join(", ")
-                    : "Scoring"}
-                </button>
-                {dropdownOpen.scoring && (
-                  <div className="absolute z-10 mt-1 w-32 bg-white border rounded shadow-lg">
-                    {scoringOptions.map(opt => (
-                      <label
-                        key={opt.value}
-                        className="flex items-center px-2 py-1 cursor-pointer text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedScoring.includes(opt.value)}
-                          onChange={() => {
-                            handleScoringCheckboxChange(opt.value)
-                          }}
-                          className="mr-2"
-                        />
-                        {opt.label}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="w-32">
+              <MultiSelectDropdown
+                options={[...scoringOptions]}
+                values={selectedScoring}
+                onChange={setSelectedScoring}
+                placeholder="Scoring"
+              />
             </div>
 
             <div className="relative">
               <select
-                className="border rounded-md px-3 py-2 text-sm font-semibold appearance-none"
+                className="border rounded-md px-3 py-2 text-sm font-semibold appearance-none bg-background dark:bg-background text-gray-900 dark:text-gray-100"
                 style={{ backgroundImage: "none" }}
                 value={selectedIntent}
                 onChange={handleIntentChange}
               >
-                <option value="">Intent</option>
+                <option
+                  value=""
+                  className="bg-background dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Intent
+                </option>
               </select>
             </div>
 
             <div className="relative">
-              <div ref={dropdownRefs.duration}>
-                <button
-                  type="button"
-                  className="border rounded-md px-3 py-2 text-sm font-semibold w-40 text-left bg-white"
-                  onClick={() => {
-                    setDropdownOpen(prev => ({
-                      ...prev,
-                      duration: !prev.duration
-                    }))
-                  }}
-                >
-                  {durationOptions.find(opt => opt.value === selectedDuration)
-                    ?.label ?? "Duration"}
-                </button>
-                {dropdownOpen.duration && (
-                  <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-                    <button
-                      className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
-                        selectedDuration === "" ? " font-bold" : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedDuration("")
-                        setDropdownOpen(prev => ({ ...prev, duration: false }))
-                      }}
-                    >
-                      All
-                    </button>
-                    {durationOptions
-                      .filter(opt => opt.value !== "")
-                      .map(opt => (
-                        <button
-                          key={opt.value}
-                          className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
-                            selectedDuration === opt.value ? " font-bold" : ""
-                          }`}
-                          onClick={() => {
-                            setSelectedDuration(opt.value)
-                            setDropdownOpen(prev => ({
-                              ...prev,
-                              duration: false
-                            }))
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                  </div>
-                )}
-              </div>
+              <SingleSelectDropdown
+                options={[...durationOptions]}
+                value={selectedDuration}
+                onChange={setSelectedDuration}
+                placeholder="Duration"
+                className="w-40"
+              />
             </div>
           </div>
 
@@ -590,8 +475,8 @@ export default function ChatsPage(): JSX.Element {
                 <path
                   d="M13.3333 4.66699H7.33329M9.33329 11.3337H3.33329M9.33329 11.3337C9.33329 12.4382 10.2287 13.3337 11.3333 13.3337C12.4379 13.3337 13.3333 12.4382 13.3333 11.3337C13.3333 10.2291 12.4379 9.33366 11.3333 9.33366C10.2287 9.33366 9.33329 10.2291 9.33329 11.3337ZM6.66663 4.66699C6.66663 5.77156 5.7712 6.66699 4.66663 6.66699C3.56206 6.66699 2.66663 5.77156 2.66663 4.66699C2.66663 3.56242 3.56206 2.66699 4.66663 2.66699C5.7712 2.66699 6.66663 3.56242 6.66663 4.66699Z"
                   stroke="#0F172A"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
               View
@@ -733,7 +618,6 @@ export default function ChatsPage(): JSX.Element {
               <p className="text-sm">
                 Page {currentPage} of {totalPages}
               </p>
-
               <div className="">
                 <button
                   className={`p-1 rounded ${

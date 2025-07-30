@@ -1,3 +1,9 @@
+export enum LeadScoreType {
+  Cold = "Cold Lead",
+  Warm = "Warm Lead",
+  Hot = "Hot Lead"
+}
+
 export interface Lead {
   id: number
   createdAt: string
@@ -9,4 +15,6 @@ export interface Lead {
   content: string
   threadId: string
   timestamp: string
+  score: LeadScoreType
+  tags: string
 }

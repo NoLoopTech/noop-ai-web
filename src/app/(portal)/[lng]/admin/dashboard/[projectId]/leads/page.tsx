@@ -1,6 +1,7 @@
 "use client"
 
 import { JSX, useMemo, useState } from "react"
+import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
 import {
@@ -13,11 +14,11 @@ import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
-import { type Lead } from "@/models/lead"
+import { LeadScoreType, type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
 
-export default function ChatsPage(): JSX.Element {
+export default function LeadsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
@@ -26,8 +27,25 @@ export default function ChatsPage(): JSX.Element {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-
   const projectId = useProjectId()
+
+  const scoreMutation = useApiMutation(
+    projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
+    "post",
+    {
+      onSuccess: () => {
+        void refetch()
+      },
+      onError: () => {
+        void refetch()
+      }
+    }
+  )
+
+  useEffect(() => {
+    if (!projectId) return
+    scoreMutation.mutate(undefined)
+  }, [projectId])
 
   const {
     data: paginatedData,
@@ -45,6 +63,7 @@ export default function ChatsPage(): JSX.Element {
   )
 
   const leads = useMemo((): Lead[] => {
+    console.log("Leads data:", paginatedData?.data)
     if (!paginatedData?.data) return []
     if (searchTerm) {
       return paginatedData.data.filter(
@@ -335,7 +354,27 @@ export default function ChatsPage(): JSX.Element {
                     <td className="p-4 text-sm text-green-600">
                       {lead.phoneNumber}
                     </td>
-                    <td className="p-4 text-sm">5</td>
+                    <td className="p-4 text-sm">
+                      {scoreMutation && scoreMutation.status === "pending" ? (
+                        <div className="animate-pulse h-4 w-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                      ) : typeof lead.score !== "undefined" ? (
+                        <span
+                          className={
+                            lead.score === LeadScoreType.Cold
+                              ? "text-blue-500 font-normal"
+                              : lead.score === LeadScoreType.Warm
+                              ? "text-orange-500 font-normal"
+                              : lead.score === LeadScoreType.Hot
+                              ? "text-red-600 font-normal"
+                              : "text-yellow-600 font-normal"
+                          }
+                        >
+                          {lead.score}
+                        </span>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
                     <td className="p-4 text-sm">new</td>
                     <td className="p-4 text-sm">
                       {formatDate(lead.timestamp)}
@@ -517,7 +556,7 @@ export default function ChatsPage(): JSX.Element {
                       </span>
                       <div className="mt-1 flex items-center gap-2">
                         <span className="text-sm font-semibold text-yellow-600">
-                          N/A
+                          {selectedLead.score}
                         </span>
                       </div>
                     </div>

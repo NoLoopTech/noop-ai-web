@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useRef, useEffect } from "react"
+import { useMemo, useState } from "react"
 import countryDataJson from "@/lib/countryData.json"
 import Image from "next/image"
 import { Combobox } from "@/components/ui/combo-box"
@@ -24,16 +24,6 @@ import {
 } from "@/models/filterOptions"
 
 export default function ChatsPage(): JSX.Element {
-  // Dropdown toggle handlers
-  const handleDropdown = (key: keyof typeof dropdownOpen) => () => {
-    setDropdownOpen(prev => ({ ...prev, [key]: !prev[key] }))
-  }
-
-  const handleDateRangeSelect = (value: DateRangeType) => () => {
-    handleDateRangeChange(value)
-    setDropdownOpen(prev => ({ ...prev, dateRange: false }))
-  }
-
   const handleTab = (tab: string) => () => {
     setSelectedTab(tab)
   }
@@ -59,33 +49,6 @@ export default function ChatsPage(): JSX.Element {
     ]
     return params.join("&")
   }
-  // Generic dropdown open state and refs
-  const [dropdownOpen, setDropdownOpen] = useState({
-    dateRange: false
-  })
-  const dropdownRefs = {
-    dateRange: useRef<HTMLDivElement>(null)
-  }
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent): void {
-      Object.entries(dropdownOpen).forEach(([key, isOpen]) => {
-        if (
-          isOpen &&
-          dropdownRefs[key as keyof typeof dropdownRefs].current &&
-          !dropdownRefs[key as keyof typeof dropdownRefs].current?.contains(
-            event.target as Node
-          )
-        ) {
-          setDropdownOpen(prev => ({ ...prev, [key]: false }))
-        }
-      })
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [dropdownOpen])
 
   const getFormattedDateRange = (): string => {
     const start = new Date(startDate)
@@ -103,57 +66,6 @@ export default function ChatsPage(): JSX.Element {
       : `${format(start)} - ${format(end)}`
   }
 
-  // Helper to get the label for the current date range selection
-  const getDateRangeLabel = (): string => {
-    const today = new Date()
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-    // Today
-    if (
-      start.toDateString() === today.toDateString() &&
-      end.toDateString() === today.toDateString()
-    ) {
-      return "Today"
-    }
-    // Yesterday
-    const yesterday = new Date(today)
-    yesterday.setDate(today.getDate() - 1)
-    if (
-      start.toDateString() === yesterday.toDateString() &&
-      end.toDateString() === yesterday.toDateString()
-    ) {
-      return "Yesterday"
-    }
-    // Last 7 Days
-    const last7 = new Date(today)
-    last7.setDate(today.getDate() - 6)
-    if (
-      start.toDateString() === last7.toDateString() &&
-      end.toDateString() === today.toDateString()
-    ) {
-      return "Last 7 Days"
-    }
-    // Last 30 Days
-    const last30 = new Date(today)
-    last30.setDate(today.getDate() - 29)
-    if (
-      start.toDateString() === last30.toDateString() &&
-      end.toDateString() === today.toDateString()
-    ) {
-      return "Last 30 Days"
-    }
-    // Last 90 Days
-    const last90 = new Date(today)
-    last90.setDate(today.getDate() - 89)
-    if (
-      start.toDateString() === last90.toDateString() &&
-      end.toDateString() === today.toDateString()
-    ) {
-      return "Last 90 Days"
-    }
-    // Custom
-    return `${startDate} - ${endDate}`
-  }
   const todayInit = new Date()
   const startInit = new Date(todayInit)
   startInit.setDate(todayInit.getDate() - 6)
@@ -163,6 +75,8 @@ export default function ChatsPage(): JSX.Element {
   const [endDate, setEndDate] = useState(() =>
     todayInit.toISOString().slice(0, 10)
   )
+  const [selectedDateRangeType, setSelectedDateRangeType] =
+    useState<DateRangeType>("last7")
 
   // Helper to format date as yyyy-mm-dd
   const formatDateISO = (d: Date): string => {
@@ -170,6 +84,8 @@ export default function ChatsPage(): JSX.Element {
   }
 
   const handleDateRangeChange = (value: DateRangeType): void => {
+    setSelectedDateRangeType(value)
+
     const today = new Date()
     const daysMap: Record<DateRangeType, number> = {
       today: 0,
@@ -297,6 +213,10 @@ export default function ChatsPage(): JSX.Element {
     toggleRowSelection(id)
   }
 
+  const handleDateDropdownChange = (val: string): void => {
+    handleDateRangeChange(val as DateRangeType)
+  }
+
   const secondsToMinutes = (seconds: number): string => {
     if (seconds <= 60) {
       return "< 1min"
@@ -314,29 +234,16 @@ export default function ChatsPage(): JSX.Element {
       <Card className="p-0 overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <button
-                type="button"
-                className="border rounded-md px-3 py-2 text-sm font-semibold w-40 text-left bg-background dark:bg-background"
-                onClick={handleDropdown("dateRange")}
-              >
-                {getDateRangeLabel()}
-              </button>
-              {dropdownOpen.dateRange && (
-                <div className="absolute top-full left-0 mt-1 w-40 bg-background dark:bg-background dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-                  {dateRangeOptions.map(opt => (
-                    <button
-                      key={opt.value}
-                      className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700${
-                        getDateRangeLabel() === opt.label ? " font-bold" : ""
-                      }`}
-                      onClick={handleDateRangeSelect(opt.value)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="w-40">
+              <SingleSelectDropdown
+                options={dateRangeOptions.map(opt => ({
+                  value: opt.value,
+                  label: opt.label
+                }))}
+                value={selectedDateRangeType}
+                onChange={handleDateDropdownChange}
+                placeholder="Date Range"
+              />
             </div>
 
             <div className="flex items-center space-x-2 pl-2 border-l">

@@ -4,5 +4,30 @@
   "trailingComma": "none",
   "arrowParens": "avoid",
   "endOfLine": "auto",
-  "tabWidth": 2
+  "tabWidth": 2,
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "importOrder": [
+    "^react$",
+    "^react-dom/client$",
+    "^react/(.*)$",
+    "^globals$",
+    "^zod$",
+    "^axios$",
+    "^date-fns$",
+    "^react-hook-form$",
+    "^@radix-ui/(.*)$",
+    "^@tabler/icons-react$",
+    "<THIRD_PARTY_MODULES>",
+    "^@/assets/(.*)",
+    "^@/lib/(.*)$",
+    "^@/utils/(.*)$",
+    "^@/constants/(.*)$",
+    "^@/context/(.*)$",
+    "^@/hooks/(.*)$",
+    "^@/components/layouts/(.*)$",
+    "^@/components/ui/(.*)$",
+    "^@/components/errors/(.*)$",
+    "^@/components/(.*)$",
+    "^[./]"
+  ]
 }

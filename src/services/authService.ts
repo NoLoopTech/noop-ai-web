@@ -52,6 +52,7 @@ export async function authenticate(
 }
 
 export async function gauth(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   email: string,
   credential: string
 ): Promise<AuthResponse | undefined> {

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import i18next from "i18next"
 import {
   initReactI18next,
-  useTranslation as useTranslationOrg
+  useTranslation as useTranslationOrg,
+  UseTranslationResponse
 } from "react-i18next"
 import resourcesToBackend from "i18next-resources-to-backend"
 import LanguageDetector from "i18next-browser-languagedetector"
@@ -30,7 +31,11 @@ void i18next
     preload: runsOnServerSide ? languages : []
   })
 
-export function useTranslation(lng: string, ns: string, options = {}): any {
+export function useTranslation(
+  lng: string,
+  ns: string,
+  options = {}
+): UseTranslationResponse<string, string> {
   const ret = useTranslationOrg(ns, options)
   const { i18n } = ret
   if (

@@ -1,5 +1,6 @@
 "use client"
 
+import { JSX } from "react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 const data = [

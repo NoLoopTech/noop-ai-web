@@ -1,5 +1,4 @@
-import axios from "axios"
-import type { AxiosInstance } from "axios"
+import axios, { AxiosInstance } from "axios"
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL as string
 

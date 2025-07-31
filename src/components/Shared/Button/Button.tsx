@@ -1,7 +1,5 @@
-import React from "react"
-
+import { JSX } from "react"
 import { clsxm } from "@/utils"
-
 import styles from "./Button.module.css"
 
 type ButtonVariant = "primary" | "secondary"

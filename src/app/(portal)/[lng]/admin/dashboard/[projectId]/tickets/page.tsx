@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { JSX, useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
 import {
   Dialog,
@@ -99,19 +99,19 @@ export default function ChatsPage(): JSX.Element {
   }
 
   return (
-    <div className="flex flex-col p-6 gap-6">
-      <div className="w-max flex items-center space-x-2">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex w-max items-center space-x-2">
         <h1 className="text-2xl font-semibold">Tickets</h1>
       </div>
 
-      <Card className="p-0 overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center space-x-2">
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
                 Last 7 Days
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -124,9 +124,9 @@ export default function ChatsPage(): JSX.Element {
               </button>
             </div>
 
-            <div className="flex items-center space-x-2 pl-2 border-l">
+            <div className="flex items-center space-x-2 border-l pl-2">
               <svg
-                className="w-5 h-5 text-gray-500"
+                className="h-5 w-5 text-gray-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -146,11 +146,11 @@ export default function ChatsPage(): JSX.Element {
                 void refetch()
               }}
               disabled={isFetching}
-              className="p-1 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+              className="rounded-md border p-1 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
               aria-label="Refresh data"
             >
               <RefreshIcon
-                className={`w-5 h-5 fill-gray-500 ${
+                className={`h-5 w-5 fill-gray-500 ${
                   isFetching ? "animate-spin" : ""
                 }`}
               />
@@ -158,12 +158,12 @@ export default function ChatsPage(): JSX.Element {
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900/50">
-          <div className="flex items-center space-x-2.5 flex-1 mr-4">
+        <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
+          <div className="mr-4 flex flex-1 items-center space-x-2.5">
             <input
               type="text"
               placeholder="Search by user name..."
-              className="border rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+              className="flex-1 rounded-md border px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={searchTerm}
               onChange={e => {
                 setSearchTerm(e.target.value)
@@ -171,7 +171,7 @@ export default function ChatsPage(): JSX.Element {
             />
 
             <svg
-              className="w-5 h-5 text-gray-500"
+              className="h-5 w-5 text-gray-500"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -186,14 +186,14 @@ export default function ChatsPage(): JSX.Element {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <button
-                className="flex items-center border rounded-md px-2 py-1 text-sm"
+                className="flex items-center rounded-md border px-2 py-1 text-sm"
                 onClick={() => {
                   setIsStatusDropdownOpen(!isStatusDropdownOpen)
                 }}
               >
                 {statusFilter}
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -206,11 +206,11 @@ export default function ChatsPage(): JSX.Element {
               </button>
 
               {isStatusDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-36 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                <div className="absolute top-full left-0 z-10 mt-1 w-36 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
                   {["In progress", "Done", "Todo", "Closed"].map(status => (
                     <button
                       key={status}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         setStatusFilter(status)
                         setIsStatusDropdownOpen(false)
@@ -224,10 +224,10 @@ export default function ChatsPage(): JSX.Element {
             </div>
 
             <div className="relative">
-              <button className="flex items-center border rounded-md px-2 py-1 text-sm">
+              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
                 Source
                 <svg
-                  className="w-4 h-4 ml-1"
+                  className="ml-1 h-4 w-4"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -244,20 +244,20 @@ export default function ChatsPage(): JSX.Element {
 
         <div className="overflow-x-auto">
           {isTicketsLoading ? (
-            <div className="w-full h-96 flex justify-center items-center">
+            <div className="flex h-96 w-full items-center justify-center">
               <LoadingIcon
-                className={`w-40 h-40 font-thin fill-gray-500/50 ${
+                className={`h-40 w-40 fill-gray-500/50 font-thin ${
                   isTicketsLoading
-                    ? "animate-pulse animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both"
+                    ? "animate-infinite animate-ease-in-out animate-alternate-reverse animate-fill-both animate-pulse"
                     : ""
                 }`}
               />
             </div>
           ) : tickets.length > 0 ? (
             <table className="w-full">
-              <thead className="bg-gray-100 dark:bg-gray-900/75 text-left">
+              <thead className="bg-gray-100 text-left dark:bg-gray-900/75">
                 <tr>
-                  <th className="p-4 w-8">
+                  <th className="w-8 p-4">
                     <input
                       type="checkbox"
                       checked={selectedRows.length === tickets.length}
@@ -265,7 +265,7 @@ export default function ChatsPage(): JSX.Element {
                       className="rounded"
                     />
                   </th>
-                  <th className="py-4 px-1 text-sm font-medium text-gray-500">
+                  <th className="px-1 py-4 text-sm font-medium text-gray-500">
                     Ticket ID
                   </th>
                   <th className="p-4 text-sm font-medium text-gray-500">
@@ -289,14 +289,14 @@ export default function ChatsPage(): JSX.Element {
                   <th className="p-4 text-sm font-medium text-gray-500">
                     Created On
                   </th>
-                  <th className="p-4 w-8"></th>
+                  <th className="w-8 p-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {tickets.map(ticket => (
                   <tr
                     key={ticket.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 align-middle cursor-pointer"
+                    className="cursor-pointer align-middle hover:bg-gray-50 dark:hover:bg-gray-800"
                     onClick={handleRowClick(ticket.id.toString())}
                   >
                     <td
@@ -319,25 +319,25 @@ export default function ChatsPage(): JSX.Element {
                     <td className="p-4 text-sm">
                       <div className="flex items-center space-x-2">
                         {ticket.status === "Done" ? (
-                          <DoneIcon className="w-4 h-4 text-green-600" />
+                          <DoneIcon className="h-4 w-4 text-green-600" />
                         ) : ticket.status === "Todo" ? (
-                          <TodoIcon className="w-4 h-4 text-yellow-600" />
+                          <TodoIcon className="h-4 w-4 text-yellow-600" />
                         ) : ticket.status === "Closed" ? (
-                          <ClosedIcon className="w-4 h-4 text-gray-600" />
+                          <ClosedIcon className="h-4 w-4 text-gray-600" />
                         ) : (
-                          <TimerIcon className="w-4 h-4 text-blue-600" />
+                          <TimerIcon className="h-4 w-4 text-blue-600" />
                         )}
                         <span
                           className={`${
                             ticket.status === "Done"
                               ? "text-green-500"
                               : ticket.status === "In progress"
-                              ? "text-blue-500"
-                              : ticket.status === "Todo"
-                              ? "text-yellow-500"
-                              : ticket.status === "Closed"
-                              ? "text-gray-500"
-                              : "text-gray-500"
+                                ? "text-blue-500"
+                                : ticket.status === "Todo"
+                                  ? "text-yellow-500"
+                                  : ticket.status === "Closed"
+                                    ? "text-gray-500"
+                                    : "text-gray-500"
                           }`}
                         >
                           {ticket.status ?? "New"}
@@ -347,11 +347,11 @@ export default function ChatsPage(): JSX.Element {
                     <td className="p-4 text-sm">
                       <div className="flex items-center space-x-2">
                         {ticket.priority === "High" ? (
-                          <ArrowUpIcon className="w-4 h-4 text-gray-500" />
+                          <ArrowUpIcon className="h-4 w-4 text-gray-500" />
                         ) : ticket.priority === "Medium" ? (
-                          <ArrowRightIcon className="w-4 h-4 text-gray-500" />
+                          <ArrowRightIcon className="h-4 w-4 text-gray-500" />
                         ) : ticket.priority === "Low" ? (
-                          <ArrowDownIcon className="w-4 h-4 text-gray-500" />
+                          <ArrowDownIcon className="h-4 w-4 text-gray-500" />
                         ) : null}
                         <span className="text-gray-500">
                           {ticket.priority ?? "medium"}
@@ -365,7 +365,7 @@ export default function ChatsPage(): JSX.Element {
                     <td className="p-4">
                       <button className="text-gray-500 hover:text-gray-700">
                         <svg
-                          className="w-5 h-5"
+                          className="h-5 w-5"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -378,14 +378,14 @@ export default function ChatsPage(): JSX.Element {
               </tbody>
             </table>
           ) : (
-            <div className="w-full h-96 flex flex-col justify-center items-center">
-              <NoDataIcon className="w-40 h-40 fill-gray-500/50" />
+            <div className="flex h-96 w-full flex-col items-center justify-center">
+              <NoDataIcon className="h-40 w-40 fill-gray-500/50" />
               <p className="text-lg text-gray-500/75">No tickets available</p>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between p-4 border-t">
+        <div className="flex items-center justify-between border-t p-4">
           <div className="text-sm text-gray-500">
             {selectedRows.length > 0
               ? `${selectedRows.length} of ${tickets.length} row(s) selected.`
@@ -400,23 +400,23 @@ export default function ChatsPage(): JSX.Element {
                 setRowsPerPage(Number(e.target.value))
                 setCurrentPage(1)
               }}
-              className="border rounded px-2 py-1 text-sm"
+              className="rounded border px-2 py-1 text-sm"
             >
               <option value="10">10</option>
               <option value="25">25</option>
               <option value="50">50</option>
             </select>
 
-            <div className="flex items-center space-x-2 ml-4">
+            <div className="ml-4 flex items-center space-x-2">
               <p className="text-sm">
                 Page {currentPage} of {totalPages}
               </p>
 
               <div className="">
                 <button
-                  className={`p-1 rounded ${
+                  className={`rounded p-1 ${
                     currentPage === 1
-                      ? "hover:bg-gray-100/25 dark:hover:bg-gray-700/25 cursor-not-allowed"
+                      ? "cursor-not-allowed hover:bg-gray-100/25 dark:hover:bg-gray-700/25"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === 1}
@@ -425,7 +425,7 @@ export default function ChatsPage(): JSX.Element {
                   }}
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -438,9 +438,9 @@ export default function ChatsPage(): JSX.Element {
                 </button>
 
                 <button
-                  className={`p-1 rounded ${
+                  className={`rounded p-1 ${
                     currentPage === totalPages
-                      ? "hover:bg-gray-100/25 dark:hover:bg-gray-700/25 cursor-not-allowed"
+                      ? "cursor-not-allowed hover:bg-gray-100/25 dark:hover:bg-gray-700/25"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === totalPages}
@@ -449,7 +449,7 @@ export default function ChatsPage(): JSX.Element {
                   }}
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -490,9 +490,9 @@ export default function ChatsPage(): JSX.Element {
           <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
                   <svg
-                    className="w-3 h-3 text-blue-600 dark:text-blue-400"
+                    className="h-3 w-3 text-blue-600 dark:text-blue-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -511,96 +511,96 @@ export default function ChatsPage(): JSX.Element {
 
             {selectedTicket && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                <div className="grid grid-cols-1 gap-4 py-2 md:grid-cols-2">
                   <div className="space-y-3">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Ticket ID
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedTicket.id}
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         User Name
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedTicket.userName}
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Email
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedTicket.email}
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Phone Number
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedTicket.phoneNumber ?? "N/A"}
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Status
                       </span>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="mt-1 flex items-center gap-2">
                         {selectedTicket.status === "Done" ? (
-                          <DoneIcon className="w-4 h-4 text-green-600" />
+                          <DoneIcon className="h-4 w-4 text-green-600" />
                         ) : selectedTicket.status === "Todo" ? (
-                          <TodoIcon className="w-4 h-4 text-yellow-600" />
+                          <TodoIcon className="h-4 w-4 text-yellow-600" />
                         ) : selectedTicket.status === "Closed" ? (
-                          <ClosedIcon className="w-4 h-4 text-gray-600" />
+                          <ClosedIcon className="h-4 w-4 text-gray-600" />
                         ) : (
-                          <TimerIcon className="w-4 h-4 text-blue-600" />
+                          <TimerIcon className="h-4 w-4 text-blue-600" />
                         )}
                         <span
                           className={`text-sm font-semibold ${
                             selectedTicket.status === "Done"
                               ? "text-green-600"
                               : selectedTicket.status === "In progress"
-                              ? "text-blue-600"
-                              : selectedTicket.status === "Todo"
-                              ? "text-yellow-600"
-                              : selectedTicket.status === "Closed"
-                              ? "text-gray-600"
-                              : "text-gray-600"
+                                ? "text-blue-600"
+                                : selectedTicket.status === "Todo"
+                                  ? "text-yellow-600"
+                                  : selectedTicket.status === "Closed"
+                                    ? "text-gray-600"
+                                    : "text-gray-600"
                           }`}
                         >
                           {selectedTicket.status ?? "New"}
                         </span>
                       </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Priority
                       </span>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="mt-1 flex items-center gap-2">
                         {selectedTicket.priority === "High" ? (
-                          <ArrowUpIcon className="w-4 h-4 text-red-500" />
+                          <ArrowUpIcon className="h-4 w-4 text-red-500" />
                         ) : selectedTicket.priority === "Medium" ? (
-                          <ArrowRightIcon className="w-4 h-4 text-yellow-500" />
+                          <ArrowRightIcon className="h-4 w-4 text-yellow-500" />
                         ) : selectedTicket.priority === "Low" ? (
-                          <ArrowDownIcon className="w-4 h-4 text-green-500" />
+                          <ArrowDownIcon className="h-4 w-4 text-green-500" />
                         ) : null}
                         <span
                           className={`text-sm font-semibold ${
                             selectedTicket.priority === "High"
                               ? "text-red-600"
                               : selectedTicket.priority === "Medium"
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                                ? "text-yellow-600"
+                                : "text-green-600"
                           }`}
                         >
                           {selectedTicket.priority ?? "medium"}
@@ -608,30 +608,30 @@ export default function ChatsPage(): JSX.Element {
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Type
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {selectedTicket.type ?? "General"}
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 h-16 flex flex-col justify-center">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="flex h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                      <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                         Created On
                       </span>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                      <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                         {formatDate(selectedTicket.timestamp)}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 min-h-16 flex flex-col justify-center">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <div className="flex min-h-16 flex-col justify-center rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                  <span className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
                     Content
                   </span>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
+                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                     {selectedTicket.content}
                   </p>
                 </div>

@@ -3,6 +3,7 @@
 import { Activity, ArrowUp, BarChart, Mail, MessageSquare } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { JSX } from "react"
 
 interface MetricCardProps {
   title: string
@@ -42,8 +43,8 @@ export function MetricCard({
     trend === "up"
       ? "text-green-600 dark:text-green-400"
       : trend === "down"
-      ? "text-red-600 dark:text-red-400"
-      : "text-gray-500 dark:text-gray-400"
+        ? "text-red-600 dark:text-red-400"
+        : "text-gray-500 dark:text-gray-400"
 
   return (
     <Card>
@@ -56,7 +57,7 @@ export function MetricCard({
         </div>
         <div className="mt-4">
           <span className="text-3xl font-semibold">{value}</span>
-          <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
             <span className={cn("flex items-center gap-1", trendColor)}>
               {change}
               <ArrowUp

@@ -6,17 +6,18 @@ import { Card } from "@/components/ui/card"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { UsageBarChart } from "@/components/charts/usage-bar-chart"
 import { TimeSpentLineChart } from "@/components/charts/time-spent-chart"
-import { GeographyMap } from "@/components/charts/geography-map"
+// import { GeographyMap } from "@/components/charts/geography-map"
+import { JSX } from "react"
 
 export default function OverviewPage(): JSX.Element {
   return (
-    <div className="flex flex-col p-6 gap-6">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Overview</h1>
         <DateRangePicker />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Conversations"
           value="1,500"
@@ -50,14 +51,14 @@ export default function OverviewPage(): JSX.Element {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="p-6">
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Usage Graph</h3>
-              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+              <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 Trending up by 5.2%
-                <svg className="w-3 h-3 ml-1" viewBox="0 0 14 14" fill="none">
+                <svg className="ml-1 h-3 w-3" viewBox="0 0 14 14" fill="none">
                   <path
                     d="M4.5 9.5L9.5 4.5M9.5 4.5H5.5M9.5 4.5V8.5"
                     stroke="currentColor"
@@ -78,9 +79,9 @@ export default function OverviewPage(): JSX.Element {
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Time spent via Bot</h3>
-              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+              <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 Trending up by 5.2%
-                <svg className="w-3 h-3 ml-1" viewBox="0 0 14 14" fill="none">
+                <svg className="ml-1 h-3 w-3" viewBox="0 0 14 14" fill="none">
                   <path
                     d="M4.5 9.5L9.5 4.5M9.5 4.5H5.5M9.5 4.5V8.5"
                     stroke="currentColor"
@@ -98,13 +99,13 @@ export default function OverviewPage(): JSX.Element {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <Card className="p-6">
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Link clicks</h3>
               <svg
-                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                className="h-4 w-4 text-gray-500 dark:text-gray-400"
                 viewBox="0 0 14 14"
                 fill="none"
               >
@@ -119,10 +120,10 @@ export default function OverviewPage(): JSX.Element {
             </div>
             <div className="mt-4">
               <span className="text-3xl font-semibold">+573</span>
-              <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center text-green-600 dark:text-green-400">
                   +201 since last 7 days
-                  <svg className="w-3 h-3 ml-1" viewBox="0 0 14 14" fill="none">
+                  <svg className="ml-1 h-3 w-3" viewBox="0 0 14 14" fill="none">
                     <path
                       d="M4.5 9.5L9.5 4.5M9.5 4.5H5.5M9.5 4.5V8.5"
                       stroke="currentColor"
@@ -141,7 +142,8 @@ export default function OverviewPage(): JSX.Element {
           <div className="flex flex-col gap-1">
             <h3 className="text-lg font-medium">Country/Geo Breakdown</h3>
             <div className="h-80">
-              <GeographyMap />
+              {/* <GeographyMap /> */}
+              GeographyMap not available in this version
             </div>
           </div>
         </Card>

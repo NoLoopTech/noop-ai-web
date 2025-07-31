@@ -22,7 +22,7 @@ export const authOptions: AuthOptions = {
       credentials: {
         code: { type: "text" }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (credentials) {
           const res = await emailVerify(credentials.code)
           if (res) {
@@ -41,7 +41,7 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (typeof credentials !== "undefined") {
           const res = await authenticate(
             credentials.email,
@@ -63,7 +63,7 @@ export const authOptions: AuthOptions = {
       credentials: {
         credential: { type: "text" }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         try {
           if (typeof credentials !== "undefined") {
             const decodedJwt = jwtDecode<GoogleJwt>(credentials.credential)
@@ -71,6 +71,7 @@ export const authOptions: AuthOptions = {
             if (typeof res !== "undefined") {
               return { ...res.user, apiToken: res.access_token }
             } else {
+              // eslint-disable-next-line no-console
               console.log("failed")
               return null
             }
@@ -78,6 +79,7 @@ export const authOptions: AuthOptions = {
             return null
           }
         } catch (err) {
+          // eslint-disable-next-line no-console
           console.log("Error during sign in", err)
           return null
         }
@@ -86,6 +88,7 @@ export const authOptions: AuthOptions = {
   ],
   session: { strategy: "jwt" },
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async session({ session, token, user }) {
       const sanitizedToken = Object.keys(token).reduce((p, c) => {
         // strip unnecessary properties
@@ -97,6 +100,7 @@ export const authOptions: AuthOptions = {
       }, {})
       return { ...session, user: sanitizedToken, apiToken: token.apiToken }
     },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async jwt({ token, user, account, profile }) {
       if (typeof user !== "undefined") {
         // user has just signed in so the user object is populated

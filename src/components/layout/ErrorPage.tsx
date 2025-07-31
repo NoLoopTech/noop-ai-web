@@ -1,22 +1,22 @@
 import Image from "next/image"
-import React from "react"
+import React, { JSX } from "react"
 import Link from "next/link"
 
 const ErrorPage = (): JSX.Element => {
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center px-5 gap-y-7">
+    <div className="flex h-screen w-screen flex-col items-center justify-center gap-y-7 px-5">
       <Image
         width={200}
         height={200}
         alt="Error Icon"
         src={"/assets/background/error-page-icon.png"}
       />
-      <p className="font-medium text-xl text-center text-[#64748B]">
+      <p className="text-center text-xl font-medium text-[#64748B]">
         Looks like something went wrong, please return to home page
       </p>
       <Link
         href={"/"}
-        className="py-4 px-8 rounded-lg bg-[#060606] hover:bg-[#060606]/80 font-bold text-lg/6 text-center text-white"
+        className="rounded-lg bg-[#060606] px-8 py-4 text-center text-lg/6 font-bold text-white hover:bg-[#060606]/80"
       >
         Home Page
       </Link>

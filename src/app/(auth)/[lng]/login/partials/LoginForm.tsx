@@ -69,9 +69,9 @@ const LoginForm: React.FC = () => {
   }, [session, router])
 
   return (
-    <div className="w-full h-full flex flex-col justify-center items-center space-y-6 bg-gray-50 dark:bg-zinc-900 rounded-3xl">
-      <div className="w-full max-w-md p-8 space-y-7 bg-white dark:bg-zinc-800 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
+    <div className="flex h-full w-full flex-col items-center justify-center space-y-6 rounded-3xl bg-gray-50 dark:bg-zinc-900">
+      <div className="w-full max-w-md space-y-7 rounded-lg bg-white p-8 shadow-md dark:bg-zinc-800">
+        <h1 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
           Sign In to Dashboard
         </h1>
 
@@ -88,7 +88,7 @@ const LoginForm: React.FC = () => {
               onChange={handleChange("email")}
               autoComplete="email"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-zinc-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm dark:border-zinc-600 dark:bg-zinc-700 dark:text-white dark:placeholder-gray-400"
               placeholder="Email address"
             />
           </div>
@@ -103,14 +103,14 @@ const LoginForm: React.FC = () => {
               onChange={handleChange("password")}
               autoComplete="current-password"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-zinc-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-blue-500 focus:ring-blue-500 focus:outline-none sm:text-sm dark:border-zinc-600 dark:bg-zinc-700 dark:text-white dark:placeholder-gray-400"
               placeholder="Password"
             />
           </div>
           <div>
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800"
+              className="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-700 dark:hover:bg-blue-800"
             >
               Sign in
             </button>
@@ -122,7 +122,7 @@ const LoginForm: React.FC = () => {
             <div className="w-full border-t border-gray-300 dark:border-zinc-600"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-zinc-800 text-gray-500 dark:text-gray-400">
+            <span className="bg-white px-2 text-gray-500 dark:bg-zinc-800 dark:text-gray-400">
               Or continue with
             </span>
           </div>
@@ -135,7 +135,7 @@ const LoginForm: React.FC = () => {
           <div role="alert" className="alert alert-error">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 shrink-0 stroke-current hidden md:block"
+              className="hidden h-6 w-6 shrink-0 stroke-current md:block"
               fill="none"
               viewBox="0 0 24 24"
             >

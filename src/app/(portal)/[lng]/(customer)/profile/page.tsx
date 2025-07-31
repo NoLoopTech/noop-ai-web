@@ -1,11 +1,9 @@
-const Page = ({
-  params: { section }
-}: {
-  params: { section: string }
-}): JSX.Element => {
+import { JSX } from "react"
+
+const Page = (): JSX.Element => {
   return (
-    <main className="w-screen h-screen flex justify-center items-center gap-5">
-      <h1 className="text-3xl font-bold text-center">Profile Page</h1>
+    <main className="flex h-screen w-screen items-center justify-center gap-5">
+      <h1 className="text-center text-3xl font-bold">Profile Page</h1>
     </main>
   )
 }

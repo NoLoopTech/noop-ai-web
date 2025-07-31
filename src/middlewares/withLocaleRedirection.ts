@@ -1,9 +1,13 @@
 import type { MiddlewareFactory } from "./stackMiddlewares"
-import type { NextFetchEvent, NextMiddleware, NextRequest } from "next/server"
+import {
+  NextResponse,
+  type NextFetchEvent,
+  type NextMiddleware,
+  type NextRequest
+} from "next/server"
 import acceptLanguage from "accept-language"
 import { fallbackLng, languages } from "@/i18n/settings"
 import type { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies"
-import { NextResponse } from "next/server"
 
 acceptLanguage.languages(languages)
 

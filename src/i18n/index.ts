@@ -1,5 +1,4 @@
-import { createInstance } from "i18next"
-import type { i18n } from "i18next"
+import { createInstance, i18n, TFunction } from "i18next"
 import resourcesToBackend from "i18next-resources-to-backend"
 import { initReactI18next } from "react-i18next/initReactI18next"
 import { getOptions } from "./settings"
@@ -22,7 +21,7 @@ export async function useTranslation(
   lng: string,
   ns: string,
   options = { keyPrefix: undefined }
-): Promise<{ t: any; i18n: i18n }> {
+): Promise<{ t: TFunction; i18n: i18n }> {
   const i18nextInstance = await initI18next(lng, ns)
   return {
     t: i18nextInstance.getFixedT(

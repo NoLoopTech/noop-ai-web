@@ -49,7 +49,7 @@ export default function ChatsPage(): JSX.Element {
     : 1
 
   const handleRowClick = (threadId: string): void => {
-    console.log("Row clicked:", threadId)
+    // console.log("Row clicked:", threadId)
     router.push(threadId)
   }
 

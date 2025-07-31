@@ -77,8 +77,8 @@ const getInitials = (name: string): string => {
 }
 
 export function Sidebar({
-  isCollapsed,
-  setIsCollapsed
+  isCollapsed
+  // setIsCollapsed
 }: SidebarProps): JSX.Element {
   const pathname = usePathname()
   const params = useParams()

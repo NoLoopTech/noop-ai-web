@@ -3,11 +3,10 @@ import Link from "next/link"
 import { JSX } from "react"
 
 interface Props {
-  t: any
   lng: string
 }
 
-export const FooterBase = ({ t, lng }: Props): JSX.Element => {
+export const FooterBase = ({ lng }: Props): JSX.Element => {
   return (
     <footer className="flex w-full items-center justify-center bg-white px-6 py-4 text-sm text-black transition-colors duration-300 dark:bg-black dark:text-white">
       {languages

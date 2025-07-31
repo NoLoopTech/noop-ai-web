@@ -34,7 +34,7 @@ export default function NavBase(): JSX.Element {
     <header className="absolute inset-x-0 top-0 z-50 w-screen px-6 py-0 md:px-16 md:py-10 xl:px-28 xl:py-10">
       <nav className="flex items-center justify-between" aria-label="Global">
         <div className="flex-grow lg:flex-1">
-          <a href="/" className="-m-1.5 p-1.5">
+          <Link href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">NoLoopTech</span>
             {/* <Image
               src={Logo}
@@ -44,7 +44,7 @@ export default function NavBase(): JSX.Element {
               height={96}
             /> */}
             <NltLogo className="w-52 fill-black md:w-64 dark:fill-white" />
-          </a>
+          </Link>
         </div>
         <div className="flex items-center gap-3 md:hidden">
           {/* Add theme toggle for mobile */}
@@ -76,12 +76,12 @@ export default function NavBase(): JSX.Element {
               Dashboard
             </Link>
           )}
-          <a
+          <Link
             href="/contact"
             className="text-balck rounded-full border-[1px] border-white px-4 py-2 text-lg leading-normal font-medium transition-all hover:bg-white hover:text-black hover:no-underline dark:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-300 dark:hover:text-black"
           >
             Get In Touch
-          </a>
+          </Link>
           {session ? (
             <button
               onClick={handleLogout}

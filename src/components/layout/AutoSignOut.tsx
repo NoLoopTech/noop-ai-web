@@ -7,7 +7,7 @@ const AutoSignOut: React.FC = () => {
   const { data: session, update } = useSession()
   useEffect(() => {
     if (session === null) {
-      console.log("Auto sign out intiated")
+      // console.log("Auto sign out intiated")
       void signOut({
         callbackUrl: "/login"
       })

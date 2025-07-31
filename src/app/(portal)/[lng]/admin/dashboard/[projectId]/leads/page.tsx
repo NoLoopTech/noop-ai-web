@@ -1,6 +1,6 @@
 "use client"
 
-import { JSX, useMemo, useState } from "react"
+import { JSX, useEffect, useMemo, useState } from "react"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
@@ -63,7 +63,6 @@ export default function LeadsPage(): JSX.Element {
   )
 
   const leads = useMemo((): Lead[] => {
-    console.log("Leads data:", paginatedData?.data)
     if (!paginatedData?.data) return []
     if (searchTerm) {
       return paginatedData.data.filter(
@@ -356,17 +355,17 @@ export default function LeadsPage(): JSX.Element {
                     </td>
                     <td className="p-4 text-sm">
                       {scoreMutation && scoreMutation.status === "pending" ? (
-                        <div className="animate-pulse h-4 w-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="h-4 w-10 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                       ) : typeof lead.score !== "undefined" ? (
                         <span
                           className={
                             lead.score === LeadScoreType.Cold
-                              ? "text-blue-500 font-normal"
+                              ? "font-normal text-blue-500"
                               : lead.score === LeadScoreType.Warm
-                              ? "text-orange-500 font-normal"
-                              : lead.score === LeadScoreType.Hot
-                              ? "text-red-600 font-normal"
-                              : "text-yellow-600 font-normal"
+                                ? "font-normal text-orange-500"
+                                : lead.score === LeadScoreType.Hot
+                                  ? "font-normal text-red-600"
+                                  : "font-normal text-yellow-600"
                           }
                         >
                           {lead.score}

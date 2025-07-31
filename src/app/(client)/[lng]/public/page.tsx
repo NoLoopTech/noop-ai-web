@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 
 import { authOptions } from "@/lib/nextAuthOptions"
 import { JSX } from "react"
+import Link from "next/link"
 
 export default async function Protected(): Promise<JSX.Element> {
   const session = await getServerSession(authOptions)
@@ -14,9 +15,9 @@ export default async function Protected(): Promise<JSX.Element> {
             Hi {session?.user.fullname}!
           </h1>
         ) : (
-          <a className="btn btn-primary" href="/api/auth/signin">
+          <Link className="btn btn-primary" href="/api/auth/signin">
             Sign in
-          </a>
+          </Link>
         )}
       </div>
     </div>

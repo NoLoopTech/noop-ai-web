@@ -15,13 +15,16 @@ export const metadata = {
   description: "Noopy AI"
 }
 
+interface LayoutProps {
+  children: React.ReactNode
+  params: Promise<{ lng: string }>
+}
+
 export default async function RootLayout({
   children,
-  params: { lng }
-}: {
-  children: React.ReactNode
-  params: { lng: string }
-}): Promise<JSX.Element> {
+  params
+}: LayoutProps): Promise<JSX.Element> {
+  const { lng } = await params
   return (
     <html lang={lng} dir={dir(lng)}>
       <body className={inter.className}>

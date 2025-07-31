@@ -49,13 +49,13 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         <button
           type="button"
           className={cn(
-            "border rounded-md bg-background dark:bg-background w-full px-3 py-2 text-sm font-semibold flex items-center justify-between",
+            "bg-background dark:bg-background flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm font-normal",
             className
           )}
         >
           <span>{selectedLabels || placeholder}</span>
           <svg
-            className="w-4 h-4 ml-2 text-gray-500"
+            className="ml-2 h-4 w-4 text-gray-500"
             viewBox="0 0 20 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -71,14 +71,14 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         </button>
       </Popover.Trigger>
       <Popover.Content
-        className="bg-background dark:bg-background border rounded-md shadow-lg z-50 mt-2 w-full min-w-[180px]"
+        className="bg-background dark:bg-background z-50 mt-2 w-full min-w-[180px] rounded-md border shadow-lg"
         align="start"
       >
         <div className="max-h-48 overflow-y-auto">
           {options.map(opt => (
             <label
               key={opt.value}
-              className="flex items-center px-3 py-2 cursor-pointer text-sm"
+              className="flex cursor-pointer items-center px-3 py-2 text-sm"
               tabIndex={0}
               onKeyDown={e => {
                 if (e.key === "Enter" || e.key === " ") {

@@ -33,7 +33,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
 
   const selectedLabel =
     value !== ""
-      ? options.find(opt => opt.value === value)?.label ?? value
+      ? (options.find(opt => opt.value === value)?.label ?? value)
       : null
 
   return (
@@ -44,33 +44,33 @@ export const Combobox: React.FC<ComboboxProps> = ({
       }}
     >
       <Select.Trigger
-        className={`flex items-center justify-between border rounded-md px-3 py-2 text-sm font-semibold w-full text-left bg-background dark:bg-background ${
+        className={`bg-background dark:bg-background flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm font-normal ${
           className ?? ""
         }`}
         aria-label={placeholder}
       >
         <span className="flex-1 truncate">{selectedLabel ?? placeholder}</span>
         <Select.Icon>
-          <ArrowDownIcon className="w-4 h-4 ml-2" />
+          <ArrowDownIcon className="ml-2 h-4 w-4" />
         </Select.Icon>
       </Select.Trigger>
-      <Select.Content className="bg-background dark:bg-background border rounded shadow-lg mt-1">
+      <Select.Content className="bg-background dark:bg-background mt-1 rounded border shadow-lg">
         <div className="px-2 py-1">
           <input
             type="text"
-            className="border-b px-2 py-1 text-sm font-semibold w-full mb-1"
+            className="mb-1 w-full border-b px-2 py-1 text-sm font-normal"
             placeholder="Search..."
             value={search}
             autoFocus
             onChange={handleSearchChange}
           />
         </div>
-        <div className="overflow-y-auto max-h-64">
+        <div className="max-h-64 overflow-y-auto">
           <Select.Group>
             <Select.Item
               value="__placeholder__"
               className={`px-2 py-1 text-sm cursor-pointer${
-                value === "" ? " font-bold" : ""
+                value === "" ? "font-bold" : ""
               }`}
             >
               {placeholder}
@@ -80,7 +80,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
                 key={opt.value}
                 value={opt.value}
                 className={`px-2 py-1 text-sm cursor-pointer${
-                  value === opt.value ? " font-bold" : ""
+                  value === opt.value ? "font-bold" : ""
                 }`}
               >
                 {opt.label}

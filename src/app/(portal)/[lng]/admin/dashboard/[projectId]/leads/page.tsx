@@ -57,16 +57,14 @@ export default function LeadsPage(): JSX.Element {
     `/leads?projectId=${
       projectId ?? 0
     }&page=${currentPage}&limit=${rowsPerPage}`,
-    () => ({
-      method: "get"
-    })
+    () => ({ method: "get" })
   )
 
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []
     if (searchTerm) {
       return paginatedData.data.filter(
-        lead =>
+        (lead: Lead) =>
           lead.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           lead.email?.toLowerCase().includes(searchTerm.toLowerCase())
       )
@@ -117,7 +115,7 @@ export default function LeadsPage(): JSX.Element {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex w-max items-center space-x-2">
-        <h1 className="text-2xl font-semibold">Chats</h1>
+        <h1 className="text-2xl font-semibold">Leads</h1>
       </div>
 
       <Card className="overflow-hidden p-0">

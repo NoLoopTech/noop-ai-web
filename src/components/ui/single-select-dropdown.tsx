@@ -33,7 +33,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     >
       <Select.Trigger
         className={cn(
-          "border rounded-md bg-background dark:bg-background w-full px-3 py-2 text-sm font-semibold flex items-center justify-between",
+          "bg-background dark:bg-background flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm font-normal",
           className
         )}
         aria-label={placeholder}
@@ -41,7 +41,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         <Select.Value placeholder={placeholder} />
         {/* Custom arrow icon */}
         <svg
-          className="w-4 h-4 ml-2 text-gray-500"
+          className="ml-2 h-4 w-4 text-gray-500"
           viewBox="0 0 20 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -59,14 +59,14 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         side="bottom"
         align="start"
         position="popper"
-        className="bg-background dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50"
+        className="z-50 rounded-md border border-gray-200 shadow-lg dark:border-gray-700 dark:bg-gray-900"
       >
         <Select.Viewport className="max-h-48 overflow-y-auto">
           {/* Clear/placeholder item */}
           <Select.Item
             value={CLEAR_TOKEN}
             className={cn(
-              "px-3 py-2 text-sm cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700",
+              "cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700",
               value === "" && "font-bold"
             )}
           >
@@ -79,7 +79,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
               <Select.Item
                 key={opt.value}
                 value={opt.value}
-                className="px-3 py-2 cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="cursor-pointer px-3 py-2 text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
               >
                 <Select.ItemText>{opt.label}</Select.ItemText>
               </Select.Item>

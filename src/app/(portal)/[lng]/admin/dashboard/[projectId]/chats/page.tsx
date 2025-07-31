@@ -165,9 +165,7 @@ export default function ChatsPage(): JSX.Element {
       selectedDuration
     ],
     queryString,
-    () => ({
-      method: "get"
-    })
+    () => ({ method: "get" })
   )
 
   const chatConversations = useMemo((): ChatSessionResponse[] => {
@@ -231,7 +229,7 @@ export default function ChatsPage(): JSX.Element {
         <h1 className="text-2xl font-semibold">Chats</h1>
       </div>
 
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden rounded-md border p-0">
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center space-x-2">
             <div className="w-40">
@@ -266,22 +264,22 @@ export default function ChatsPage(): JSX.Element {
 
           <div className="flex items-center space-x-3.5">
             <div className="flex space-x-2">
-              <div className="flex border rounded-md overflow-hidden">
+              <div className="flex overflow-hidden rounded-md border">
                 <button
-                  className={`px-4 py-1 text-sm font-medium border-r first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                  className={`border-r px-4 py-1 text-sm font-medium first:rounded-l-md last:rounded-r-md focus:outline-none ${
                     selectedTab === "history"
-                      ? "bg-background dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 opacity-60"
+                      ? "bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+                      : "text-gray-400 opacity-60 dark:bg-gray-800 dark:text-gray-400"
                   }`}
                   onClick={handleTab("history")}
                 >
                   Chat history
                 </button>
                 <button
-                  className={`px-4 py-1 text-sm font-medium border-r first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                  className={`border-r px-4 py-1 text-sm font-medium first:rounded-l-md last:rounded-r-md focus:outline-none ${
                     selectedTab === "live"
-                      ? "bg-background dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-400 opacity-60"
+                      ? "bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+                      : "text-gray-400 opacity-60 dark:bg-gray-800 dark:text-gray-400"
                   }`}
                   onClick={handleTab("live")}
                 >
@@ -289,7 +287,7 @@ export default function ChatsPage(): JSX.Element {
                 </button>
               </div>
             </div>
-            <div className="w-0.5 h-7 bg-gray-500/50" />
+            <div className="h-7 w-0.5 bg-gray-500/50" />
             <button
               onClick={() => {
                 void refetch()
@@ -307,7 +305,7 @@ export default function ChatsPage(): JSX.Element {
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-900/50">
+        <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2.5">
               <input
@@ -344,14 +342,14 @@ export default function ChatsPage(): JSX.Element {
 
             <div className="relative">
               <select
-                className="border rounded-md px-3 py-2 text-sm font-semibold appearance-none bg-background dark:bg-background text-gray-900 dark:text-gray-100"
+                className="bg-background dark:bg-background appearance-none rounded-md border px-3 py-2 text-sm font-normal text-gray-900 dark:text-gray-100"
                 style={{ backgroundImage: "none" }}
                 value={selectedIntent}
                 onChange={handleIntentChange}
               >
                 <option
                   value=""
-                  className="bg-background dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  className="bg-background text-gray-900 dark:bg-gray-800 dark:text-gray-100"
                 >
                   Intent
                 </option>
@@ -370,7 +368,7 @@ export default function ChatsPage(): JSX.Element {
           </div>
 
           <div className="flex space-x-2">
-            <button className="flex items-center border rounded-md px-3 py-2 text-sm">
+            <button className="flex items-center rounded-md border px-3 py-2 text-sm">
               <svg
                 width="16"
                 height="16"

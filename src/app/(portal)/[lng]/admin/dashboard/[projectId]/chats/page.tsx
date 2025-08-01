@@ -223,6 +223,25 @@ export default function ChatsPage(): JSX.Element {
     return `${minutes} min${minutes > 1 ? "s" : ""}`
   }
 
+  const handleTableRowClick = (threadId: string) => () => {
+    handleRowClick(threadId)
+  }
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
+  const handleRowCheckboxChangeClick = (id: string) => () => {
+    handleRowCheckboxChange(id)
+  }
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1))
+  }
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages))
+  }
+  const handleRefresh = () => {
+    void refetch()
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex w-max items-center space-x-2">
@@ -289,9 +308,7 @@ export default function ChatsPage(): JSX.Element {
             </div>
             <div className="h-7 w-0.5 bg-gray-500/50" />
             <button
-              onClick={() => {
-                void refetch()
-              }}
+              onClick={handleRefresh}
               disabled={isFetching}
               className="rounded-md border p-1 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
               aria-label="Refresh data"
@@ -431,24 +448,17 @@ export default function ChatsPage(): JSX.Element {
                   <tr
                     key={chat.session.id}
                     className="cursor-pointer align-middle hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => {
-                      handleRowClick(chat.session.threadId)
-                    }}
+                    onClick={handleTableRowClick(chat.session.threadId)}
                   >
-                    <td
-                      className="p-4"
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
-                    >
+                    <td className="p-4" onClick={handleCheckboxClick}>
                       <input
                         type="checkbox"
                         checked={selectedRows.includes(
                           chat.session.id.toString()
                         )}
-                        onChange={() => {
-                          handleRowCheckboxChange(chat.session.id.toString())
-                        }}
+                        onChange={handleRowCheckboxChangeClick(
+                          chat.session.id.toString()
+                        )}
                         className="rounded"
                       />
                     </td>
@@ -531,9 +541,7 @@ export default function ChatsPage(): JSX.Element {
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === 1}
-                  onClick={() => {
-                    setCurrentPage(prev => Math.max(prev - 1, 1))
-                  }}
+                  onClick={handlePrevPage}
                 >
                   <svg
                     className="h-5 w-5"
@@ -555,9 +563,7 @@ export default function ChatsPage(): JSX.Element {
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === totalPages}
-                  onClick={() => {
-                    setCurrentPage(prev => Math.min(prev + 1, totalPages))
-                  }}
+                  onClick={handleNextPage}
                 >
                   <svg
                     className="h-5 w-5"

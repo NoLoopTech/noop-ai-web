@@ -1,7 +1,11 @@
 "use client"
 
 import { JSX, useMemo, useState } from "react"
+import countryDataJson from "@/lib/countryData.json"
 import Image from "next/image"
+import { Combobox } from "@/components/ui/combo-box"
+import { SingleSelectDropdown } from "@/components/ui/single-select-dropdown"
+import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
 import { type ChatSessionResponse } from "@/models/conversation"
@@ -12,17 +16,137 @@ import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
+import {
+  dateRangeOptions,
+  durationOptions,
+  scoringOptions,
+  type DateRangeType
+} from "@/models/filterOptions"
 
 export default function ChatsPage(): JSX.Element {
+  const handleTab = (tab: string) => () => {
+    setSelectedTab(tab)
+  }
+  interface ChatFilters {
+    username: string
+    startDate: string
+    endDate: string
+    country: string
+    scoring: string[]
+    intent: string
+    duration: string
+  }
+
+  function buildQueryString(filters: ChatFilters): string {
+    const params = [
+      `username=${encodeURIComponent(filters.username || "")}`,
+      `startDate=${encodeURIComponent(filters.startDate || "")}`,
+      `endDate=${encodeURIComponent(filters.endDate || "")}`,
+      `country=${encodeURIComponent(filters.country || "")}`,
+      `scoring=${encodeURIComponent(filters.scoring.join(",") || "")}`,
+      `intent=${encodeURIComponent(filters.intent || "")}`,
+      `duration=${encodeURIComponent(filters.duration || "")}`
+    ]
+    return params.join("&")
+  }
+
+  const getFormattedDateRange = (): string => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+
+    const format = (d: Date): string =>
+      d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      })
+
+    return startDate === endDate
+      ? format(start)
+      : `${format(start)} - ${format(end)}`
+  }
+
+  const todayInit = new Date()
+  const startInit = new Date(todayInit)
+  startInit.setDate(todayInit.getDate() - 6)
+  const [startDate, setStartDate] = useState(() =>
+    startInit.toISOString().slice(0, 10)
+  )
+  const [endDate, setEndDate] = useState(() =>
+    todayInit.toISOString().slice(0, 10)
+  )
+  const [selectedDateRangeType, setSelectedDateRangeType] =
+    useState<DateRangeType>("last7")
+
+  // Helper to format date as yyyy-mm-dd
+  const formatDateISO = (d: Date): string => {
+    return d.toISOString().slice(0, 10)
+  }
+
+  const handleDateRangeChange = (value: DateRangeType): void => {
+    setSelectedDateRangeType(value)
+
+    const today = new Date()
+    const daysMap: Record<DateRangeType, number> = {
+      today: 0,
+      yesterday: 1,
+      last7: 6,
+      last30: 29,
+      last90: 89,
+      "": 0
+    }
+
+    const offset = daysMap[value]
+    const start = new Date(today)
+    const end = new Date(today)
+
+    if (value === "yesterday") {
+      start.setDate(today.getDate() - 1)
+      end.setDate(today.getDate() - 1)
+    } else {
+      start.setDate(today.getDate() - offset)
+    }
+
+    setStartDate(formatDateISO(start))
+    setEndDate(formatDateISO(end))
+  }
+
+  const [selectedScoring, setSelectedScoring] = useState<string[]>([])
+  const [selectedIntent, setSelectedIntent] = useState("")
+  const handleIntentChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
+    setSelectedIntent(e.target.value)
+  }
+  const [selectedDuration, setSelectedDuration] = useState("")
+
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("history")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
-  const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
+  const [selectedCountry, setSelectedCountry] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const projectId = useProjectId()
+
+  const filters: ChatFilters = {
+    username: searchTerm,
+    startDate,
+    endDate,
+    country: selectedCountry,
+    scoring: selectedScoring,
+    intent: selectedIntent,
+    duration: selectedDuration
+  }
+
+  const queryString =
+    `/conversations?projectId=${projectId ?? 0}` +
+    `&page=${currentPage}` +
+    `&limit=${rowsPerPage}` +
+    `&sortBy=createdAt` +
+    `&sortDir=DESC` +
+    `&${buildQueryString(filters)}`
 
   const {
     data: paginatedData,
@@ -30,13 +154,18 @@ export default function ChatsPage(): JSX.Element {
     isFetching,
     refetch
   } = useApiQuery<PaginatedResult<ChatSessionResponse>>(
-    ["project-conversations", projectId, currentPage, rowsPerPage, searchTerm],
-    `/conversations?projectId=${
-      projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC`,
-    () => ({
-      method: "get"
-    })
+    [
+      "project-conversations",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      searchTerm,
+      startDate,
+      endDate,
+      selectedDuration
+    ],
+    queryString,
+    () => ({ method: "get" })
   )
 
   const chatConversations = useMemo((): ChatSessionResponse[] => {
@@ -82,6 +211,10 @@ export default function ChatsPage(): JSX.Element {
     toggleRowSelection(id)
   }
 
+  const handleDateDropdownChange = (val: string): void => {
+    handleDateRangeChange(val as DateRangeType)
+  }
+
   const secondsToMinutes = (seconds: number): string => {
     if (seconds <= 60) {
       return "< 1min"
@@ -90,30 +223,44 @@ export default function ChatsPage(): JSX.Element {
     return `${minutes} min${minutes > 1 ? "s" : ""}`
   }
 
+  const handleTableRowClick = (threadId: string) => () => {
+    handleRowClick(threadId)
+  }
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
+  const handleRowCheckboxChangeClick = (id: string) => () => {
+    handleRowCheckboxChange(id)
+  }
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1))
+  }
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages))
+  }
+  const handleRefresh = () => {
+    void refetch()
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex w-max items-center space-x-2">
         <h1 className="text-2xl font-semibold">Chats</h1>
       </div>
 
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden rounded-md border p-0">
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Last 7 Days
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <div className="w-40">
+              <SingleSelectDropdown
+                options={dateRangeOptions.map(opt => ({
+                  value: opt.value,
+                  label: opt.label
+                }))}
+                value={selectedDateRangeType}
+                onChange={handleDateDropdownChange}
+                placeholder="Date Range"
+              />
             </div>
 
             <div className="flex items-center space-x-2 border-l pl-2">
@@ -128,15 +275,40 @@ export default function ChatsPage(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm">{dateRange}</span>
+              <span className="text-sm font-semibold">
+                {getFormattedDateRange()}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center space-x-3.5">
+            <div className="flex space-x-2">
+              <div className="flex overflow-hidden rounded-md border">
+                <button
+                  className={`border-r px-4 py-1 text-sm font-medium first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                    selectedTab === "history"
+                      ? "bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+                      : "text-gray-400 opacity-60 dark:bg-gray-800 dark:text-gray-400"
+                  }`}
+                  onClick={handleTab("history")}
+                >
+                  Chat history
+                </button>
+                <button
+                  className={`border-r px-4 py-1 text-sm font-medium first:rounded-l-md last:rounded-r-md focus:outline-none ${
+                    selectedTab === "live"
+                      ? "bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+                      : "text-gray-400 opacity-60 dark:bg-gray-800 dark:text-gray-400"
+                  }`}
+                  onClick={handleTab("live")}
+                >
+                  Live chat
+                </button>
+              </div>
+            </div>
+            <div className="h-7 w-0.5 bg-gray-500/50" />
             <button
-              onClick={() => {
-                void refetch()
-              }}
+              onClick={handleRefresh}
               disabled={isFetching}
               className="rounded-md border p-1 hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
               aria-label="Refresh data"
@@ -147,9 +319,11 @@ export default function ChatsPage(): JSX.Element {
                 }`}
               />
             </button>
+          </div>
+        </div>
 
-            <div className="h-7 w-0.5 bg-gray-500/50" />
-
+        <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2.5">
               <input
                 type="text"
@@ -160,112 +334,74 @@ export default function ChatsPage(): JSX.Element {
                   setSearchTerm(e.target.value)
                 }}
               />
+            </div>
 
-              <svg
-                className="h-5 w-5 text-gray-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+            <div className="w-44">
+              <Combobox
+                options={countryDataJson.map(c => ({
+                  value: c.code,
+                  label: c.name
+                }))}
+                value={selectedCountry}
+                onChange={setSelectedCountry}
+                placeholder="Country"
+              />
+            </div>
+
+            <div className="w-32">
+              <MultiSelectDropdown
+                options={[...scoringOptions]}
+                values={selectedScoring}
+                onChange={setSelectedScoring}
+                placeholder="Scoring"
+              />
+            </div>
+
+            <div className="relative">
+              <select
+                className="bg-background dark:bg-background appearance-none rounded-md border px-3 py-2 text-sm font-normal text-gray-900 dark:text-gray-100"
+                style={{ backgroundImage: "none" }}
+                value={selectedIntent}
+                onChange={handleIntentChange}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Country
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+                <option
+                  value=""
+                  className="bg-background text-gray-900 dark:bg-gray-800 dark:text-gray-100"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+                  Intent
+                </option>
+              </select>
             </div>
 
             <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Scoring
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Duration
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+              <SingleSelectDropdown
+                options={[...durationOptions]}
+                value={selectedDuration}
+                onChange={setSelectedDuration}
+                placeholder="Duration"
+                className="w-40"
+              />
             </div>
           </div>
 
           <div className="flex space-x-2">
-            <div className="flex overflow-hidden rounded-md border">
-              <button
-                className={`px-4 py-1 text-sm ${
-                  selectedTab === "history"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setSelectedTab("history")
-                }}
+            <button className="flex items-center rounded-md border px-3 py-2 text-sm">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2"
               >
-                Chat history
-              </button>
-              <button
-                className={`px-4 py-1 text-sm ${
-                  selectedTab === "live"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setSelectedTab("live")
-                }}
-              >
-                Live chat
-              </button>
-            </div>
-
-            <button className="rounded-md border px-2 py-1 text-sm">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
-                  fillRule="evenodd"
-                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z"
-                  clipRule="evenodd"
+                  d="M13.3333 4.66699H7.33329M9.33329 11.3337H3.33329M9.33329 11.3337C9.33329 12.4382 10.2287 13.3337 11.3333 13.3337C12.4379 13.3337 13.3333 12.4382 13.3333 11.3337C13.3333 10.2291 12.4379 9.33366 11.3333 9.33366C10.2287 9.33366 9.33329 10.2291 9.33329 11.3337ZM6.66663 4.66699C6.66663 5.77156 5.7712 6.66699 4.66663 6.66699C3.56206 6.66699 2.66663 5.77156 2.66663 4.66699C2.66663 3.56242 3.56206 2.66699 4.66663 2.66699C5.7712 2.66699 6.66663 3.56242 6.66663 4.66699Z"
+                  stroke="#0F172A"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
+              View
             </button>
           </div>
         </div>
@@ -312,24 +448,17 @@ export default function ChatsPage(): JSX.Element {
                   <tr
                     key={chat.session.id}
                     className="cursor-pointer align-middle hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => {
-                      handleRowClick(chat.session.threadId)
-                    }}
+                    onClick={handleTableRowClick(chat.session.threadId)}
                   >
-                    <td
-                      className="p-4"
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
-                    >
+                    <td className="p-4" onClick={handleCheckboxClick}>
                       <input
                         type="checkbox"
                         checked={selectedRows.includes(
                           chat.session.id.toString()
                         )}
-                        onChange={() => {
-                          handleRowCheckboxChange(chat.session.id.toString())
-                        }}
+                        onChange={handleRowCheckboxChangeClick(
+                          chat.session.id.toString()
+                        )}
                         className="rounded"
                       />
                     </td>
@@ -393,18 +522,32 @@ export default function ChatsPage(): JSX.Element {
             <select
               value={rowsPerPage}
               onChange={handleRowsPerPageChange}
-              className="rounded border px-2 py-1 text-sm"
+              className="bg-background rounded border px-2 py-1 text-sm text-gray-900 dark:bg-gray-900 dark:text-gray-100"
             >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
+              <option
+                value="10"
+                className="bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              >
+                10
+              </option>
+              <option
+                value="25"
+                className="bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              >
+                25
+              </option>
+              <option
+                value="50"
+                className="bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              >
+                50
+              </option>
             </select>
 
             <div className="ml-4 flex items-center space-x-2">
               <p className="text-sm">
                 Page {currentPage} of {totalPages}
               </p>
-
               <div className="">
                 <button
                   className={`rounded p-1 ${
@@ -413,9 +556,7 @@ export default function ChatsPage(): JSX.Element {
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === 1}
-                  onClick={() => {
-                    setCurrentPage(prev => Math.max(prev - 1, 1))
-                  }}
+                  onClick={handlePrevPage}
                 >
                   <svg
                     className="h-5 w-5"
@@ -437,9 +578,7 @@ export default function ChatsPage(): JSX.Element {
                       : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   disabled={currentPage === totalPages}
-                  onClick={() => {
-                    setCurrentPage(prev => Math.min(prev + 1, totalPages))
-                  }}
+                  onClick={handleNextPage}
                 >
                   <svg
                     className="h-5 w-5"

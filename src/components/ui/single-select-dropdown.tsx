@@ -24,12 +24,26 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   placeholder = "Select...",
   className
 }) => {
+  const handleValueChange = (val: string) => {
+    onChange(val === CLEAR_TOKEN ? "" : val)
+  }
+
+  const renderedOptions = options
+    .filter(opt => opt.value !== "")
+    .map(opt => (
+      <Select.Item
+        key={opt.value}
+        value={opt.value}
+        className="cursor-pointer px-3 py-2 text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
+      >
+        <Select.ItemText>{opt.label}</Select.ItemText>
+      </Select.Item>
+    ))
+
   return (
     <Select.Root
       value={value === "" ? CLEAR_TOKEN : value}
-      onValueChange={val => {
-        onChange(val === CLEAR_TOKEN ? "" : val)
-      }}
+      onValueChange={handleValueChange}
     >
       <Select.Trigger
         className={cn(
@@ -73,17 +87,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
             <Select.ItemText>{placeholder}</Select.ItemText>
           </Select.Item>
           {/* Only render options with non-empty value */}
-          {options
-            .filter(opt => opt.value !== "")
-            .map(opt => (
-              <Select.Item
-                key={opt.value}
-                value={opt.value}
-                className="cursor-pointer px-3 py-2 text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
-              >
-                <Select.ItemText>{opt.label}</Select.ItemText>
-              </Select.Item>
-            ))}
+          {renderedOptions}
         </Select.Viewport>
       </Select.Content>
     </Select.Root>

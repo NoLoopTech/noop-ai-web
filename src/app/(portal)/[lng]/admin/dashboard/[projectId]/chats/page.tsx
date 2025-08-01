@@ -522,11 +522,26 @@ export default function ChatsPage(): JSX.Element {
             <select
               value={rowsPerPage}
               onChange={handleRowsPerPageChange}
-              className="rounded border px-2 py-1 text-sm"
+              className="bg-background rounded border px-2 py-1 text-sm text-gray-900 dark:bg-gray-900 dark:text-gray-100"
             >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
+              <option
+                value="10"
+                className="bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              >
+                10
+              </option>
+              <option
+                value="25"
+                className="bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              >
+                25
+              </option>
+              <option
+                value="50"
+                className="bg-background text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              >
+                50
+              </option>
             </select>
 
             <div className="ml-4 flex items-center space-x-2">

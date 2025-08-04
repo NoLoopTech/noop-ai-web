@@ -277,6 +277,27 @@ export default function TicketsPage(): JSX.Element {
               className="w-36"
             />
           </div>
+
+          <div className="flex space-x-2">
+            <button className="flex items-center rounded-md border px-3 py-2 text-sm">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2"
+              >
+                <path
+                  d="M13.3333 4.66699H7.33329M9.33329 11.3337H3.33329M9.33329 11.3337C9.33329 12.4382 10.2287 13.3337 11.3333 13.3337C12.4379 13.3337 13.3333 12.4382 13.3333 11.3337C13.3333 10.2291 12.4379 9.33366 11.3333 9.33366C10.2287 9.33366 9.33329 10.2291 9.33329 11.3337ZM6.66663 4.66699C6.66663 5.77156 5.7712 6.66699 4.66663 6.66699C3.56206 6.66699 2.66663 5.77156 2.66663 4.66699C2.66663 3.56242 3.56206 2.66699 4.66663 2.66699C5.7712 2.66699 6.66663 3.56242 6.66663 4.66699Z"
+                  stroke="#0F172A"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              View
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

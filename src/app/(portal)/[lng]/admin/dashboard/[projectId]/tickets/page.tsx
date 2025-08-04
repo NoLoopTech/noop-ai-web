@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
+import { SingleSelectDropdown } from "@/components/ui/single-select-dropdown"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import TimerIcon from "@/../public/assets/icons/timer.svg"
@@ -24,24 +25,147 @@ import { useApiQuery } from "@/query"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { type Ticket } from "@/models/ticket"
 import { formatDate } from "@/utils/formatDate"
+import {
+  ticketStatusOptions,
+  ticketPriorityOptions,
+  ticketTypeOptions,
+  ticketMethodOptions,
+  dateRangeOptions,
+  type DateRangeType
+} from "@/models/filterOptions"
 
-export default function ChatsPage(): JSX.Element {
+export default function TicketsPage(): JSX.Element {
+  interface TicketFilters {
+    searchTerm: string
+    status: string
+    priority: string
+    type: string
+    method: string
+    startDate: string
+    endDate: string
+  }
+
+  function buildQueryString(filters: TicketFilters): string {
+    const params = [
+      `searchTerm=${encodeURIComponent(filters.searchTerm || "")}`,
+      `status=${encodeURIComponent(filters.status || "")}`,
+      `priority=${encodeURIComponent(filters.priority || "")}`,
+      `type=${encodeURIComponent(filters.type || "")}`,
+      `method=${encodeURIComponent(filters.method || "")}`,
+      `startDate=${encodeURIComponent(filters.startDate || "")}`,
+      `endDate=${encodeURIComponent(filters.endDate || "")}`
+    ]
+    return params.join("&")
+  }
+
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
-  const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [statusFilter, setStatusFilter] = useState("Status")
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState("")
+  const [priorityFilter, setPriorityFilter] = useState("")
+  const [typeFilter, setTypeFilter] = useState("")
+  const [methodFilter, setMethodFilter] = useState("")
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const projectId = useProjectId()
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
+  // Date range functionality
+  const todayInit = new Date()
+  const startInit = new Date(todayInit)
+  startInit.setDate(todayInit.getDate() - 6)
+  const [startDate, setStartDate] = useState(() =>
+    startInit.toISOString().slice(0, 10)
+  )
+  const [endDate, setEndDate] = useState(() =>
+    todayInit.toISOString().slice(0, 10)
+  )
+  const [selectedDateRangeType, setSelectedDateRangeType] =
+    useState<DateRangeType>("last7")
+
+  // Helper to format date as yyyy-mm-dd
+  const formatDateISO = (d: Date): string => {
+    return d.toISOString().slice(0, 10)
+  }
+
+  const getFormattedDateRange = (): string => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+
+    const format = (d: Date): string =>
+      d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      })
+
+    return startDate === endDate
+      ? format(start)
+      : `${format(start)} - ${format(end)}`
+  }
+
+  const handleDateRangeChange = (value: DateRangeType): void => {
+    setSelectedDateRangeType(value)
+
+    const today = new Date()
+    const daysMap: Record<DateRangeType, number> = {
+      today: 0,
+      yesterday: 1,
+      last7: 6,
+      last30: 29,
+      last90: 89,
+      "": 0
+    }
+
+    const offset = daysMap[value]
+    const start = new Date(today)
+    const end = new Date(today)
+
+    if (value === "yesterday") {
+      start.setDate(today.getDate() - 1)
+      end.setDate(today.getDate() - 1)
+    } else {
+      start.setDate(today.getDate() - offset)
+    }
+
+    setStartDate(formatDateISO(start))
+    setEndDate(formatDateISO(end))
+  }
+
+  const handleDateDropdownChange = (val: string): void => {
+    handleDateRangeChange(val as DateRangeType)
+  }
+
+  // Reset to first page when any filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [debouncedSearchTerm])
+  }, [
+    debouncedSearchTerm,
+    statusFilter,
+    priorityFilter,
+    typeFilter,
+    methodFilter,
+    startDate,
+    endDate
+  ])
+
+  const filters: TicketFilters = {
+    searchTerm: debouncedSearchTerm,
+    status: statusFilter,
+    priority: priorityFilter,
+    type: typeFilter,
+    method: methodFilter,
+    startDate,
+    endDate
+  }
+
+  const queryString =
+    `/tickets?projectId=${projectId ?? 0}` +
+    `&page=${currentPage}` +
+    `&limit=${rowsPerPage}` +
+    `&${buildQueryString(filters)}`
 
   const {
     data: paginatedData,
@@ -54,11 +178,15 @@ export default function ChatsPage(): JSX.Element {
       projectId,
       currentPage,
       rowsPerPage,
-      debouncedSearchTerm
+      debouncedSearchTerm,
+      statusFilter,
+      priorityFilter,
+      typeFilter,
+      methodFilter,
+      startDate,
+      endDate
     ],
-    `/tickets?projectId=${
-      projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}${debouncedSearchTerm ? `&searchTerm=${encodeURIComponent(debouncedSearchTerm)}` : ""}`,
+    queryString,
     () => ({
       method: "get"
     })
@@ -112,21 +240,16 @@ export default function ChatsPage(): JSX.Element {
       <Card className="overflow-hidden p-0">
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Last 7 Days
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <div className="w-40">
+              <SingleSelectDropdown
+                options={dateRangeOptions.map(opt => ({
+                  value: opt.value,
+                  label: opt.label
+                }))}
+                value={selectedDateRangeType}
+                onChange={handleDateDropdownChange}
+                placeholder="Date Range"
+              />
             </div>
 
             <div className="flex items-center space-x-2 border-l pl-2">
@@ -141,7 +264,9 @@ export default function ChatsPage(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm">{dateRange}</span>
+              <span className="text-sm font-semibold">
+                {getFormattedDateRange()}
+              </span>
             </div>
           </div>
 
@@ -164,86 +289,50 @@ export default function ChatsPage(): JSX.Element {
         </div>
 
         <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
-          <div className="mr-4 flex flex-1 items-center space-x-2.5">
-            <input
-              type="text"
-              placeholder="Search by user name or email..."
-              className="flex-1 rounded-md border px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value)
-              }}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2.5">
+              <input
+                type="text"
+                placeholder="Search by user name or email..."
+                className="w-64 rounded-md border px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value)
+                }}
+              />
+            </div>
+
+            <SingleSelectDropdown
+              options={ticketStatusOptions}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              placeholder="Status"
+              className="w-36"
             />
 
-            <svg
-              className="h-5 w-5 text-gray-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+            <SingleSelectDropdown
+              options={ticketPriorityOptions}
+              value={priorityFilter}
+              onChange={setPriorityFilter}
+              placeholder="Priority"
+              className="w-36"
+            />
 
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <button
-                className="flex items-center rounded-md border px-2 py-1 text-sm"
-                onClick={() => {
-                  setIsStatusDropdownOpen(!isStatusDropdownOpen)
-                }}
-              >
-                {statusFilter}
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <SingleSelectDropdown
+              options={ticketTypeOptions}
+              value={typeFilter}
+              onChange={setTypeFilter}
+              placeholder="Type"
+              className="w-36"
+            />
 
-              {isStatusDropdownOpen && (
-                <div className="absolute top-full left-0 z-10 mt-1 w-36 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                  {["In progress", "Done", "Todo", "Closed"].map(status => (
-                    <button
-                      key={status}
-                      className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => {
-                        setStatusFilter(status)
-                        setIsStatusDropdownOpen(false)
-                      }}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Source
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
+            <SingleSelectDropdown
+              options={ticketMethodOptions}
+              value={methodFilter}
+              onChange={setMethodFilter}
+              placeholder="Method"
+              className="w-36"
+            />
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { JSX, useEffect, useMemo, useState } from "react"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { Card } from "@/components/ui/card"
 import { useApiQuery } from "@/query"
+import { SingleSelectDropdown } from "@/components/ui/single-select-dropdown"
 import {
   Dialog,
   DialogContent,
@@ -18,17 +19,113 @@ import { useDebounce } from "@/lib/hooks/useDebounce"
 import { LeadScoreType, type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
+import {
+  leadScoreOptions,
+  leadStatusOptions,
+  dateRangeOptions,
+  type LeadScoreType as FilterLeadScoreType,
+  type LeadStatusType,
+  type DateRangeType
+} from "@/models/filterOptions"
 
 export default function LeadsPage(): JSX.Element {
+  interface LeadFilters {
+    searchTerm: string
+    score: string
+    status: string
+    startDate: string
+    endDate: string
+  }
+
+  function buildQueryString(filters: LeadFilters): string {
+    const params = [
+      `searchTerm=${encodeURIComponent(filters.searchTerm || "")}`,
+      `score=${encodeURIComponent(filters.score || "")}`,
+      `status=${encodeURIComponent(filters.status || "")}`,
+      `startDate=${encodeURIComponent(filters.startDate || "")}`,
+      `endDate=${encodeURIComponent(filters.endDate || "")}`
+    ]
+    return params.join("&")
+  }
+
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
-  const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const projectId = useProjectId()
+  const [selectedScore, setSelectedScore] = useState<FilterLeadScoreType>("")
+  const [selectedStatus, setSelectedStatus] = useState<LeadStatusType>("")
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
+
+  // Date range functionality
+  const todayInit = new Date()
+  const startInit = new Date(todayInit)
+  startInit.setDate(todayInit.getDate() - 6)
+  const [startDate, setStartDate] = useState(() =>
+    startInit.toISOString().slice(0, 10)
+  )
+  const [endDate, setEndDate] = useState(() =>
+    todayInit.toISOString().slice(0, 10)
+  )
+  const [selectedDateRangeType, setSelectedDateRangeType] =
+    useState<DateRangeType>("last7")
+
+  const projectId = useProjectId()
+
+  // Helper to format date as yyyy-mm-dd
+  const formatDateISO = (d: Date): string => {
+    return d.toISOString().slice(0, 10)
+  }
+
+  const getFormattedDateRange = (): string => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+
+    const format = (d: Date): string =>
+      d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      })
+
+    return startDate === endDate
+      ? format(start)
+      : `${format(start)} - ${format(end)}`
+  }
+
+  const handleDateRangeChange = (value: DateRangeType): void => {
+    setSelectedDateRangeType(value)
+
+    const today = new Date()
+    const daysMap: Record<DateRangeType, number> = {
+      today: 0,
+      yesterday: 1,
+      last7: 6,
+      last30: 29,
+      last90: 89,
+      "": 0
+    }
+
+    const offset = daysMap[value]
+    const start = new Date(today)
+    const end = new Date(today)
+
+    if (value === "yesterday") {
+      start.setDate(today.getDate() - 1)
+      end.setDate(today.getDate() - 1)
+    } else {
+      start.setDate(today.getDate() - offset)
+    }
+
+    setStartDate(formatDateISO(start))
+    setEndDate(formatDateISO(end))
+  }
+
+  const handleDateDropdownChange = (val: string): void => {
+    handleDateRangeChange(val as DateRangeType)
+  }
 
   const scoreMutation = useApiMutation(
     projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
@@ -48,10 +145,23 @@ export default function LeadsPage(): JSX.Element {
     scoreMutation.mutate(undefined)
   }, [projectId])
 
-  // Reset to first page when search changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [debouncedSearchTerm])
+  }, [debouncedSearchTerm, selectedScore, selectedStatus, startDate, endDate])
+
+  const filters: LeadFilters = {
+    searchTerm: debouncedSearchTerm,
+    score: selectedScore,
+    status: selectedStatus,
+    startDate,
+    endDate
+  }
+
+  const queryString =
+    `/leads?projectId=${projectId ?? 0}` +
+    `&page=${currentPage}` +
+    `&limit=${rowsPerPage}` +
+    `&${buildQueryString(filters)}`
 
   const {
     data: paginatedData,
@@ -59,10 +169,18 @@ export default function LeadsPage(): JSX.Element {
     isFetching,
     refetch
   } = useApiQuery<PaginatedResult<Lead>>(
-    ["project-leads", projectId, currentPage, rowsPerPage, debouncedSearchTerm],
-    `/leads?projectId=${
-      projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}${debouncedSearchTerm ? `&searchTerm=${encodeURIComponent(debouncedSearchTerm)}` : ""}`,
+    [
+      "project-leads",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      debouncedSearchTerm,
+      selectedScore,
+      selectedStatus,
+      startDate,
+      endDate
+    ],
+    queryString,
     () => ({ method: "get" })
   )
 
@@ -120,21 +238,16 @@ export default function LeadsPage(): JSX.Element {
       <Card className="overflow-hidden p-0">
         <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Last 7 Days
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <div className="w-40">
+              <SingleSelectDropdown
+                options={dateRangeOptions.map(opt => ({
+                  value: opt.value,
+                  label: opt.label
+                }))}
+                value={selectedDateRangeType}
+                onChange={handleDateDropdownChange}
+                placeholder="Date Range"
+              />
             </div>
 
             <div className="flex items-center space-x-2 border-l pl-2">
@@ -149,7 +262,9 @@ export default function LeadsPage(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm">{dateRange}</span>
+              <span className="text-sm font-semibold">
+                {getFormattedDateRange()}
+              </span>
             </div>
           </div>
 
@@ -168,98 +283,64 @@ export default function LeadsPage(): JSX.Element {
                 }`}
               />
             </button>
-
-            <div className="h-7 w-0.5 bg-gray-500/50" />
-
-            <div className="flex items-center space-x-2.5">
-              <input
-                type="text"
-                placeholder="Search by user name or email..."
-                className="rounded-md border px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                value={searchTerm}
-                onChange={e => {
-                  setSearchTerm(e.target.value)
-                }}
-              />
-
-              <svg
-                className="h-5 w-5 text-gray-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between bg-gray-50 px-4 py-2 dark:bg-gray-900/50">
           <div className="flex items-center space-x-4">
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Country
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <div className="flex items-center space-x-2.5">
+              <input
+                type="text"
+                placeholder="Search by user name or email..."
+                className="w-64 rounded-md border px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value)
+                }}
+              />
             </div>
 
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Scoring
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <div className="w-32">
+              <SingleSelectDropdown
+                options={[...leadScoreOptions]}
+                value={selectedScore}
+                onChange={(value: string) =>
+                  setSelectedScore(value as FilterLeadScoreType)
+                }
+                placeholder="Score"
+              />
             </div>
 
-            <div className="relative">
-              <button className="flex items-center rounded-md border px-2 py-1 text-sm">
-                Duration
-                <svg
-                  className="ml-1 h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+            <div className="w-32">
+              <SingleSelectDropdown
+                options={[...leadStatusOptions]}
+                value={selectedStatus}
+                onChange={(value: string) =>
+                  setSelectedStatus(value as LeadStatusType)
+                }
+                placeholder="Status"
+              />
             </div>
           </div>
 
           <div className="flex space-x-2">
-            <button className="rounded-md border px-2 py-1 text-sm">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <button className="flex items-center rounded-md border px-3 py-2 text-sm">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2"
+              >
                 <path
-                  fillRule="evenodd"
-                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z"
-                  clipRule="evenodd"
+                  d="M13.3333 4.66699H7.33329M9.33329 11.3337H3.33329M9.33329 11.3337C9.33329 12.4382 10.2287 13.3337 11.3333 13.3337C12.4379 13.3337 13.3333 12.4382 13.3333 11.3337C13.3333 10.2291 12.4379 9.33366 11.3333 9.33366C10.2287 9.33366 9.33329 10.2291 9.33329 11.3337ZM6.66663 4.66699C6.66663 5.77156 5.7712 6.66699 4.66663 6.66699C3.56206 6.66699 2.66663 5.77156 2.66663 4.66699C2.66663 3.56242 3.56206 2.66699 4.66663 2.66699C5.7712 2.66699 6.66663 3.56242 6.66663 4.66699Z"
+                  stroke="#0F172A"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
+              View
             </button>
           </div>
         </div>

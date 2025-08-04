@@ -1,6 +1,6 @@
 "use client"
 
-import { JSX, useMemo, useState } from "react"
+import { JSX, useEffect, useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
 import {
   Dialog,
@@ -26,6 +26,7 @@ import { formatDate } from "@/utils/formatDate"
 
 export default function ChatsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
   const [currentPage, setCurrentPage] = useState(1)
@@ -37,16 +38,32 @@ export default function ChatsPage(): JSX.Element {
 
   const projectId = useProjectId()
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1) // Reset to first page when search changes
+    }, 500) // 500ms delay
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   const {
     data: paginatedData,
     isLoading: isTicketsLoading,
     isFetching,
     refetch
   } = useApiQuery<PaginatedResult<Ticket>>(
-    ["project-tickets", projectId, currentPage, rowsPerPage, searchTerm],
+    [
+      "project-tickets",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      debouncedSearchTerm
+    ],
     `/tickets?projectId=${
       projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}`,
+    }&page=${currentPage}&limit=${rowsPerPage}${debouncedSearchTerm ? `&searchTerm=${encodeURIComponent(debouncedSearchTerm)}` : ""}`,
     () => ({
       method: "get"
     })
@@ -54,15 +71,8 @@ export default function ChatsPage(): JSX.Element {
 
   const tickets = useMemo((): Ticket[] => {
     if (!paginatedData?.data) return []
-    if (searchTerm) {
-      return paginatedData.data.filter(
-        ticket =>
-          ticket.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          ticket.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
     return paginatedData.data
-  }, [paginatedData, searchTerm])
+  }, [paginatedData])
 
   const totalPages = paginatedData?.total
     ? Math.ceil(paginatedData.total / rowsPerPage)
@@ -162,7 +172,7 @@ export default function ChatsPage(): JSX.Element {
           <div className="mr-4 flex flex-1 items-center space-x-2.5">
             <input
               type="text"
-              placeholder="Search by user name..."
+              placeholder="Search by user name or email..."
               className="flex-1 rounded-md border px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={searchTerm}
               onChange={e => {

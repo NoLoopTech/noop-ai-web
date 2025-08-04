@@ -178,7 +178,7 @@ export default function LeadsPage(): JSX.Element {
             <div className="flex items-center space-x-2.5">
               <input
                 type="text"
-                placeholder="Search by user name and email..."
+                placeholder="Search by user name or email..."
                 className="rounded-md border px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 value={searchTerm}
                 onChange={e => {

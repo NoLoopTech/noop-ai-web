@@ -16,6 +16,7 @@ import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
+import { Toast } from "@/components/ui/toast"
 import {
   dateRangeOptions,
   durationOptions,
@@ -127,19 +128,26 @@ export default function ChatsPage(): JSX.Element {
   const [selectedCountry, setSelectedCountry] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
 
   const projectId = useProjectId()
 
   const scoreMutation = useApiMutation(
     projectId
-      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
+      ? `/conversations/initiateSessionScoreCalculationn/${projectId}`
       : "",
     "post",
     {
       onSuccess: () => {
         void refetch()
       },
-      onError: () => {
+      onError: error => {
+        const errorMessage =
+          (error as { message?: string })?.message ||
+          "Failed to calculate session scores. Please try again."
+        setToastMessage(errorMessage)
+        setToastOpen(true)
         void refetch()
       }
     }
@@ -659,6 +667,15 @@ export default function ChatsPage(): JSX.Element {
           </div>
         </div>
       </Card>
+
+      <Toast
+        open={toastOpen}
+        onOpenChange={setToastOpen}
+        title="Error"
+        description={toastMessage}
+        variant="error"
+        duration={3000} // Auto-dismiss after 3 seconds
+      />
     </div>
   )
 }

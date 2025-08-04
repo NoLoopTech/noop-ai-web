@@ -463,7 +463,7 @@ export default function ChatsPage(): JSX.Element {
             </div>
           ) : chatConversations.length > 0 ? (
             <table className="w-full">
-              <thead className="bg-gray-50 text-left dark:bg-gray-900/75">
+              <thead className="bg-gray-100 text-left dark:bg-gray-900/75">
                 <tr>
                   <th className="w-8 p-4">
                     <input
@@ -473,17 +473,21 @@ export default function ChatsPage(): JSX.Element {
                       className="rounded"
                     />
                   </th>
-                  <th className="w-32 py-4 text-center text-sm font-medium">
+                  <th className="w-32 py-4 text-center text-sm font-medium text-gray-500">
                     Country
                   </th>
-                  <th className="w-32 py-4 text-center text-sm font-medium">
+                  <th className="w-32 py-4 text-center text-sm font-medium text-gray-500">
                     AI Scoring
                   </th>
-                  <th className="w-32 py-4 text-center text-sm font-medium">
+                  <th className="w-32 py-4 text-center text-sm font-medium text-gray-500">
                     Duration
                   </th>
-                  <th className="p-4 text-sm font-medium">Chat Summary</th>
-                  <th className="p-4 text-sm font-medium">Date/Time</th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Chat Summary
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Date/Time
+                  </th>
                   <th className="w-8 p-4"></th>
                 </tr>
               </thead>

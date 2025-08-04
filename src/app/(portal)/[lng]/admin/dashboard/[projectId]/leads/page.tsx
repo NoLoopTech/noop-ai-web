@@ -358,7 +358,7 @@ export default function LeadsPage(): JSX.Element {
             </div>
           ) : leads.length > 0 ? (
             <table className="w-full">
-              <thead className="bg-gray-50 text-left dark:bg-gray-900/75">
+              <thead className="bg-gray-100 text-left dark:bg-gray-900/75">
                 <tr>
                   <th className="w-8 p-4">
                     <input
@@ -368,12 +368,24 @@ export default function LeadsPage(): JSX.Element {
                       className="rounded"
                     />
                   </th>
-                  <th className="p-4 text-sm font-medium">User Name</th>
-                  <th className="p-4 text-sm font-medium">Email</th>
-                  <th className="p-4 text-sm font-medium">Number</th>
-                  <th className="p-4 text-sm font-medium">Lead Score</th>
-                  <th className="p-4 text-sm font-medium">Status</th>
-                  <th className="p-4 text-sm font-medium">Date</th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    User Name
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Email
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Phone Number
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Lead Score
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Status
+                  </th>
+                  <th className="p-4 text-sm font-medium text-gray-500">
+                    Date
+                  </th>
                   <th className="w-8 p-4"></th>
                 </tr>
               </thead>
@@ -427,7 +439,7 @@ export default function LeadsPage(): JSX.Element {
                     </td>
                     <td className="p-4 text-sm">new</td>
                     <td className="p-4 text-sm">
-                      {formatDate(lead.timestamp)}
+                      {formatDate(lead.createdAt)}
                     </td>
                   </tr>
                 ))}
@@ -625,7 +637,7 @@ export default function LeadsPage(): JSX.Element {
                         Date
                       </span>
                       <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                        {formatDate(selectedLead.timestamp)}
+                        {formatDate(selectedLead.createdAt)}
                       </p>
                     </div>
                   </div>

@@ -1,13 +1,13 @@
 "use client"
 
-import { JSX, useMemo, useState } from "react"
+import { JSX, useEffect, useMemo, useState } from "react"
 import countryDataJson from "@/lib/countryData.json"
 import Image from "next/image"
 import { Combobox } from "@/components/ui/combo-box"
 import { SingleSelectDropdown } from "@/components/ui/single-select-dropdown"
 import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown"
 import { Card } from "@/components/ui/card"
-import { useApiQuery } from "@/query"
+import { useApiMutation, useApiQuery } from "@/query"
 import { type ChatSessionResponse } from "@/models/conversation"
 import { useRouter } from "next/navigation"
 import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
@@ -130,6 +130,28 @@ export default function ChatsPage(): JSX.Element {
 
   const projectId = useProjectId()
 
+  const scoreMutation = useApiMutation(
+    projectId
+      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
+      : "",
+    "post",
+    {
+      onSuccess: () => {
+        void refetch()
+      },
+      onError: () => {
+        void refetch()
+      }
+    }
+  )
+
+  useEffect(() => {
+    if (!projectId) return
+    // eslint-disable-next-line no-console
+    console.log("Project ID changed, initiating score calculation")
+    scoreMutation.mutate(undefined)
+  }, [projectId])
+
   const filters: ChatFilters = {
     username: searchTerm,
     startDate,
@@ -162,7 +184,8 @@ export default function ChatsPage(): JSX.Element {
       searchTerm,
       startDate,
       endDate,
-      selectedDuration
+      selectedDuration,
+      selectedScoring
     ],
     queryString,
     () => ({ method: "get" })
@@ -213,6 +236,19 @@ export default function ChatsPage(): JSX.Element {
 
   const handleDateDropdownChange = (val: string): void => {
     handleDateRangeChange(val as DateRangeType)
+  }
+
+  const getBadgeStyles = (score: string): string => {
+    switch (score?.toLowerCase()) {
+      case "positive":
+        return "border border-teal-500 bg-teal-500/30 text-teal-700 dark:text-teal-300"
+      case "negative":
+        return "border border-red-500 bg-red-500/30 text-red-700 dark:text-red-300"
+      case "neutral":
+        return "border border-gray-500 bg-gray-500/30 text-gray-700 dark:text-gray-300"
+      default:
+        return "border border-gray-500 bg-gray-500/30 text-gray-700 dark:text-gray-300"
+    }
   }
 
   const secondsToMinutes = (seconds: number): string => {
@@ -475,8 +511,14 @@ export default function ChatsPage(): JSX.Element {
                         className="flex max-h-4 w-32 items-center justify-center text-xs"
                       />
                     </td>
-                    <td className="w-32 p-4 text-center align-middle text-sm text-green-600">
-                      {chat.session.score}
+                    <td className="w-32 p-4 text-center align-middle text-sm">
+                      <span
+                        className={`inline-flex rounded-sm px-2 py-1 text-xs font-medium ${getBadgeStyles(
+                          chat.session.score
+                        )}`}
+                      >
+                        {chat.session.score}
+                      </span>
                     </td>
                     <td className="w-32 p-4 text-center align-middle text-sm">
                       {secondsToMinutes(chat.duration)}

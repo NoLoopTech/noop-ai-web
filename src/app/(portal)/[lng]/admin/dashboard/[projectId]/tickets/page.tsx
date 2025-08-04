@@ -454,7 +454,7 @@ export default function TicketsPage(): JSX.Element {
                     </td>
                     <td className="p-4 text-sm">{ticket.type ?? "General"}</td>
                     <td className="p-4 text-sm">
-                      {formatDate(ticket.timestamp)}
+                      {formatDate(ticket.createdAt)}
                     </td>
                     <td className="p-4">
                       <button className="text-gray-500 hover:text-gray-700">
@@ -716,7 +716,7 @@ export default function TicketsPage(): JSX.Element {
                         Created On
                       </span>
                       <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                        {formatDate(selectedTicket.timestamp)}
+                        {formatDate(selectedTicket.createdAt)}
                       </p>
                     </div>
                   </div>

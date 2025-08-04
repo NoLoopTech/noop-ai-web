@@ -14,6 +14,7 @@ import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useDateRange } from "@/lib/hooks/useDateRange"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
 import { Toast } from "@/components/ui/toast"
@@ -67,50 +68,9 @@ export default function ChatsPage(): JSX.Element {
       : `${format(start)} - ${format(end)}`
   }
 
-  const todayInit = new Date()
-  const startInit = new Date(todayInit)
-  startInit.setDate(todayInit.getDate() - 6)
-  const [startDate, setStartDate] = useState(() =>
-    startInit.toISOString().slice(0, 10)
-  )
-  const [endDate, setEndDate] = useState(() =>
-    todayInit.toISOString().slice(0, 10)
-  )
-  const [selectedDateRangeType, setSelectedDateRangeType] =
-    useState<DateRangeType>("last7")
-
-  // Helper to format date as yyyy-mm-dd
-  const formatDateISO = (d: Date): string => {
-    return d.toISOString().slice(0, 10)
-  }
-
-  const handleDateRangeChange = (value: DateRangeType): void => {
-    setSelectedDateRangeType(value)
-
-    const today = new Date()
-    const daysMap: Record<DateRangeType, number> = {
-      today: 0,
-      yesterday: 1,
-      last7: 6,
-      last30: 29,
-      last90: 89,
-      "": 0
-    }
-
-    const offset = daysMap[value]
-    const start = new Date(today)
-    const end = new Date(today)
-
-    if (value === "yesterday") {
-      start.setDate(today.getDate() - 1)
-      end.setDate(today.getDate() - 1)
-    } else {
-      start.setDate(today.getDate() - offset)
-    }
-
-    setStartDate(formatDateISO(start))
-    setEndDate(formatDateISO(end))
-  }
+  // Date range from custom hook
+  const { startDate, endDate, selectedDateRangeType, handleDateRangeChange } =
+    useDateRange()
 
   const [selectedScoring, setSelectedScoring] = useState<string[]>([])
   const [selectedIntent, setSelectedIntent] = useState("")

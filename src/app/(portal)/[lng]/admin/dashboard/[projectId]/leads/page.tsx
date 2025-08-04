@@ -16,6 +16,7 @@ import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { useDebounce } from "@/lib/hooks/useDebounce"
+import { useDateRange } from "@/lib/hooks/useDateRange"
 import { LeadScoreType, type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
@@ -24,8 +25,7 @@ import {
   leadStatusOptions,
   dateRangeOptions,
   type LeadScoreType as FilterLeadScoreType,
-  type LeadStatusType,
-  type DateRangeType
+  type LeadStatusType
 } from "@/models/filterOptions"
 
 export default function LeadsPage(): JSX.Element {
@@ -59,73 +59,16 @@ export default function LeadsPage(): JSX.Element {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
-  // Date range functionality
-  const todayInit = new Date()
-  const startInit = new Date(todayInit)
-  startInit.setDate(todayInit.getDate() - 6)
-  const [startDate, setStartDate] = useState(() =>
-    startInit.toISOString().slice(0, 10)
-  )
-  const [endDate, setEndDate] = useState(() =>
-    todayInit.toISOString().slice(0, 10)
-  )
-  const [selectedDateRangeType, setSelectedDateRangeType] =
-    useState<DateRangeType>("last7")
+  // Date range functionality using custom hook
+  const {
+    startDate,
+    endDate,
+    selectedDateRangeType,
+    formattedDateRange,
+    handleDateDropdownChange
+  } = useDateRange()
 
   const projectId = useProjectId()
-
-  // Helper to format date as yyyy-mm-dd
-  const formatDateISO = (d: Date): string => {
-    return d.toISOString().slice(0, 10)
-  }
-
-  const getFormattedDateRange = (): string => {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-
-    const format = (d: Date): string =>
-      d.toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric"
-      })
-
-    return startDate === endDate
-      ? format(start)
-      : `${format(start)} - ${format(end)}`
-  }
-
-  const handleDateRangeChange = (value: DateRangeType): void => {
-    setSelectedDateRangeType(value)
-
-    const today = new Date()
-    const daysMap: Record<DateRangeType, number> = {
-      today: 0,
-      yesterday: 1,
-      last7: 6,
-      last30: 29,
-      last90: 89,
-      "": 0
-    }
-
-    const offset = daysMap[value]
-    const start = new Date(today)
-    const end = new Date(today)
-
-    if (value === "yesterday") {
-      start.setDate(today.getDate() - 1)
-      end.setDate(today.getDate() - 1)
-    } else {
-      start.setDate(today.getDate() - offset)
-    }
-
-    setStartDate(formatDateISO(start))
-    setEndDate(formatDateISO(end))
-  }
-
-  const handleDateDropdownChange = (val: string): void => {
-    handleDateRangeChange(val as DateRangeType)
-  }
 
   const scoreMutation = useApiMutation(
     projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
@@ -263,7 +206,7 @@ export default function LeadsPage(): JSX.Element {
                 />
               </svg>
               <span className="text-sm font-semibold">
-                {getFormattedDateRange()}
+                {formattedDateRange}
               </span>
             </div>
           </div>

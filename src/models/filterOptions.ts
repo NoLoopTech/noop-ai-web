@@ -5,6 +5,7 @@ export type DateRangeType =
   | "last7"
   | "last30"
   | "last90"
+  | "custom"
   | ""
 
 export type DurationType = "" | "0-5" | "5-10" | "10-20" | "20+"

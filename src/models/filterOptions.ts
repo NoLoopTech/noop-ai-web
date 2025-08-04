@@ -8,7 +8,7 @@ export type DateRangeType =
   | ""
 
 export type DurationType = "" | "0-5" | "5-10" | "10-20" | "20+"
-export type ScoringType = "positive" | "negative" | "normal"
+export type ScoringType = "Positive" | "Negative" | "Normal"
 
 export const durationOptions = [
   { value: "", label: "All" },
@@ -19,9 +19,9 @@ export const durationOptions = [
 ] as const
 
 export const scoringOptions = [
-  { value: "positive", label: "Positive" },
-  { value: "negative", label: "Negative" },
-  { value: "normal", label: "Normal" }
+  { value: "Positive", label: "Positive" },
+  { value: "Negative", label: "Negative" },
+  { value: "Normal", label: "Normal" }
 ] as const
 
 export const dateRangeOptions = [

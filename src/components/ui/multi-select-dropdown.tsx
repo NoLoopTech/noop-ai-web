@@ -43,6 +43,30 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     .map(opt => opt.label)
     .join(", ")
 
+  const handleOptionKeyDown =
+    (value: string) => (e: React.KeyboardEvent<HTMLLabelElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        handleToggle(value)
+      }
+    }
+
+  const renderedOptions = options.map(opt => (
+    <label
+      key={opt.value}
+      className="flex cursor-pointer items-center px-3 py-2 text-sm"
+      tabIndex={0}
+      onKeyDown={handleOptionKeyDown(opt.value)}
+    >
+      <input
+        type="checkbox"
+        checked={values.includes(opt.value)}
+        onChange={handleCheckboxChange(opt.value)}
+        className="mr-2"
+      />
+      {opt.label}
+    </label>
+  ))
+
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
@@ -74,28 +98,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         className="bg-background dark:bg-background z-50 mt-2 w-full min-w-[180px] rounded-md border shadow-lg"
         align="start"
       >
-        <div className="max-h-48 overflow-y-auto">
-          {options.map(opt => (
-            <label
-              key={opt.value}
-              className="flex cursor-pointer items-center px-3 py-2 text-sm"
-              tabIndex={0}
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  handleToggle(opt.value)
-                }
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={values.includes(opt.value)}
-                onChange={handleCheckboxChange(opt.value)}
-                className="mr-2"
-              />
-              {opt.label}
-            </label>
-          ))}
-        </div>
+        <div className="max-h-48 overflow-y-auto">{renderedOptions}</div>
       </Popover.Content>
     </Popover.Root>
   )

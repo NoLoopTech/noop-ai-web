@@ -36,12 +36,26 @@ export const Combobox: React.FC<ComboboxProps> = ({
       ? (options.find(opt => opt.value === value)?.label ?? value)
       : null
 
+  const handleValueChange = (val: string) => {
+    onChange(val === "__placeholder__" ? "" : val)
+  }
+
+  const renderedOptions = filtered.map(opt => (
+    <Select.Item
+      key={opt.value}
+      value={opt.value}
+      className={`px-2 py-1 text-sm cursor-pointer${
+        value === opt.value ? "font-bold" : ""
+      }`}
+    >
+      {opt.label}
+    </Select.Item>
+  ))
+
   return (
     <Select.Root
       value={value === "" ? "__placeholder__" : value}
-      onValueChange={val => {
-        onChange(val === "__placeholder__" ? "" : val)
-      }}
+      onValueChange={handleValueChange}
     >
       <Select.Trigger
         className={`bg-background dark:bg-background flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm font-normal ${
@@ -75,17 +89,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
             >
               {placeholder}
             </Select.Item>
-            {filtered.map(opt => (
-              <Select.Item
-                key={opt.value}
-                value={opt.value}
-                className={`px-2 py-1 text-sm cursor-pointer${
-                  value === opt.value ? "font-bold" : ""
-                }`}
-              >
-                {opt.label}
-              </Select.Item>
-            ))}
+            {renderedOptions}
           </Select.Group>
         </div>
       </Select.Content>

@@ -1,7 +1,7 @@
+import { JSX } from "react"
 import { redirect } from "next/navigation"
 import apiCaller from "@/lib/apiCaller"
 import { type UserProject } from "@/models/project"
-import { JSX } from "react"
 
 export default async function AdminPage(): Promise<JSX.Element> {
   const userData = await apiCaller<UserProject[], { iosDeviceToken: string }>({

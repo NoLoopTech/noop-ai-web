@@ -1,39 +1,30 @@
-import type { JSX } from "react"
-
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import { Toaster } from "@/components/ui/toaster"
 import "@/app/globals.css"
-import NextAuthProvider from "@/components/layout/NextAuthProvider"
-// import AdminNavBase from "@/components/layout/AdminNavBase"
-import AutoSignOut from "@/components/layout/AutoSignOut"
-import ReactQueryWrapper from "@/components/layout/ReactQueryWrapper"
-import { ThemeProvider } from "@/components/layout/ThemeProvider"
-// import TopLoader from "@/components/layout/TopLoader"
+import "react-day-picker/dist/style.css"
+import { Providers } from "./providers"
 
-export const metadata = {
-  title: "Noopy AI Admin",
-  description: "Noopy AI Admin Portal"
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap"
+})
+
+export const metadata: Metadata = {
+  title: "Shadcnblocks - Admin Kit",
+  description: "Shadcnblocks - Admin Kit built with NextJS"
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children
-}: {
+}: Readonly<{
   children: React.ReactNode
-}): Promise<JSX.Element> {
+}>) {
   return (
-    <html lang="en">
-      <body>
-        {/* <TopLoader /> */}
-        {/* <AdminNavBase /> */}
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <NextAuthProvider>
-            <ReactQueryWrapper>{children}</ReactQueryWrapper>
-            <AutoSignOut />
-          </NextAuthProvider>
-        </ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} group/body antialiased`}>
+        <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   )

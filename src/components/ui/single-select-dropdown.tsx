@@ -73,7 +73,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         side="bottom"
         align="start"
         position="popper"
-        className="z-50 rounded-md border border-gray-200 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+        className="bg-background z-50 rounded-md border border-gray-200 shadow-lg dark:border-gray-700 dark:bg-gray-900"
       >
         <Select.Viewport className="max-h-48 overflow-y-auto">
           {/* Clear/placeholder item */}

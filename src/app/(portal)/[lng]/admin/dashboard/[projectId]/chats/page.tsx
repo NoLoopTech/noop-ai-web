@@ -135,7 +135,7 @@ export default function ChatsPage(): JSX.Element {
 
   const scoreMutation = useApiMutation(
     projectId
-      ? `/conversations/initiateSessionScoreCalculationn/${projectId}`
+      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
       : "",
     "post",
     {

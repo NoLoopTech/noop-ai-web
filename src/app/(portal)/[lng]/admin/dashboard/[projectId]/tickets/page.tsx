@@ -18,6 +18,7 @@ import ArrowUpIcon from "@/../public/assets/icons/arrow-up.svg"
 import ArrowDownIcon from "@/../public/assets/icons/arrow-down.svg"
 import ArrowRightIcon from "@/../public/assets/icons/arrow-right.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import { useApiQuery } from "@/query"
 import { type PaginatedResult } from "@/types/paginatedData"
@@ -26,7 +27,6 @@ import { formatDate } from "@/utils/formatDate"
 
 export default function ChatsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
   const [currentPage, setCurrentPage] = useState(1)
@@ -37,16 +37,11 @@ export default function ChatsPage(): JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const projectId = useProjectId()
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
-  // Debounce search term
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-      setCurrentPage(1) // Reset to first page when search changes
-    }, 500) // 500ms delay
-
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+    setCurrentPage(1)
+  }, [debouncedSearchTerm])
 
   const {
     data: paginatedData,

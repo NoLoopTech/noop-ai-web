@@ -14,13 +14,13 @@ import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 import { LeadScoreType, type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
 
 export default function LeadsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
   const [currentPage, setCurrentPage] = useState(1)
@@ -28,6 +28,7 @@ export default function LeadsPage(): JSX.Element {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const projectId = useProjectId()
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const scoreMutation = useApiMutation(
     projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
@@ -47,15 +48,10 @@ export default function LeadsPage(): JSX.Element {
     scoreMutation.mutate(undefined)
   }, [projectId])
 
-  // Debounce search term
+  // Reset to first page when search changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-      setCurrentPage(1) // Reset to first page when search changes
-    }, 500) // 500ms delay
-
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+    setCurrentPage(1)
+  }, [debouncedSearchTerm])
 
   const {
     data: paginatedData,

@@ -14,13 +14,13 @@ import RefreshIcon from "@/../public/assets/icons/refresh-icon.svg"
 import LoadingIcon from "@/../public/assets/icons/loading-icon.svg"
 import NoDataIcon from "@/../public/assets/icons/no-data-icon.svg"
 import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 import { LeadScoreType, type Lead } from "@/models/lead"
 import { type PaginatedResult } from "@/types/paginatedData"
 import { formatDate } from "@/utils/formatDate"
 
 export default function LeadsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedTab, setSelectedTab] = useState("history")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [dateRange] = useState("Feb 03, 2025 - Feb 09, 2025")
   const [currentPage, setCurrentPage] = useState(1)
@@ -28,6 +28,7 @@ export default function LeadsPage(): JSX.Element {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const projectId = useProjectId()
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const scoreMutation = useApiMutation(
     projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
@@ -47,30 +48,28 @@ export default function LeadsPage(): JSX.Element {
     scoreMutation.mutate(undefined)
   }, [projectId])
 
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedSearchTerm])
+
   const {
     data: paginatedData,
     isLoading: isLeadsLoading,
     isFetching,
     refetch
   } = useApiQuery<PaginatedResult<Lead>>(
-    ["project-leads", projectId, currentPage, rowsPerPage, searchTerm],
+    ["project-leads", projectId, currentPage, rowsPerPage, debouncedSearchTerm],
     `/leads?projectId=${
       projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}`,
+    }&page=${currentPage}&limit=${rowsPerPage}${debouncedSearchTerm ? `&searchTerm=${encodeURIComponent(debouncedSearchTerm)}` : ""}`,
     () => ({ method: "get" })
   )
 
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []
-    if (searchTerm) {
-      return paginatedData.data.filter(
-        (lead: Lead) =>
-          lead.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    }
     return paginatedData.data
-  }, [paginatedData, searchTerm])
+  }, [paginatedData])
 
   const totalPages = paginatedData?.total
     ? Math.ceil(paginatedData.total / rowsPerPage)
@@ -175,7 +174,7 @@ export default function LeadsPage(): JSX.Element {
             <div className="flex items-center space-x-2.5">
               <input
                 type="text"
-                placeholder="Search by user name..."
+                placeholder="Search by user name or email..."
                 className="rounded-md border px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 value={searchTerm}
                 onChange={e => {
@@ -253,33 +252,6 @@ export default function LeadsPage(): JSX.Element {
           </div>
 
           <div className="flex space-x-2">
-            <div className="flex overflow-hidden rounded-md border">
-              <button
-                className={`px-4 py-1 text-sm ${
-                  selectedTab === "history"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setSelectedTab("history")
-                }}
-              >
-                Chat history
-              </button>
-              <button
-                className={`px-4 py-1 text-sm ${
-                  selectedTab === "live"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-700"
-                }`}
-                onClick={() => {
-                  setSelectedTab("live")
-                }}
-              >
-                Live chat
-              </button>
-            </div>
-
             <button className="rounded-md border px-2 py-1 text-sm">
               <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
@@ -366,7 +338,7 @@ export default function LeadsPage(): JSX.Element {
                                   : "font-normal text-yellow-600"
                           }
                         >
-                          {lead.score}
+                          {lead.score?.replace(" Lead", "")}
                         </span>
                       ) : (
                         "N/A"
@@ -553,7 +525,7 @@ export default function LeadsPage(): JSX.Element {
                       </span>
                       <div className="mt-1 flex items-center gap-2">
                         <span className="text-sm font-semibold text-yellow-600">
-                          {selectedLead.score}
+                          {selectedLead.score?.replace(" Lead", "")}
                         </span>
                       </div>
                     </div>

@@ -209,7 +209,7 @@ export default function ChatsPage(): JSX.Element {
   const getBadgeStyles = (score: string): string => {
     switch (score) {
       case "Positive":
-        return "border border-teal-500 bg-teal-500/30 text-teal-700 dark:text-teal-300"
+        return "border border-[#00C3D0] bg-[#00C3D0]/30 text-black dark:text-[#00C3D0]"
       case "Negative":
         return "border border-red-500 bg-red-500/30 text-red-700 dark:text-red-300"
       case "Neutral":
@@ -485,7 +485,7 @@ export default function ChatsPage(): JSX.Element {
                     </td>
                     <td className="w-32 p-4 text-center align-middle text-sm">
                       <span
-                        className={`inline-flex rounded-sm px-2 py-1 text-xs font-medium ${getBadgeStyles(
+                        className={`inline-flex rounded-sm px-2 py-1 text-xs font-semibold ${getBadgeStyles(
                           chat.session.score
                         )}`}
                       >

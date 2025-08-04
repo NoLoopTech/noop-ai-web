@@ -239,12 +239,12 @@ export default function ChatsPage(): JSX.Element {
   }
 
   const getBadgeStyles = (score: string): string => {
-    switch (score?.toLowerCase()) {
-      case "positive":
+    switch (score) {
+      case "Positive":
         return "border border-teal-500 bg-teal-500/30 text-teal-700 dark:text-teal-300"
-      case "negative":
+      case "Negative":
         return "border border-red-500 bg-red-500/30 text-red-700 dark:text-red-300"
-      case "neutral":
+      case "Neutral":
         return "border border-gray-500 bg-gray-500/30 text-gray-700 dark:text-gray-300"
       default:
         return "border border-gray-500 bg-gray-500/30 text-gray-700 dark:text-gray-300"

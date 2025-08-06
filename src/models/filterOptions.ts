@@ -7,7 +7,7 @@ export type DateRangeType =
   | "last90"
   | ""
 
-export type DurationType = "" | "0-5" | "5-10" | "10-20" | "20+"
+export type DurationType = "" | "0-5" | "5-10" | "10-20" | "20plus"
 export type ScoringType = "Positive" | "Negative" | "Normal"
 
 export const durationOptions = [
@@ -15,7 +15,7 @@ export const durationOptions = [
   { value: "0-5", label: "Less than 5 mins" },
   { value: "5-10", label: "5–10 mins" },
   { value: "10-20", label: "10–20 mins" },
-  { value: "20+", label: "More than 20 mins" }
+  { value: "20plus", label: "More than 20 mins" }
 ] as const
 
 export const scoringOptions = [

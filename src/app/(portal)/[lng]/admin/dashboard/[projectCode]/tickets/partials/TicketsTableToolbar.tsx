@@ -6,28 +6,123 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableFacetedFilter } from "@/components/layout/Table/DataTableFacetedFilter"
 import { DataTableViewOptions } from "@/components/layout/Table/DataTableViewOptions"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 import { ticketStatus } from "../data/data"
+import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
+
+interface TicketTableFilters {
+  searchTerm: string
+  startDate: string
+  endDate: string
+  dateRangeType: DateRangeType
+}
 
 interface Props<TData> {
   table: Table<TData>
+  filters: TicketTableFilters
+  setFilters: (filters: TicketTableFilters) => void
 }
 
-export function DataTableToolbar<TData>({ table }: Props<TData>) {
+export function DataTableToolbar<TData>({
+  table,
+  filters,
+  setFilters
+}: Props<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+
+  const handleDateRangeChange = (val: string) => {
+    const range = val as DateRangeType
+    const today = new Date()
+    const start = new Date(today)
+    const end = new Date(today)
+
+    if (range === "today") {
+      // Today is already set
+    } else if (range === "yesterday") {
+      start.setDate(today.getDate() - 1)
+      end.setDate(today.getDate() - 1)
+    } else if (range === "last7") {
+      start.setDate(today.getDate() - 6)
+    } else if (range === "last30") {
+      start.setDate(today.getDate() - 29)
+    } else if (range === "last90") {
+      start.setDate(today.getDate() - 89)
+    }
+
+    setFilters({
+      ...filters,
+      dateRangeType: range,
+      startDate: start.toISOString().slice(0, 10),
+      endDate: end.toISOString().slice(0, 10)
+    })
+  }
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
         <Input
-          placeholder="Filter Leads..."
-          value={
-            (table.getColumn("userName")?.getFilterValue() as string) ?? ""
-          }
+          placeholder="Search by username or email..."
+          value={filters.searchTerm}
           onChange={event =>
-            table.getColumn("userName")?.setFilterValue(event.target.value)
+            setFilters({ ...filters, searchTerm: event.target.value })
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
+
+        {/* Date Range Filter */}
+        <Select
+          value={filters.dateRangeType || "reset"}
+          onValueChange={val => {
+            if (val === "reset") {
+              setFilters({
+                ...filters,
+                dateRangeType: "" as DateRangeType,
+                startDate: "",
+                endDate: ""
+              })
+            } else {
+              handleDateRangeChange(val)
+            }
+          }}
+        >
+          <SelectTrigger className="h-8 w-[150px] lg:w-[200px]">
+            <SelectValue placeholder="Date Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="reset">Reset</SelectItem>
+            {dateRangeOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Reset Date Range Button */}
+        {(filters.dateRangeType || filters.startDate || filters.endDate) && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setFilters({
+                ...filters,
+                dateRangeType: "" as DateRangeType,
+                startDate: "",
+                endDate: ""
+              })
+            }
+            className="h-8"
+          >
+            Reset Date Range
+          </Button>
+        )}
+
         <div className="flex gap-x-2">
           {table.getColumn("priority") && (
             <DataTableFacetedFilter

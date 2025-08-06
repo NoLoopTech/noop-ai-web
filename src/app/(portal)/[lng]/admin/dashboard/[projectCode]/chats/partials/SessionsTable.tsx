@@ -77,9 +77,7 @@ export function SessionsTable({ columns }: Props) {
       : "",
     "post",
     {
-      onSuccess: () => {
-        // Refetch will happen automatically due to react-query cache invalidation
-      },
+      onSuccess: () => {},
       onError: error => {
         const errorMessage =
           (error as { message?: string })?.message ||
@@ -99,17 +97,20 @@ export function SessionsTable({ columns }: Props) {
     scoreMutation.mutate(undefined)
   }, [projectId])
 
-  // const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
-  //   PaginatedResult<ChatSessionResponse>
-  // >(
-  //   ["chat-sessions", projectId, currentPage, rowsPerPage],
-  //   `/conversations?projectId=${
-  //     projectId ?? 4
-  //   }&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC`,
-  //   () => ({
-  //     method: "get"
-  //   })
-  // )
+  // Extract server-side filters from column filters (only for aiScore now)
+  const serverFilters = useMemo(() => {
+    const aiScoreColumn = columnFilters.find(filter => filter.id === "aiScore")
+
+    const aiScoreValues = aiScoreColumn?.value
+      ? Array.isArray(aiScoreColumn.value)
+        ? aiScoreColumn.value
+        : [aiScoreColumn.value]
+      : []
+
+    return {
+      aiScore: aiScoreValues
+    }
+  }, [columnFilters])
 
   const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
     PaginatedResult<ChatSessionResponse>
@@ -121,7 +122,7 @@ export function SessionsTable({ columns }: Props) {
       rowsPerPage,
       filters.username,
       filters.country,
-      filters.scoring.join(","),
+      serverFilters.aiScore.join(","),
       filters.intent,
       filters.duration,
       filters.startDate,
@@ -130,7 +131,9 @@ export function SessionsTable({ columns }: Props) {
     `/conversations?projectId=${projectId ?? 4}&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC` +
       (filters.username ? `&username=${filters.username}` : "") +
       (filters.country ? `&country=${filters.country}` : "") +
-      (filters.scoring ? `&scoring=${filters.scoring}` : "") +
+      (serverFilters.aiScore.length > 0
+        ? `&scoring=${serverFilters.aiScore.join(",")}`
+        : "") +
       (filters.intent ? `&intent=${filters.intent}` : "") +
       (filters.duration ? `&duration=${filters.duration}` : "") +
       (filters.startDate ? `&startDate=${filters.startDate}` : "") +
@@ -177,6 +180,7 @@ export function SessionsTable({ columns }: Props) {
     },
     enableRowSelection: true,
     manualPagination: true,
+    manualFiltering: true,
     pageCount:
       typeof paginatedData?.total === "number"
         ? Math.max(1, Math.ceil(paginatedData.total / rowsPerPage))

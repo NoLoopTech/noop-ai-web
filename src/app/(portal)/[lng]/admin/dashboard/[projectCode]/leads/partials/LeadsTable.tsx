@@ -30,6 +30,8 @@ import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery, useApiMutation } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { useToast } from "@/lib/hooks/useToast"
+import { DateRangeType } from "@/models/filterOptions"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 
 interface Props {
   columns: ColumnDef<Lead>[]
@@ -44,6 +46,22 @@ export function LeadsTable({ columns, data }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  // Server-side filters state (minimal addition)
+  const [filters, setFilters] = useState<{
+    searchTerm: string
+    startDate: string
+    endDate: string
+    dateRangeType: DateRangeType
+  }>({
+    searchTerm: "",
+    startDate: "",
+    endDate: "",
+    dateRangeType: "today"
+  })
+
+  // Debounce the search term for server-side filtering
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+
   const projectId = useProjectCode()
   const { toast } = useToast()
 
@@ -52,9 +70,7 @@ export function LeadsTable({ columns, data }: Props) {
     projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
     "post",
     {
-      onSuccess: () => {
-        // Refetch will happen automatically due to react-query cache invalidation
-      },
+      onSuccess: () => {},
       onError: error => {
         const errorMessage =
           (error as { message?: string })?.message ||
@@ -88,12 +104,18 @@ export function LeadsTable({ columns, data }: Props) {
 
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}
+
+    // Add debounced search term (server-side)
+    if (debouncedSearchTerm) params.searchTerm = debouncedSearchTerm
+
+    // Add date range filters (server-side)
+    if (filters.startDate) params.startDate = filters.startDate
+    if (filters.endDate) params.endDate = filters.endDate
+
+    // Column filters for score (multiple values like AI score)
     columnFilters.forEach(f => {
       if (!f.value || (typeof f.value === "object" && !Array.isArray(f.value)))
         return
-      if (f.id === "userName") params.searchTerm = String(f.value)
-      // if (f.id === "startDate") params.startDate = String(f.value)
-      // if (f.id === "endDate") params.endDate = String(f.value)
       if (f.id === "score")
         params.score = Array.isArray(f.value)
           ? f.value.join(",")
@@ -104,7 +126,7 @@ export function LeadsTable({ columns, data }: Props) {
           : String(f.value)
     })
     return params
-  }, [columnFilters])
+  }, [columnFilters, debouncedSearchTerm, filters.startDate, filters.endDate])
 
   // Build API query string
   const queryString = useMemo(() => {
@@ -194,7 +216,11 @@ export function LeadsTable({ columns, data }: Props) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        filters={filters}
+        setFilters={setFilters}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

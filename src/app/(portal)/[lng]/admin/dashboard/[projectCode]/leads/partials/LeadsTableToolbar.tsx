@@ -6,71 +6,137 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableFacetedFilter } from "@/components/layout/Table/DataTableFacetedFilter"
 import { DataTableViewOptions } from "@/components/layout/Table/DataTableViewOptions"
-import { leadStatus } from "../data/data"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
+
+interface LeadTableFilters {
+  searchTerm: string
+  startDate: string
+  endDate: string
+  dateRangeType: DateRangeType
+}
 
 interface Props<TData> {
   table: Table<TData>
+  filters: LeadTableFilters
+  setFilters: (filters: LeadTableFilters) => void
 }
 
-export function DataTableToolbar<TData>({ table }: Props<TData>) {
+export function DataTableToolbar<TData>({
+  table,
+  filters,
+  setFilters
+}: Props<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+
+  const handleDateRangeChange = (val: string) => {
+    const range = val as DateRangeType
+    const today = new Date()
+    const start = new Date(today)
+    const end = new Date(today)
+
+    if (range === "today") {
+      // Today is already set
+    } else if (range === "yesterday") {
+      start.setDate(today.getDate() - 1)
+      end.setDate(today.getDate() - 1)
+    } else if (range === "last7") {
+      start.setDate(today.getDate() - 6)
+    } else if (range === "last30") {
+      start.setDate(today.getDate() - 29)
+    } else if (range === "last90") {
+      start.setDate(today.getDate() - 89)
+    }
+
+    setFilters({
+      ...filters,
+      dateRangeType: range,
+      startDate: start.toISOString().slice(0, 10),
+      endDate: end.toISOString().slice(0, 10)
+    })
+  }
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
-        {/* <Input
-          placeholder="Filter Leads..."
-          value={
-            (table.getColumn("userName")?.getFilterValue() as string) ?? ""
-          }
-          onChange={event =>
-            table.getColumn("userName")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        /> */}
-        {/* Search filter */}
+        {/* Search filter - now server-side */}
         <Input
           placeholder="Search username/email"
-          value={
-            (table.getColumn("userName")?.getFilterValue() as string) ?? ""
-          }
+          value={filters.searchTerm}
           onChange={event =>
-            table.getColumn("userName")?.setFilterValue(event.target.value)
+            setFilters({ ...filters, searchTerm: event.target.value })
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {/* Date filters */}
-        {/* <Input
-          type="date"
-          value={
-            (table.getColumn("startDate")?.getFilterValue() as string) ?? ""
-          }
-          onChange={event =>
-            table.getColumn("startDate")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[120px]"
-        />
-        <Input
-          type="date"
-          value={(table.getColumn("endDate")?.getFilterValue() as string) ?? ""}
-          onChange={event =>
-            table.getColumn("endDate")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[120px]"
-        /> */}
-        {/* Score filter */}
+
+        {/* Date Range Filter */}
+        <Select
+          value={filters.dateRangeType || "reset"}
+          onValueChange={val => {
+            if (val === "reset") {
+              setFilters({
+                ...filters,
+                dateRangeType: "" as DateRangeType,
+                startDate: "",
+                endDate: ""
+              })
+            } else {
+              handleDateRangeChange(val)
+            }
+          }}
+        >
+          <SelectTrigger className="h-8 w-[150px] lg:w-[200px]">
+            <SelectValue placeholder="Date Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="reset">Reset</SelectItem>
+            {dateRangeOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Reset Date Range Button */}
+        {(filters.dateRangeType || filters.startDate || filters.endDate) && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setFilters({
+                ...filters,
+                dateRangeType: "" as DateRangeType,
+                startDate: "",
+                endDate: ""
+              })
+            }
+            className="h-8"
+          >
+            Reset Date Range
+          </Button>
+        )}
+
+        {/* Score filter - updated labels without "Lead" and works like AI Score */}
         {table.getColumn("score") && (
           <DataTableFacetedFilter
             column={table.getColumn("score")}
             title="Score"
             options={[
-              { label: "Cold Lead", value: "Cold Lead" },
-              { label: "Warm Lead", value: "Warm Lead" },
-              { label: "Hot Lead", value: "Hot Lead" }
+              { label: "Cold", value: "Cold Lead" },
+              { label: "Warm", value: "Warm Lead" },
+              { label: "Hot", value: "Hot Lead" }
             ]}
           />
         )}
-        {/* Status filter - replaced Select with DataTableFacetedFilter */}
+
+        {/* Status filter */}
         {table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
@@ -83,26 +149,7 @@ export function DataTableToolbar<TData>({ table }: Props<TData>) {
             ]}
           />
         )}
-        {/* <div className="flex gap-x-2">
-          {table.getColumn("score") && (
-            <DataTableFacetedFilter
-              column={table.getColumn("score")}
-              title="Score"
-              options={[
-                { label: "Cold", value: "cold" },
-                { label: "Warm", value: "warm" },
-                { label: "Hot", value: "hot" }
-              ]}
-            />
-          )}
-          {table.getColumn("status") && (
-            <DataTableFacetedFilter
-              column={table.getColumn("status")}
-              title="Status"
-              options={leadStatus.map(t => ({ ...t }))}
-            />
-          )}
-        </div> */}
+
         {isFiltered && (
           <Button
             variant="ghost"

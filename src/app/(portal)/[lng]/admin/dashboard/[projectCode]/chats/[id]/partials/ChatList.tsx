@@ -129,6 +129,7 @@ export default function ChatList(): JSX.Element {
                       </>
                     )}
                   </Card>
+                  // TODO: Add the "Load More" button and functionality
                 )
               })
             ) : (

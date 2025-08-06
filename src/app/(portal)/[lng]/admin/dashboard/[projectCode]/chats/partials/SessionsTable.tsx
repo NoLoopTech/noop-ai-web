@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/table"
 import { DataTablePagination } from "@/components/layout/Table/DataTablePagination"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery } from "@/query"
+import { useApiMutation, useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
 import { formatDate } from "date-fns"
@@ -45,6 +45,9 @@ export function SessionsTable({ columns }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
 
   const [filters, setFilters] = useState<{
     username: string
@@ -80,9 +83,40 @@ export function SessionsTable({ columns }: Props) {
   //   })
   // )
 
-  const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
-    PaginatedResult<ChatSessionResponse>
-  >(
+  const scoreMutation = useApiMutation(
+    projectId
+      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
+      : "",
+    "post",
+    {
+      onSuccess: () => {
+        void refetch()
+      },
+      onError: error => {
+        const errorMessage =
+          (error as { message?: string })?.message ||
+          "Failed to calculate session scores. Please try again."
+        setToastMessage(errorMessage)
+        setToastOpen(true)
+        void refetch()
+      }
+    }
+  )
+
+  useEffect(() => {
+    if (!projectId) return
+    // eslint-disable-next-line no-console
+    console.log("Project ID changed, initiating score calculation")
+    scoreMutation.mutate(undefined)
+  }, [projectId])
+
+  // TODO: Use this scoreMutation to trigger score calculation
+
+  const {
+    data: paginatedData,
+    isLoading: isChatsLoading,
+    refetch
+  } = useApiQuery<PaginatedResult<ChatSessionResponse>>(
     [
       "chat-sessions",
       projectId,

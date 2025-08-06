@@ -6,7 +6,16 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeSwitch } from "@/components/ThemeSwitch"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+// import { ChevronRight } from "lucide-react"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from "../ui/breadcrumb"
+import React from "react"
 
 export function Header() {
   const pathname = usePathname()
@@ -56,25 +65,25 @@ export function Header() {
     >
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-2 h-4" />
-      <div className="flex w-full justify-between">
-        <nav className="text-muted-foreground flex items-center text-base font-medium">
-          {breadcrumbs.map((crumb, idx) => (
-            <span key={idx} className="flex items-center">
-              {idx > 0 && (
-                <ChevronRight className="stroke-chip-default-gray mx-1 h-5 w-5 stroke-2" />
-              )}
-              {crumb.href ? (
-                <Link href={crumb.href} className="text-zinc-500">
-                  {crumb.label}
-                </Link>
-              ) : (
-                <span className="text-zinc-950 dark:text-zinc-200">
-                  {crumb.label}
-                </span>
-              )}
-            </span>
-          ))}
-        </nav>
+      <div className="flex w-full items-center justify-between">
+        <Breadcrumb>
+          <BreadcrumbList>
+            {breadcrumbs.map((crumb, idx) => (
+              <React.Fragment key={idx}>
+                <BreadcrumbItem>
+                  {crumb.href ? (
+                    <BreadcrumbLink asChild>
+                      <Link href={crumb.href}>{crumb.label}</Link>
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+                {idx < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+              </React.Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
         <ThemeSwitch />
       </div>
     </header>

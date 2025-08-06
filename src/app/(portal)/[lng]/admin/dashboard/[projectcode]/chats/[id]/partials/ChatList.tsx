@@ -6,14 +6,14 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { SearchInput } from "@/components/SearchInput"
 import { formatDate } from "date-fns"
 import { useParams, useRouter } from "next/navigation"
-import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
 
 export default function ChatList(): JSX.Element {
   const router = useRouter()
-  const projectId = useProjectId()
+  const projectId = useProjectCode()
   const params = useParams()
   const { id: threadId } = params as { id: string }
   const [isPending, startTransition] = useTransition()

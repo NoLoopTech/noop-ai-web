@@ -23,15 +23,15 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table"
-import { Session } from "../data/schema"
 import { DataTablePagination } from "@/components/layout/Table/DataTablePagination"
-import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
 import { formatDate } from "date-fns"
 import { SessionsTableToolbar } from "./SessionsTableToolbar"
 import { DateRangeType } from "@/models/filterOptions"
+import { Session } from "../data/schema"
 
 interface Props {
   columns: ColumnDef<Session>[]
@@ -66,7 +66,7 @@ export function SessionsTable({ columns }: Props) {
     dateRangeType: "today"
   })
 
-  const projectId = useProjectId()
+  const projectId = useProjectCode()
 
   // const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
   //   PaginatedResult<ChatSessionResponse>

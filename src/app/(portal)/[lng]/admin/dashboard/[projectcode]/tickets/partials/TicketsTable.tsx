@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/table"
 import { DataTablePagination } from "@/components/layout/Table/DataTablePagination"
 import { DataTableToolbar } from "./TicketsTableToolbar"
-import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { Ticket } from "../data/schema"
@@ -43,7 +43,7 @@ export function TicketsTable({ columns, data }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const projectId = useProjectId()
+  const projectId = useProjectCode()
 
   const { data: paginatedData, isLoading: isTicketsLoading } = useApiQuery<
     PaginatedResult<Ticket>

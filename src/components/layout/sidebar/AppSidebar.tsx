@@ -10,14 +10,14 @@ import {
 import { NavGroup } from "@/components/layout/NavGroup"
 import { NavUser } from "@/components/layout/NavUser"
 import { useParams } from "next/navigation"
-import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { ProjectSwitcher } from "../ProjectSwitcher"
 import { sidebarData } from "./SidebarData"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams()
 
-  const projectId = useProjectId()
+  const projectId = useProjectCode()
 
   const lng = (params.lng as string) ?? "en"
   const prefix = `/${lng}/admin/dashboard/${projectId ?? 0}`

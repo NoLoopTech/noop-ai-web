@@ -21,7 +21,7 @@ import { useApiQuery } from "@/query"
 import { UserProject } from "@/models/project"
 import { useParams, usePathname, useRouter } from "next/navigation"
 import { IconBrandSketchFilled } from "@tabler/icons-react"
-import { useProjectId } from "@/lib/hooks/useProjectId"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 
 export function ProjectSwitcher() {
   const pathname = usePathname()
@@ -40,7 +40,7 @@ export function ProjectSwitcher() {
     method: "get"
   }))
 
-  const selectedProjectId = useProjectId()
+  const selectedProjectId = useProjectCode()
 
   const memoizedProjects = useMemo(() => {
     const projects = userProjects ?? []
@@ -63,7 +63,7 @@ export function ProjectSwitcher() {
   }
 
   // Use transition and close dropdown on select
-  const handleSelectProject = (projectId: number): void => {
+  const handleSelectProject = (projectId: number) => () => {
     setProjectSwitcherOpen(false)
     startTransition(() => {
       const pathParts = pathname.split("/").filter(p => p)
@@ -118,7 +118,7 @@ export function ProjectSwitcher() {
               {memoizedProjects.map((project, index) => (
                 <DropdownMenuItem
                   key={project.id}
-                  onClick={() => handleSelectProject(project.id)}
+                  onClick={handleSelectProject(project.id)}
                   className="gap-2 p-2 text-balance"
                 >
                   {/* <div className="flex size-6 items-center justify-center rounded-sm border">

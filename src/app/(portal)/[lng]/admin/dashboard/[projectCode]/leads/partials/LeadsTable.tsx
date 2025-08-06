@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -27,8 +27,9 @@ import { DataTablePagination } from "@/components/layout/Table/DataTablePaginati
 import { DataTableToolbar } from "./LeadsTableToolbar"
 import { Lead } from "../data/schema"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery } from "@/query"
+import { useApiQuery, useApiMutation } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
+import { useToast } from "@/lib/hooks/useToast"
 
 interface Props {
   columns: ColumnDef<Lead>[]
@@ -44,6 +45,34 @@ export function LeadsTable({ columns, data }: Props) {
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const projectId = useProjectCode()
+  const { toast } = useToast()
+
+  // Lead score calculation mutation
+  const scoreMutation = useApiMutation(
+    projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
+    "post",
+    {
+      onSuccess: () => {
+        // Refetch will happen automatically due to react-query cache invalidation
+      },
+      onError: error => {
+        const errorMessage =
+          (error as { message?: string })?.message ||
+          "Failed to calculate lead scores. Please try again."
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        })
+      }
+    }
+  )
+
+  // Trigger lead score calculation on page load
+  useEffect(() => {
+    if (!projectId) return
+    scoreMutation.mutate(undefined)
+  }, [projectId])
 
   // const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
   //   PaginatedResult<Lead>

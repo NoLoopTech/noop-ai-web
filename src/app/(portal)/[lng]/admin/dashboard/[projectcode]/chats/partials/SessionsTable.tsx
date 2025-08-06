@@ -24,13 +24,14 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { Session } from "../data/schema"
-import { DataTableToolbar } from "./SessionsTableToolbar"
 import { DataTablePagination } from "@/components/layout/Table/DataTablePagination"
 import { useProjectId } from "@/lib/hooks/useProjectId"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
 import { formatDate } from "date-fns"
+import { SessionsTableToolbar } from "./SessionsTableToolbar"
+import { DateRangeType } from "@/models/filterOptions"
 
 interface Props {
   columns: ColumnDef<Session>[]
@@ -45,15 +46,64 @@ export function SessionsTable({ columns }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  const [filters, setFilters] = useState<{
+    username: string
+    country: string
+    scoring: string[]
+    intent: string
+    duration: string
+    startDate: string
+    endDate: string
+    dateRangeType: DateRangeType
+  }>({
+    username: "",
+    country: "",
+    scoring: [],
+    intent: "",
+    duration: "",
+    startDate: "",
+    endDate: "",
+    dateRangeType: "today"
+  })
+
   const projectId = useProjectId()
+
+  // const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
+  //   PaginatedResult<ChatSessionResponse>
+  // >(
+  //   ["chat-sessions", projectId, currentPage, rowsPerPage],
+  //   `/conversations?projectId=${
+  //     projectId ?? 4
+  //   }&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC`,
+  //   () => ({
+  //     method: "get"
+  //   })
+  // )
 
   const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
     PaginatedResult<ChatSessionResponse>
   >(
-    ["chat-sessions", projectId, currentPage, rowsPerPage],
-    `/conversations?projectId=${
-      projectId ?? 4
-    }&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC`,
+    [
+      "chat-sessions",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      filters.username,
+      filters.country,
+      filters.scoring.join(","),
+      filters.intent,
+      filters.duration,
+      filters.startDate,
+      filters.endDate
+    ],
+    `/conversations?projectId=${projectId ?? 4}&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC` +
+      (filters.username ? `&username=${filters.username}` : "") +
+      (filters.country ? `&country=${filters.country}` : "") +
+      (filters.scoring ? `&scoring=${filters.scoring}` : "") +
+      (filters.intent ? `&intent=${filters.intent}` : "") +
+      (filters.duration ? `&duration=${filters.duration}` : "") +
+      (filters.startDate ? `&startDate=${filters.startDate}` : "") +
+      (filters.endDate ? `&endDate=${filters.endDate}` : ""),
     () => ({
       method: "get"
     })
@@ -96,9 +146,10 @@ export function SessionsTable({ columns }: Props) {
     },
     enableRowSelection: true,
     manualPagination: true,
-    pageCount: paginatedData?.total
-      ? Math.max(1, Math.ceil(paginatedData.total / rowsPerPage))
-      : 1,
+    pageCount:
+      typeof paginatedData?.total === "number"
+        ? Math.max(1, Math.ceil(paginatedData.total / rowsPerPage))
+        : 1,
     onPaginationChange: updater => {
       const next =
         typeof updater === "function"
@@ -121,7 +172,12 @@ export function SessionsTable({ columns }: Props) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      {/* <SessionsTableToolbar table={table} /> */}
+      <SessionsTableToolbar
+        table={table}
+        filters={filters}
+        setFilters={setFilters}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

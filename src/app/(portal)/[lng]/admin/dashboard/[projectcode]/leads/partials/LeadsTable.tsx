@@ -45,13 +45,54 @@ export function LeadsTable({ columns, data }: Props) {
 
   const projectId = useProjectId()
 
+  // const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
+  //   PaginatedResult<Lead>
+  // >(
+  //   ["project-leads", projectId, currentPage, rowsPerPage],
+  //   `/leads?projectId=${
+  //     projectId ?? 0
+  //   }&page=${currentPage}&limit=${rowsPerPage}`,
+  //   () => ({
+  //     method: "get"
+  //   })
+  // )
+
+  const filterParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    columnFilters.forEach(f => {
+      if (!f.value || (typeof f.value === "object" && !Array.isArray(f.value)))
+        return
+      if (f.id === "userName") params.searchTerm = String(f.value)
+      // if (f.id === "startDate") params.startDate = String(f.value)
+      // if (f.id === "endDate") params.endDate = String(f.value)
+      if (f.id === "score")
+        params.score = Array.isArray(f.value)
+          ? f.value.join(",")
+          : String(f.value)
+      if (f.id === "status")
+        params.status = Array.isArray(f.value)
+          ? f.value.join(",")
+          : String(f.value)
+    })
+    return params
+  }, [columnFilters])
+
+  // Build API query string
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams({
+      projectId: String(projectId ?? 0),
+      page: String(currentPage),
+      limit: String(rowsPerPage),
+      ...filterParams
+    })
+    return `/leads?${params.toString()}`
+  }, [projectId, currentPage, rowsPerPage, filterParams])
+
   const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
     PaginatedResult<Lead>
   >(
-    ["project-leads", projectId, currentPage, rowsPerPage],
-    `/leads?projectId=${
-      projectId ?? 0
-    }&page=${currentPage}&limit=${rowsPerPage}`,
+    ["project-leads", projectId, currentPage, rowsPerPage, filterParams],
+    queryString,
     () => ({
       method: "get"
     })
@@ -78,8 +119,8 @@ export function LeadsTable({ columns, data }: Props) {
       email: leads[i].email,
       phoneNumber: leads[i].phoneNumber,
       createdAt: leads[i].createdAt,
-      preference: data[i].preference,
-      score: data[i].score,
+      preference: leads[i].preference,
+      score: leads[i].score,
       status: data[i].status
     }))
   }, [leads, data])

@@ -70,27 +70,6 @@ export function SessionsTable({ columns }: Props) {
   const projectId = useProjectCode()
   const { toast } = useToast()
 
-  // Session score calculation mutation
-  const scoreMutation = useApiMutation(
-    projectId
-      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
-      : "",
-    "post",
-    {
-      onSuccess: () => {},
-      onError: error => {
-        const errorMessage =
-          (error as { message?: string })?.message ||
-          "Failed to calculate session scores. Please try again."
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        })
-      }
-    }
-  )
-
   // Trigger session score calculation on page load
   useEffect(() => {
     if (!projectId) return
@@ -112,9 +91,34 @@ export function SessionsTable({ columns }: Props) {
     }
   }, [columnFilters])
 
-  const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
-    PaginatedResult<ChatSessionResponse>
-  >(
+  // Session score calculation mutation
+  const scoreMutation = useApiMutation(
+    projectId
+      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
+      : "",
+    "post",
+    {
+      onSuccess: () => {
+        void refetch()
+      },
+      onError: error => {
+        const errorMessage =
+          (error as { message?: string })?.message ||
+          "Failed to calculate session scores. Please try again."
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        })
+      }
+    }
+  )
+
+  const {
+    data: paginatedData,
+    isLoading: isChatsLoading,
+    refetch
+  } = useApiQuery<PaginatedResult<ChatSessionResponse>>(
     [
       "chat-sessions",
       projectId,

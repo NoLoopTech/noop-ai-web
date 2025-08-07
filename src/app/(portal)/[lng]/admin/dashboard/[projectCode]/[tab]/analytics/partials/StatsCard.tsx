@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
 
@@ -37,15 +36,14 @@ export default function StatsCard({
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           {title}
         </CardTitle>
-        <TooltipProvider>
-          <Tooltip delayDuration={50}>
-            <TooltipTrigger>
-              <IconInfoCircle className="text-muted-foreground scale-90 stroke-[1.25]" />
-              <span className="sr-only">More Info</span>
-            </TooltipTrigger>
-            <TooltipContent>{description}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+
+        <Tooltip delayDuration={50}>
+          <TooltipTrigger>
+            <IconInfoCircle className="text-muted-foreground scale-90 stroke-[1.25]" />
+            <span className="sr-only">More Info</span>
+          </TooltipTrigger>
+          <TooltipContent>{description}</TooltipContent>
+        </Tooltip>
       </CardHeader>
       <CardContent className="px-4 pt-0 pb-3">
         <div className="text-lg font-bold sm:text-2xl">

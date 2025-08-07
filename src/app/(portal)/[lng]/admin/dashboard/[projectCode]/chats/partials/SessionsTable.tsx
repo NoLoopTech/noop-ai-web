@@ -47,6 +47,9 @@ export function SessionsTable({ columns }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
+
   const [filters, setFilters] = useState<{
     username: string
     country: string
@@ -70,12 +73,6 @@ export function SessionsTable({ columns }: Props) {
   const projectId = useProjectCode()
   const { toast } = useToast()
 
-  // Trigger session score calculation on page load
-  useEffect(() => {
-    if (!projectId) return
-    scoreMutation.mutate(undefined)
-  }, [projectId])
-
   // Extract server-side filters from column filters (only for aiScore now)
   const serverFilters = useMemo(() => {
     const aiScoreColumn = columnFilters.find(filter => filter.id === "aiScore")
@@ -92,6 +89,7 @@ export function SessionsTable({ columns }: Props) {
   }, [columnFilters])
 
   // Session score calculation mutation
+
   const scoreMutation = useApiMutation(
     projectId
       ? `/conversations/initiateSessionScoreCalculation/${projectId}`
@@ -105,14 +103,22 @@ export function SessionsTable({ columns }: Props) {
         const errorMessage =
           (error as { message?: string })?.message ||
           "Failed to calculate session scores. Please try again."
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        })
+        setToastMessage(errorMessage)
+        setToastOpen(true)
+        void refetch()
       }
     }
   )
+
+
+  useEffect(() => {
+    if (!projectId) return
+    // eslint-disable-next-line no-console
+    console.log("Project ID changed, initiating score calculation")
+    scoreMutation.mutate(undefined)
+  }, [projectId])
+
+  // TODO: Use this scoreMutation to trigger score calculation
 
   const {
     data: paginatedData,

@@ -2,9 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger
+} from "@/components/ui/hover-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip"
-import { TooltipContent } from "@radix-ui/react-tooltip"
 import {
   IconArrowRight,
   IconBellRinging,
@@ -48,48 +51,51 @@ export default function ChatInfo(): JSX.Element {
           <CardContent className="px-4">
             <div className="flex flex-col space-y-3">
               <div className="flex items-center justify-between">
-                <Tooltip>
-                  <TooltipTrigger>
+                <HoverCard openDelay={0} closeDelay={0}>
+                  <HoverCardTrigger>
                     <div className="flex items-center gap-x-2">
                       <IconUsers className="size-4" />
                       <p className="text-sm font-medium">Active Tickets</p>
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <Card className="max-w-72 p-1 shadow-lg">
-                      <CardTitle className="text-popover-foreground flex items-center space-x-3 p-2 pb-0 text-sm font-semibold">
+                  </HoverCardTrigger>
+                  <HoverCardContent avoidCollisions>
+                    <div className="max-w-72 space-y-2">
+                      <div className="text-popover-foreground flex items-center space-x-3 text-sm font-semibold">
                         <p>Active Tickets</p>
                         <IconInfoCircle className="size-4" />
-                      </CardTitle>
-                      <CardContent className="p-2">
+                      </div>
+                      <div>
                         <p className="text-popover-foreground text-sm font-normal">
                           Number of unresolved support tickets created by this
                           user, either manually or triggered by chatbot
                           fallback.
                         </p>
-                      </CardContent>
-                    </Card>
-                  </TooltipContent>
-                </Tooltip>
+                      </div>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
                 <p className="text-sm font-medium">22</p>
               </div>
               <div className="flex items-center justify-between">
-                <Tooltip>
-                  <TooltipTrigger>
+                <HoverCard openDelay={100}>
+                  <HoverCardTrigger>
                     <div className="flex items-center gap-x-2">
                       <IconExclamationCircle className="size-4" />
                       <p className="text-sm font-medium">
                         Potential Lead Score
                       </p>
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent avoidCollisions>
-                    <Card className="text-popover-foreground max-w-80 p-1 shadow-lg">
-                      <CardTitle className="flex items-center space-x-3 p-2 pb-0 text-sm font-semibold">
+                  </HoverCardTrigger>
+                  <HoverCardContent
+                    avoidCollisions
+                    className="max-w-sm min-w-80"
+                  >
+                    <div className="text-popover-foreground">
+                      <div className="flex items-center space-x-3 text-sm font-semibold">
                         <p>Potential Lead</p>
                         <IconInfoCircle className="size-4" />
-                      </CardTitle>
-                      <CardContent className="flex flex-col space-y-5 p-2">
+                      </div>
+                      <div className="flex flex-col space-y-5">
                         <p className="text-sm font-normal">
                           A numerical score (0&#8211;100) predicting how likely
                           this user is to convert into a customer based on their
@@ -139,10 +145,10 @@ export default function ChatInfo(): JSX.Element {
                             </ul>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TooltipContent>
-                </Tooltip>
+                      </div>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
                 <p className="text-sm font-medium">70</p>
               </div>
               <div className="flex items-center justify-between">

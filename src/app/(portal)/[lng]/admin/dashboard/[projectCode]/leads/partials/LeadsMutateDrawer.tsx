@@ -3,7 +3,6 @@
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "@/lib/hooks/useToast"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -14,18 +13,27 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle
 } from "@/components/ui/sheet"
 import SelectDropdown from "@/components/SelectDropdown"
 import { Lead } from "../data/schema"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
+import { format } from "date-fns"
+import { IconCircleDashed } from "@tabler/icons-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { useRouter } from "next/navigation"
 
 interface Props {
   open: boolean
@@ -34,40 +42,74 @@ interface Props {
 }
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required."),
-  status: z.string().min(1, "Please select a status."),
-  label: z.enum(["documentation", "bug", "feature"], {
-    required_error: "Please select a label."
+  userName: z.string().min(1, "User Name is required."),
+  email: z.string().email("Invalid email address."),
+  phoneNumber: z.string().min(1, "Phone Number is required."),
+  preference: z.array(z.string()).min(1, "Select at least one preference."),
+  score: z.enum(["cold", "warm", "hot"], { required_error: "Select a score." }),
+  status: z.enum(["new", "contacted", "closed"], {
+    required_error: "Select a status."
   }),
-  priority: z.string().min(1, "Please choose a priority.")
+  content: z.string().optional(),
+  createdAt: z.string().optional()
 })
-type TasksForm = z.infer<typeof formSchema>
+type LeadForm = z.infer<typeof formSchema>
 
 export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
   const isUpdate = !!currentRow
 
-  const form = useForm<TasksForm>({
+  const form = useForm<LeadForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: currentRow ?? {
-      title: "",
-      status: "",
-      label: undefined,
-      priority: ""
-    }
+    defaultValues: currentRow
+      ? {
+          userName: currentRow.userName ?? "",
+          email: currentRow.email ?? "",
+          phoneNumber: currentRow.phoneNumber ?? "",
+          preference: Array.isArray(currentRow.preference)
+            ? currentRow.preference
+            : [],
+          score: currentRow.score ?? "cold",
+          status: currentRow.status ?? "new",
+          content: currentRow.content ?? "",
+          createdAt: currentRow.createdAt
+            ? new Date(currentRow.createdAt).toISOString().slice(0, 16)
+            : ""
+        }
+      : {
+          userName: "",
+          email: "",
+          phoneNumber: "",
+          preference: [],
+          score: "cold",
+          status: "new",
+          content: "",
+          createdAt: ""
+        }
   })
 
-  const onSubmit = (data: TasksForm) => {
-    // do something with the form data
-    onOpenChange(false)
-    form.reset()
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
+  // const onSubmit = (data: LeadForm) => {
+  //   // do something with the form data
+  //   onOpenChange(false)
+  //   form.reset()
+  //   toast({
+  //     title: "You submitted the following values:",
+  //     description: (
+  //       <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+  //         <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+  //       </pre>
+  //     )
+  //   })
+  // }
+
+  const router = useRouter()
+  const projectCode = useProjectCode()
+
+  const handleViewTranscript = () => {
+    if (currentRow?.threadId) {
+      router.push(
+        `/admin/dashboard/${projectCode}/chats/${currentRow.threadId}`
       )
-    })
+    }
   }
 
   return (
@@ -78,7 +120,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
         form.reset()
       }}
     >
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex min-w-3xl flex-col">
         <SheetHeader>
           <SheetTitle>{isUpdate ? "Update" : "Create"} Task</SheetTitle>
           <SheetDescription>
@@ -88,131 +130,218 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
             Click save when you&apos;re done.
           </SheetDescription>
         </SheetHeader>
-        <Form {...form}>
-          <form
-            id="tasks-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 space-y-5"
-          >
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter a title" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Status</FormLabel>
-                  <SelectDropdown
-                    defaultValue={field.value}
-                    onValueChange={field.onChange}
-                    placeholder="Select dropdown"
-                    items={[
-                      { label: "In Progress", value: "in progress" },
-                      { label: "Backlog", value: "backlog" },
-                      { label: "Todo", value: "todo" },
-                      { label: "Canceled", value: "canceled" },
-                      { label: "Done", value: "done" }
-                    ]}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="label"
-              render={({ field }) => (
-                <FormItem className="relative space-y-3">
-                  <FormLabel>Label</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-y-0 space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="documentation" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Documentation
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-y-0 space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="feature" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Feature</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-y-0 space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="bug" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Bug</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem className="relative space-y-3">
-                  <FormLabel>Priority</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-y-0 space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="high" />
-                        </FormControl>
-                        <FormLabel className="font-normal">High</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-y-0 space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="medium" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Medium</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-y-0 space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="low" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Low</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-        <SheetFooter className="gap-2">
-          <SheetClose asChild>
-            <Button variant="outline">Close</Button>
-          </SheetClose>
-          <Button form="tasks-form" type="submit">
-            Save changes
-          </Button>
-        </SheetFooter>
+
+        <ScrollArea scrollbarVariant="tiny">
+          <div className="flex flex-col space-y-6 py-1 pr-3.5">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col space-y-1">
+                    <CardTitle className="text-xl font-semibold">
+                      Basic Information
+                    </CardTitle>
+                    <CardDescription>
+                      See basic leads information
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline">Edit</Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-2.5">
+                <Form {...form}>
+                  <form
+                    id="lead-form"
+                    // onSubmit={form.handleSubmit(onSubmit)}
+                    className="grid grid-cols-2 space-y-5 space-x-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="userName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>User Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter user name"
+                              disabled
+                              className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter email"
+                              disabled
+                              className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter phone number"
+                              disabled
+                              className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="score"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lead Score</FormLabel>
+                          <SelectDropdown
+                            defaultValue={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Select score"
+                            items={[
+                              { label: "Hot", value: "hot" },
+                              { label: "Warm", value: "warm" },
+                              { label: "Cold", value: "cold" }
+                            ]}
+                            disabled
+                            className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <SelectDropdown
+                            defaultValue={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Select status"
+                            items={[
+                              { label: "New", value: "new" },
+                              { label: "Contacted", value: "contacted" },
+                              { label: "Closed", value: "closed" }
+                            ]}
+                            disabled
+                            className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="createdAt"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={
+                                field.value
+                                  ? format(
+                                      new Date(field.value),
+                                      "dd MMM, yyyy"
+                                    )
+                                  : ""
+                              }
+                              placeholder="Enter date"
+                              disabled
+                              className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col space-y-2">
+                  <CardTitle className="text-xl font-semibold">
+                    Chat Information
+                  </CardTitle>
+                  <CardDescription>Manage chat information</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="flex flex-col space-y-5">
+                <div className="flex flex-col space-y-1.5">
+                  <h2>Captured Preferences</h2>
+                  <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
+                    {currentRow &&
+                    Array.isArray(currentRow.preference) &&
+                    currentRow.preference.length > 0 ? (
+                      currentRow.preference.map((pref, idx) => (
+                        <div
+                          key={idx}
+                          className="text-foreground bg-secondary flex items-center space-x-1.5 rounded-lg px-2.5 py-1.5 capitalize"
+                        >
+                          <IconCircleDashed className="size-4" />
+                          <p className="text-xs">{pref}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">
+                        No preferences
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col space-y-1.5">
+                  <h2>Conversation Summary</h2>
+                  <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
+                    {currentRow && currentRow.content ? (
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {currentRow.content}
+                      </p>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        No conversation summary available
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  variant={"default"}
+                  onClick={handleViewTranscript}
+                  className="max-w-max self-end"
+                >
+                  View Transcript
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   )

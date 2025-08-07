@@ -9,6 +9,7 @@ import { Header } from "@/components/layout/Header"
 import Analytics from "./analytics/page"
 import Overview from "./overview/page"
 import Dashboard1Actions from "./partials/DashboardActions"
+import { TooltipProvider } from "@radix-ui/react-tooltip"
 
 type Props = {
   params: {
@@ -61,12 +62,14 @@ export default async function Dashboard1Page({ params }: Props) {
               </TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="overview" className="space-y-4">
-            <Overview />
-          </TabsContent>
-          <TabsContent value="analytics" className="space-y-4">
-            <Analytics />
-          </TabsContent>
+          <TooltipProvider>
+            <TabsContent value="overview" className="space-y-4">
+              <Overview />
+            </TabsContent>
+            <TabsContent value="analytics" className="space-y-4">
+              <Analytics />
+            </TabsContent>
+          </TooltipProvider>
         </Tabs>
       </div>
     </>

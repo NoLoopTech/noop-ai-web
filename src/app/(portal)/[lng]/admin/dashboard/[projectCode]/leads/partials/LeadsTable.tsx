@@ -35,10 +35,9 @@ import { useDebounce } from "@/lib/hooks/useDebounce"
 
 interface Props {
   columns: ColumnDef<Lead>[]
-  data: Lead[]
 }
 
-export function LeadsTable({ columns, data }: Props) {
+export function LeadsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -90,18 +89,6 @@ export function LeadsTable({ columns, data }: Props) {
     scoreMutation.mutate(undefined)
   }, [projectId])
 
-  // const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
-  //   PaginatedResult<Lead>
-  // >(
-  //   ["project-leads", projectId, currentPage, rowsPerPage],
-  //   `/leads?projectId=${
-  //     projectId ?? 0
-  //   }&page=${currentPage}&limit=${rowsPerPage}`,
-  //   () => ({
-  //     method: "get"
-  //   })
-  // )
-
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}
 
@@ -128,7 +115,7 @@ export function LeadsTable({ columns, data }: Props) {
     return params
   }, [columnFilters, debouncedSearchTerm, filters.startDate, filters.endDate])
 
-  // Build API query string
+  // INFO: Build API query string
   const queryString = useMemo(() => {
     const params = new URLSearchParams({
       projectId: String(projectId ?? 0),
@@ -149,35 +136,44 @@ export function LeadsTable({ columns, data }: Props) {
     })
   )
 
+  function parsePreference(pref: string | null | undefined): string[] {
+    if (!pref) return []
+
+    return pref
+      .replace(/^{|}$/g, "")
+      .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .map(s => s.trim().replace(/^"|"$/g, ""))
+      .filter(Boolean)
+  }
+
+  function normalizeScore(
+    score: string | null | undefined
+  ): "hot" | "warm" | "cold" {
+    if (!score) return "cold"
+
+    const cleaned = score
+      .replace(/ *lead/i, "")
+      .trim()
+      .toLowerCase()
+    if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
+      return cleaned as "hot" | "warm" | "cold"
+    }
+    return "cold"
+  }
+
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []
-    // if (searchTerm) {
-    //   return paginatedData.data.filter(
-    //     lead =>
-    //       lead.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //       lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //       lead.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-    //   )
-    // }
-    return paginatedData.data
+
+    return paginatedData.data.map(lead => ({
+      ...lead,
+      preference: parsePreference(lead.preference?.toString()),
+      score: normalizeScore(lead.score),
+      status: lead.status ?? "new"
+    }))
   }, [paginatedData])
 
-  const combinedLeads = useMemo(() => {
-    const minLength = Math.min(leads.length, data.length)
-    return Array.from({ length: minLength }, (_, i) => ({
-      id: leads[i].id,
-      userName: leads[i].userName,
-      email: leads[i].email,
-      phoneNumber: leads[i].phoneNumber,
-      createdAt: leads[i].createdAt,
-      preference: leads[i].preference,
-      score: leads[i].score,
-      status: data[i].status
-    }))
-  }, [leads, data])
-
   const table = useReactTable({
-    data: combinedLeads,
+    data: leads,
     columns,
     state: {
       sorting,

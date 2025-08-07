@@ -22,10 +22,14 @@ const leadSchema = z.object({
   userName: z.string(),
   email: z.string(),
   phoneNumber: z.string(),
-  preference: z.array(z.string()),
+  content: z.string(),
+  threadId: z.string(),
   score: leadScoreSchema,
+  preference: z.array(z.string()),
   status: leadStatusSchema,
-  createdAt: z.coerce.date()
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  deletedAt: z.coerce.date().optional()
 })
 export type Lead = z.infer<typeof leadSchema>
 

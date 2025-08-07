@@ -32,7 +32,6 @@ import { formatDate } from "date-fns"
 import { SessionsTableToolbar } from "./SessionsTableToolbar"
 import { DateRangeType } from "@/models/filterOptions"
 import { Session } from "../data/schema"
-import { useToast } from "@/lib/hooks/useToast"
 
 interface Props {
   columns: ColumnDef<Session>[]
@@ -47,8 +46,8 @@ export function SessionsTable({ columns }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const [toastOpen, setToastOpen] = useState(false)
-  const [toastMessage, setToastMessage] = useState("")
+  const [, setToastOpen] = useState(false)
+  const [, setToastMessage] = useState("")
 
   const [filters, setFilters] = useState<{
     username: string
@@ -71,7 +70,6 @@ export function SessionsTable({ columns }: Props) {
   })
 
   const projectId = useProjectCode()
-  const { toast } = useToast()
 
   // Extract server-side filters from column filters (only for aiScore now)
   const serverFilters = useMemo(() => {
@@ -109,7 +107,6 @@ export function SessionsTable({ columns }: Props) {
       }
     }
   )
-
 
   useEffect(() => {
     if (!projectId) return

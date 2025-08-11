@@ -29,6 +29,8 @@ import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { Ticket } from "../data/schema"
+import { DateRangeType } from "@/models/filterOptions"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 
 interface Props {
   columns: ColumnDef<Ticket>[]
@@ -43,15 +45,42 @@ export function TicketsTable({ columns, data }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  // Server-side filters state
+  const [filters, setFilters] = useState<{
+    searchTerm: string
+    startDate: string
+    endDate: string
+    dateRangeType: DateRangeType
+  }>({
+    searchTerm: "",
+    startDate: "",
+    endDate: "",
+    dateRangeType: "today"
+  })
+
+  // Debounce the search term for server-side filtering
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+
   const projectId = useProjectCode()
 
   const { data: paginatedData, isLoading: isTicketsLoading } = useApiQuery<
     PaginatedResult<Ticket>
   >(
-    ["project-tickets", projectId, currentPage, rowsPerPage],
+    [
+      "project-tickets",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      debouncedSearchTerm,
+      filters.startDate,
+      filters.endDate
+    ],
     `/tickets?projectId=${
       projectId ?? 4
-    }&page=${currentPage}&limit=${rowsPerPage}`,
+    }&page=${currentPage}&limit=${rowsPerPage}` +
+      (debouncedSearchTerm ? `&searchTerm=${debouncedSearchTerm}` : "") +
+      (filters.startDate ? `&startDate=${filters.startDate}` : "") +
+      (filters.endDate ? `&endDate=${filters.endDate}` : ""),
     () => ({
       method: "get"
     })
@@ -59,13 +88,6 @@ export function TicketsTable({ columns, data }: Props) {
 
   const tickets = useMemo((): Ticket[] => {
     if (!paginatedData?.data) return []
-    // if (searchTerm) {
-    //   return paginatedData.data.filter(
-    //     ticket =>
-    //       ticket.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //       ticket.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    //   )
-    // }
     return paginatedData.data
   }, [paginatedData])
 
@@ -75,9 +97,9 @@ export function TicketsTable({ columns, data }: Props) {
       id: tickets[i].id,
       userName: tickets[i].userName,
       email: tickets[i].email,
-      status: data[i].status,
-      priority: data[i].priority,
-      type: data[i].type,
+      status: data[i]?.status || "open",
+      priority: data[i]?.priority || "medium",
+      type: data[i]?.type || "bug",
       createdAt: tickets[i].createdAt
     }))
   }, [tickets, data])
@@ -123,7 +145,11 @@ export function TicketsTable({ columns, data }: Props) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        filters={filters}
+        setFilters={setFilters}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

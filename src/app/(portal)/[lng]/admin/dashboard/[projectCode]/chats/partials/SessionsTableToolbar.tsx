@@ -4,7 +4,13 @@ import { Table } from "@tanstack/react-table"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "@/components/layout/Table/DataTableViewOptions"
 import { DataTableFacetedFilter } from "@/components/layout/Table/DataTableFacetedFilter"
-import { SingleSelectDropdown } from "@/components/ui/single-select-dropdown"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 import countryDataJson from "@/lib/countryData.json"
 import {
   dateRangeOptions,
@@ -63,11 +69,6 @@ export function SessionsTableToolbar<TData>({
     })
   }
 
-  const dateRangeOptionsWithReset = [
-    { value: "", label: "Reset" },
-    ...dateRangeOptions
-  ]
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
@@ -84,11 +85,10 @@ export function SessionsTableToolbar<TData>({
           placeholder="Date Range"
           className="h-8 w-[150px] lg:w-[200px]"
         /> */}
-        <SingleSelectDropdown
-          options={dateRangeOptionsWithReset}
-          value={filters.dateRangeType}
-          onChange={val => {
-            if (val === "") {
+        <Select
+          value={filters.dateRangeType || "reset"}
+          onValueChange={val => {
+            if (val === "reset") {
               setFilters({
                 ...filters,
                 dateRangeType: "" as DateRangeType,
@@ -99,10 +99,19 @@ export function SessionsTableToolbar<TData>({
               handleDateRangeChange(val)
             }
           }}
-          placeholder="Date Range"
-          className="h-8 w-[150px] lg:w-[200px]"
-        />
-
+        >
+          <SelectTrigger className="h-8 w-[150px] lg:w-[200px]">
+            <SelectValue placeholder="Date Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="reset">Reset</SelectItem>
+            {dateRangeOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {(filters.dateRangeType || filters.startDate || filters.endDate) && (
           <Button
             variant="outline"
@@ -139,15 +148,29 @@ export function SessionsTableToolbar<TData>({
             column={table.getColumn("aiScore")}
           />
         )}
-
-        {table.getColumn("duration") && (
-          <DataTableFacetedFilter
-            title="Duration"
-            options={[...durationOptions]}
-            column={table.getColumn("duration")}
-          />
-        )}
-
+        <Select
+          value={filters.duration || "all"}
+          onValueChange={val => {
+            setFilters({
+              ...filters,
+              duration: val === "all" ? "" : val
+            })
+          }}
+        >
+          <SelectTrigger className="h-8 w-[150px] lg:w-[180px]">
+            <SelectValue placeholder="All Durations" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Durations</SelectItem>
+            {durationOptions
+              .filter(option => option.value !== "")
+              .map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
         {isFiltered && (
           <Button
             variant="ghost"

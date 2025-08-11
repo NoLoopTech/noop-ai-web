@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -27,8 +27,11 @@ import { DataTablePagination } from "@/components/layout/Table/DataTablePaginati
 import { DataTableToolbar } from "./LeadsTableToolbar"
 import { Lead } from "../data/schema"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery } from "@/query"
+import { useApiQuery, useApiMutation } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
+import { useToast } from "@/lib/hooks/useToast"
+import { DateRangeType } from "@/models/filterOptions"
+import { useDebounce } from "@/lib/hooks/useDebounce"
 
 interface Props {
   columns: ColumnDef<Lead>[]
@@ -42,27 +45,77 @@ export function LeadsTable({ columns }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  // Server-side filters state (minimal addition)
+  const [filters, setFilters] = useState<{
+    searchTerm: string
+    startDate: string
+    endDate: string
+    dateRangeType: DateRangeType
+  }>({
+    searchTerm: "",
+    startDate: "",
+    endDate: "",
+    dateRangeType: "today"
+  })
+
+  // Debounce the search term for server-side filtering
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+
   const projectId = useProjectCode()
+  const { toast } = useToast()
+
+  // Lead score calculation mutation
+  const scoreMutation = useApiMutation(
+    projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
+    "post",
+    {
+      onSuccess: () => {},
+      onError: error => {
+        const errorMessage =
+          (error as { message?: string })?.message ||
+          "Failed to calculate lead scores. Please try again."
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        })
+      }
+    }
+  )
+
+  // Trigger lead score calculation on page load
+  useEffect(() => {
+    if (!projectId) return
+    scoreMutation.mutate(undefined)
+  }, [projectId])
 
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}
+
+    // Add debounced search term (server-side)
+    if (debouncedSearchTerm) params.searchTerm = debouncedSearchTerm
+
+    // Add date range filters (server-side)
+    if (filters.startDate) params.startDate = filters.startDate
+    if (filters.endDate) params.endDate = filters.endDate
+
+    // Column filters for score (multiple values like AI score)
     columnFilters.forEach(f => {
       if (!f.value || (typeof f.value === "object" && !Array.isArray(f.value)))
         return
-      if (f.id === "userName") params.searchTerm = String(f.value)
-      // if (f.id === "startDate") params.startDate = String(f.value)
-      // if (f.id === "endDate") params.endDate = String(f.value)
       if (f.id === "score")
         params.score = Array.isArray(f.value)
-          ? f.value.join(",")
-          : String(f.value)
+          ? f.value
+              .map(v => String(v).charAt(0).toUpperCase() + String(v).slice(1))
+              .join(",")
+          : String(f.value).charAt(0).toUpperCase() + String(f.value).slice(1)
       if (f.id === "status")
         params.status = Array.isArray(f.value)
           ? f.value.join(",")
           : String(f.value)
     })
     return params
-  }, [columnFilters])
+  }, [columnFilters, debouncedSearchTerm, filters.startDate, filters.endDate])
 
   // INFO: Build API query string
   const queryString = useMemo(() => {
@@ -161,7 +214,11 @@ export function LeadsTable({ columns }: Props) {
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        filters={filters}
+        setFilters={setFilters}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

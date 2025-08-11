@@ -105,8 +105,10 @@ export function LeadsTable({ columns }: Props) {
         return
       if (f.id === "score")
         params.score = Array.isArray(f.value)
-          ? f.value.join(",")
-          : String(f.value)
+          ? f.value
+              .map(v => String(v).charAt(0).toUpperCase() + String(v).slice(1))
+              .join(",")
+          : String(f.value).charAt(0).toUpperCase() + String(f.value).slice(1)
       if (f.id === "status")
         params.status = Array.isArray(f.value)
           ? f.value.join(",")

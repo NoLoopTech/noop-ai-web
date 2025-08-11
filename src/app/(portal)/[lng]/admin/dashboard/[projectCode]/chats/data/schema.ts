@@ -1,14 +1,22 @@
 import { z } from "zod"
 
-// We're keeping a simple non-relational schema here.
-// IRL, you will have a schema for your data models.
+const aiScoreSchema = z.union([
+  z.literal("Positive"),
+  z.literal("Negative"),
+  z.literal("Normal")
+])
+export type AiScore = z.infer<typeof aiScoreSchema>
+
 export const sessionSchema = z.object({
   id: z.string(),
   country: z.string(),
-  aiScore: z.string(),
+  userName: z.string(),
+  email: z.string(),
+  aiScore: aiScoreSchema,
   duration: z.string(),
   chatSummary: z.string(),
-  dateTime: z.string()
+  dateTime: z.string(),
+  intent: z.string()
 })
 
 export type Session = z.infer<typeof sessionSchema>

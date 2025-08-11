@@ -169,7 +169,7 @@ export const columns: ColumnDef<Ticket>[] = [
     ),
     cell: ({ row }) => (
       <div className="w-fit text-nowrap">
-        {format(row.getValue("createdAt"), "dd MMM, yyyy")}
+        {format(row.getValue("createdAt"), "MMM d, yyyy  h:mm a")}
       </div>
     ),
     enableSorting: false,

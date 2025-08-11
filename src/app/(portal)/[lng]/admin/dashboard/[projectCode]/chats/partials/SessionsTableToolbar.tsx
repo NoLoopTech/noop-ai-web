@@ -140,6 +140,7 @@ export function SessionsTableToolbar<TData>({
             column={table.getColumn("country")}
           />
         )}
+
         {table.getColumn("aiScore") && (
           <DataTableFacetedFilter
             title="AI Score"

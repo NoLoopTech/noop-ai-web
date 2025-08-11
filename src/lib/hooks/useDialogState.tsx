@@ -12,7 +12,7 @@ export default function useDialogState<T extends string | boolean>(
   const [open, _setOpen] = useState<T | null>(initialState)
 
   const setOpen = (str: T | null) =>
-    _setOpen((prev) => (prev === str ? null : str))
+    _setOpen(prev => (prev === str ? null : str))
 
   return [open, setOpen] as const
 }

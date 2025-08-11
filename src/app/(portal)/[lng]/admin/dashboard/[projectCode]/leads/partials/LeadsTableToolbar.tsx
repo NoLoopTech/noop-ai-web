@@ -129,9 +129,9 @@ export function DataTableToolbar<TData>({
             column={table.getColumn("score")}
             title="Score"
             options={[
-              { label: "Cold", value: "Cold Lead" },
-              { label: "Warm", value: "Warm Lead" },
-              { label: "Hot", value: "Hot Lead" }
+              { label: "Cold", value: "cold" },
+              { label: "Warm", value: "warm" },
+              { label: "Hot", value: "hot" }
             ]}
           />
         )}

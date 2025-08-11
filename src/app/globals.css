@@ -42,6 +42,8 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+  --ticket-type-bg: hsla(0, 0%, 100%, 1);
+  --ticket-type-border: hsla(214, 32%, 91%, 1);
 }
 
 .dark {
@@ -69,6 +71,8 @@
   --chart-3: hsl(30 80% 55%);
   --chart-4: hsl(280 65% 60%);
   --chart-5: hsl(340 75% 55%);
+  --ticket-type-bg: hsl(217.2 32.6% 17.5%);
+  --ticket-type-border: hsl(215 20.2% 25.1%);
 }
 
 @theme inline {
@@ -110,6 +114,7 @@
   --color-sidebar: var(--sidebar);
 
   /* Chip group */
+  /* Chip group -> chat */
   --color-chip-positive-bg: hsla(184, 100%, 41%, 0.3);
   --color-chip-positive-text-dark: hsla(184, 100%, 41%, 1);
   --color-chip-positive-border: hsla(184, 100%, 41%, 1);
@@ -119,20 +124,30 @@
   --color-chip-normal-bg: hsla(0, 0%, 25%, 0.15);
   --color-chip-normal-text-dark: hsla(0, 0%, 80%, 1);
   --color-chip-normal-border: hsla(0, 0%, 80%, 1);
+
+  /* Chip group -> leads */
   --color-chip-preference-bg: hsla(191, 90%, 86%, 0.46);
   --color-chip-preference-text-dark: hsla(190, 89%, 86%, 1);
   --color-chip-preference-border: hsla(190, 89%, 86%, 1);
   --color-chip-score-cold: hsla(208, 100%, 50%, 1);
   --color-chip-score-warm: hsla(28, 100%, 58%, 1);
   --color-chip-score-hot: hsla(0, 72%, 51%, 1);
-  --color-chip-type-border: hsla(214, 32%, 91%, 1);
+
+  /* Chip group -> ticket */
+  --color-chip-active-bg: hsla(135, 59%, 49%, 0.06);
+  --color-chip-active-text: hsla(135, 59%, 49%, 1);
+  --color-chip-active-border: hsla(135, 59%, 49%, 1);
+  --color-chip-in-progress-bg: hsla(208, 100%, 50%, 0.06);
+  --color-chip-in-progress-text: hsla(208, 100%, 50%, 1);
+  --color-chip-in-progress-border: hsla(208, 100%, 50%, 1);
+  --color-chip-closed-bg: hsla(240, 5%, 65%, 0.06);
+  --color-chip-closed-text: hsla(240, 5%, 65%, 1);
+  --color-chip-closed-border: hsla(240, 5%, 65%, 1);
+  --color-chip-ticket-type-bg: var(--ticket-type-bg);
+  --color-chip-ticket-type-border: var(--ticket-type-border);
+
+  /* Chip group -> default */
   --color-chip-default-gray: hsla(240, 4%, 46%, 1);
-  --color-chip-in-progress-bg: hsla(30, 80%, 55%, 1);
-  --color-chip-in-progress-text: hsla(30, 80%, 55%, 0.15);
-  --color-chip-in-progress-border: hsla(30, 80%, 55%, 1);
-  --color-chip-completed-bg: hsla(120, 100%, 25%, 1);
-  --color-chip-completed-text: hsla(120, 100%, 25%, 0.15);
-  --color-chip-completed-border: hsla(120, 100%, 25%, 1);
 
   /* Badge group */
   --color-badge-shadow: box-shadow: 0px 0px 8px 1px hsla(0, 0%, 0%, 0.15);
@@ -143,6 +158,9 @@
   --color-badge-negative-border: hsla(359, 100%, 61%, 1);
   --color-badge-normal-background: hsla(0, 0%, 25%, 0.8);
   --color-badge-normal-border: hsla(0, 0%, 80%, 1);
+
+  /* Tiny text */
+  --text-tiny: 0.625rem; /* 10px */
 }
 
 @layer base {
@@ -200,19 +218,18 @@
 }
 
 @layer utilities {
-  @layer utilities {
-    .shine {
-      background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
-      background-size: 200% 100%;
-      animation: shine 1.5s infinite linear;
-    }
+  /* Skeleton Shine effect */
+  .shine {
+    background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    animation: shine 1.5s infinite linear;
+  }
 
-    .dark .shine,
-    .dark\:shine {
-      background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
-      background-size: 200% 100%;
-      animation: shine 1.5s infinite linear;
-    }
+  .dark .shine,
+  .dark\:shine {
+    background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+    background-size: 200% 100%;
+    animation: shine 1.5s infinite linear;
   }
 
   @keyframes shine {

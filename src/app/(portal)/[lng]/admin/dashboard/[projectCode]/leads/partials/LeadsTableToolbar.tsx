@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableFacetedFilter } from "@/components/layout/Table/DataTableFacetedFilter"
 import { DataTableViewOptions } from "@/components/layout/Table/DataTableViewOptions"
-import { leadStatus } from "../data/data"
+// import { leadStatus } from "../data/data"
 
 interface Props<TData> {
   table: Table<TData>

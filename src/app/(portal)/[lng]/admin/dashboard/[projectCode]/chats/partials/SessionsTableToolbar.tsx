@@ -102,6 +102,7 @@ export function SessionsTableToolbar<TData>({
           placeholder="Date Range"
           className="h-8 w-[150px] lg:w-[200px]"
         />
+
         {(filters.dateRangeType || filters.startDate || filters.endDate) && (
           <Button
             variant="outline"
@@ -130,6 +131,7 @@ export function SessionsTableToolbar<TData>({
             column={table.getColumn("country")}
           />
         )}
+
         {table.getColumn("aiScore") && (
           <DataTableFacetedFilter
             title="AI Score"
@@ -137,6 +139,7 @@ export function SessionsTableToolbar<TData>({
             column={table.getColumn("aiScore")}
           />
         )}
+
         {table.getColumn("duration") && (
           <DataTableFacetedFilter
             title="Duration"
@@ -144,6 +147,7 @@ export function SessionsTableToolbar<TData>({
             column={table.getColumn("duration")}
           />
         )}
+
         {isFiltered && (
           <Button
             variant="ghost"

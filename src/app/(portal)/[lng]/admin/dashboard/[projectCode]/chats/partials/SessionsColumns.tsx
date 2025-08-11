@@ -7,6 +7,9 @@ import { DataTableRowActions } from "./SessionsTableRowActions"
 import { DataTableColumnHeader } from "@/components/layout/Table/DataTableColumnHeader"
 import { cn } from "@/lib/utils"
 import { SessionsViewActions } from "./SessionsViewActions"
+import { SessionsSummaryAction } from "./SessionsSummaryAction"
+import { Badge } from "@/components/ui/badge"
+import { aiScoreSchema } from "../data/data"
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -68,13 +71,33 @@ export const columns: ColumnDef<Session>[] = [
       <DataTableColumnHeader column={column} title="AI Score" />
     ),
     cell: ({ row }) => {
-      // const label = labels.find(label => label.value === row.original.label)
-
+      const { aiScore } = row.original
+      const badgeColor = aiScoreSchema.get(aiScore)
       return (
         <div className="flex space-x-2">
-          {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
+          <Badge
+            variant="ghost"
+            className={cn(
+              "px-2.5 py-0.5 text-xs font-semibold capitalize",
+              badgeColor
+            )}
+          >
+            {row.getValue("aiScore")}
+          </Badge>
+        </div>
+      )
+    }
+  },
+  {
+    accessorKey: "intent",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Intent" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
           <span className="max-w-32 truncate font-medium sm:max-w-72 md:max-w-[31rem]">
-            {row.getValue("aiScore") || "N/A"}
+            {row.getValue("intent")}
           </span>
         </div>
       )
@@ -94,52 +117,48 @@ export const columns: ColumnDef<Session>[] = [
           </span>
         </div>
       )
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
     }
+    // filterFn: (row, id, value) => {
+    //   return value.includes(row.getValue(id))
+    // }
   },
-  {
-    accessorKey: "chatSummary",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Chat Summary" />
-    ),
-    cell: ({ row }) => {
-      const chatSummary = row.getValue("chatSummary")
+  // {
+  //   accessorKey: "chatSummary",
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Chat Summary" />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const chatSummary = row.getValue("chatSummary")
 
-      if (!chatSummary) {
-        return null
-      }
+  //     if (!chatSummary) {
+  //       return null
+  //     }
 
-      return (
-        <div className="flex space-x-2">
-          {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
-          <span className="max-w-32 truncate font-medium sm:max-w-72 md:max-w-[31rem]">
-            {typeof chatSummary === "string" || typeof chatSummary === "number"
-              ? chatSummary
-              : ""}
-          </span>
-        </div>
-      )
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
-    }
-  },
+  //     return (
+  //       <div className="flex space-x-2">
+  //         {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
+  //         <span className="max-w-32 truncate font-medium sm:max-w-72 md:max-w-[31rem]">
+  //           {typeof chatSummary === "string" || typeof chatSummary === "number"
+  //             ? chatSummary
+  //             : ""}
+  //         </span>
+  //       </div>
+  //     )
+  //   },
+  //   filterFn: (row, id, value) => {
+  //     return value.includes(row.getValue(id))
+  //   }
+  // },
   {
     accessorKey: "dateTime",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date & Time" />
     ),
     cell: ({ row }) => {
-      const dateTime = row.getValue("dateTime")
-
       return (
         <div className="flex space-x-2">
           <span className="max-w-32 truncate font-medium sm:max-w-72 md:max-w-[31rem]">
-            {typeof dateTime === "string" || typeof dateTime === "number"
-              ? dateTime
-              : ""}
+            {row.getValue("dateTime")}
           </span>
         </div>
       )
@@ -147,6 +166,10 @@ export const columns: ColumnDef<Session>[] = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     }
+  },
+  {
+    id: "chatSummary",
+    cell: SessionsSummaryAction
   },
   {
     id: "actions",

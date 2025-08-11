@@ -28,10 +28,10 @@ import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiMutation, useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
-import { formatDate } from "date-fns"
 import { SessionsTableToolbar } from "./SessionsTableToolbar"
 import { DateRangeType } from "@/models/filterOptions"
-import { Session } from "../data/schema"
+import { AiScore, Session } from "../data/schema"
+import { format } from "date-fns"
 
 interface Props {
   columns: ColumnDef<Session>[]
@@ -46,8 +46,8 @@ export function SessionsTable({ columns }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const [toastOpen, setToastOpen] = useState(false)
-  const [toastMessage, setToastMessage] = useState("")
+  const [_toastOpen, setToastOpen] = useState(false)
+  const [_toastMessage, setToastMessage] = useState("")
 
   const [filters, setFilters] = useState<{
     username: string
@@ -66,8 +66,31 @@ export function SessionsTable({ columns }: Props) {
     duration: "",
     startDate: "",
     endDate: "",
-    dateRangeType: "today"
+    dateRangeType: ""
   })
+
+  // useEffect(() => {
+  //   const durationFilter = columnFilters.find(f => f.id === "duration")
+  //   setFilters(prev => ({
+  //     ...prev,
+  //     duration: (durationFilter?.value as string) ?? ""
+  //   }))
+  // }, [columnFilters])
+
+  useEffect(() => {
+    const usernameFilter = columnFilters.find(f => f.id === "userName")
+    const countryFilter = columnFilters.find(f => f.id === "country")
+    const intentFilter = columnFilters.find(f => f.id === "intent")
+    const durationFilter = columnFilters.find(f => f.id === "duration")
+
+    setFilters(prev => ({
+      ...prev,
+      username: (usernameFilter?.value as string) ?? "",
+      country: (countryFilter?.value as string) ?? "",
+      intent: (intentFilter?.value as string) ?? "",
+      duration: (durationFilter?.value as string) ?? ""
+    }))
+  }, [columnFilters])
 
   const projectId = useProjectCode()
 
@@ -156,12 +179,13 @@ export function SessionsTable({ columns }: Props) {
     return paginatedData.data.map(session => ({
       id: session.session.threadId,
       country: session.session.country ?? "N/A",
-      aiScore: session.session.score,
+      aiScore: (session.session.score as AiScore) ?? "Normal",
       duration: secondsToMinutes(session.duration),
       chatSummary: session.session.summary,
-      dateTime: formatDate(session.session.createdAt, "dd/MM/yyyy HH:mm:ss"),
-      userName: "N/A",
-      email: "N/A"
+      dateTime: format(session.session.createdAt, "MMM d, yyyy  h:mm a"),
+      userName: session.session.userName ?? "Guest User",
+      email: session.session.email ?? "Not Provided",
+      intent: session.session.intent ?? "Not Determined"
     }))
   }, [paginatedData])
 
@@ -180,6 +204,7 @@ export function SessionsTable({ columns }: Props) {
     },
     enableRowSelection: true,
     manualPagination: true,
+    manualFiltering: true,
     pageCount:
       typeof paginatedData?.total === "number"
         ? Math.max(1, Math.ceil(paginatedData.total / rowsPerPage))

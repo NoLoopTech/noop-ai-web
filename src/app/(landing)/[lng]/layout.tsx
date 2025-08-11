@@ -8,6 +8,7 @@ import NavBase from "@/components/layout/NavBase"
 import { ThemeProvider } from "@/components/layout/ThemeProvider"
 import NextAuthProvider from "@/components/layout/NextAuthProvider"
 import { JSX } from "react"
+import { useTranslation as translation } from "@/i18n"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,7 +33,7 @@ export default async function RootLayout({
   params
 }: LayoutProps): Promise<JSX.Element> {
   const { lng } = await params
-  // const { t } = await translation(lng, "footer")
+  const { t } = await translation(lng, "footer")
 
   return (
     <html lang={lng} dir={dir(lng)} suppressHydrationWarning>
@@ -46,7 +47,7 @@ export default async function RootLayout({
           <NextAuthProvider>
             <NavBase />
             {children}
-            <FooterBase lng={lng} />
+            <FooterBase lng={lng} t={t} />
           </NextAuthProvider>
         </ThemeProvider>
       </body>

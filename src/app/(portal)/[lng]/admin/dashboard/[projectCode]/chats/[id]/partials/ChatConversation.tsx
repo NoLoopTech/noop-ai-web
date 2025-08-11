@@ -226,8 +226,8 @@ export default function ChatConversation(): JSX.Element {
                     ))}
                   </div>
                 ))}
-            <div ref={lastItemRef} />
           </div>
+          <div ref={lastItemRef} />
         </ScrollArea>
         <div className="bg-background flex items-center space-x-2 rounded-b-lg border-t p-3">
           <Input

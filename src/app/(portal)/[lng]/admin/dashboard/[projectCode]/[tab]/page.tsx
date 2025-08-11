@@ -12,9 +12,7 @@ import Dashboard1Actions from "./partials/DashboardActions"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 
 type Props = {
-  params: {
-    tab?: string
-  }
+  params: Promise<{ tab?: string }>
 }
 
 export default async function Dashboard1Page({ params }: Props) {

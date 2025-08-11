@@ -10,7 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog"
 
 const Command = React.forwardRef<
@@ -160,5 +160,5 @@ export {
   CommandGroup,
   CommandItem,
   CommandShortcut,
-  CommandSeparator,
+  CommandSeparator
 }

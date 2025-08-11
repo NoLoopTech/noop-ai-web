@@ -7,6 +7,7 @@ const AutoSignOut: React.FC = () => {
   const { data: session, update } = useSession()
   useEffect(() => {
     if (session === null) {
+      // eslint-disable-next-line no-console
       console.log("Auto sign out intiated")
       void signOut({
         callbackUrl: "/login"

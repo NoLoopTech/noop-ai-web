@@ -1,12 +1,14 @@
 import { languages } from "@/i18n/settings"
+import { TFunction } from "i18next"
 import Link from "next/link"
 import { JSX } from "react"
 
 interface Props {
-  t: any
+  t: TFunction
   lng: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const FooterBase = ({ t, lng }: Props): JSX.Element => {
   return (
     <footer className="flex w-full items-center justify-center bg-white px-6 py-4 text-sm text-black transition-colors duration-300 dark:bg-black dark:text-white">

@@ -19,12 +19,15 @@ export interface ChatSessionResponse {
     createdAt: string
     updatedAt: string
     deletedAt: string | null
+    userName: string
+    email: string
     score: string
     summary: string
     threadId: string
     projectId: number
     timestamp: string
     country: string
+    intent: string
   }
   duration: number
 }

@@ -22,7 +22,7 @@ import useDialogState from "@/lib/hooks/useDialogState"
 // export function DataTableRowActions({ row }: Props) {
 // const session = sessionSchema.parse(row.original)
 export function DataTableRowActions() {
-  const [open, setOpen] = useDialogState<"edit" | "detail">(null)
+  const [_open, setOpen] = useDialogState<"edit" | "detail">(null)
 
   return (
     <>

@@ -25,14 +25,23 @@ const _ticketPrioritySchema = z.enum(
 )
 export type TicketPriority = z.infer<typeof _ticketPrioritySchema>
 
+const methodSchema = z.union([z.literal("manual"), z.literal("automated")])
+export type TicketMethod = z.infer<typeof methodSchema>
+
 const ticketSchema = z.object({
   id: z.string(),
+  threadId: z.string(),
   userName: z.string(),
   email: z.string(),
+  country: z.string().optional(),
   status: ticketStatusSchema,
   priority: z.string().optional(),
   type: ticketTypesSchema,
-  createdAt: z.coerce.date()
+  method: methodSchema,
+  content: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().optional(),
+  deletedAt: z.coerce.date().optional()
 })
 export type Ticket = z.infer<typeof ticketSchema>
 

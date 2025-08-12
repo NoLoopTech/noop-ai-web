@@ -1,5 +1,11 @@
-import { IconArrowDown, IconArrowRight, IconArrowUp } from "@tabler/icons-react"
+import {
+  IconArrowDown,
+  IconArrowRight,
+  IconArrowUp,
+  IconUser
+} from "@tabler/icons-react"
 import { TicketStatus } from "./schema"
+import { BotMessageSquare } from "lucide-react"
 
 export const ticketTypes = [
   { value: "bug", label: "Bug" },
@@ -27,6 +33,19 @@ export const ticketPriority = [
     label: "Low",
     value: "low",
     icon: IconArrowDown
+  }
+]
+
+export const ticketMethod = [
+  {
+    label: "Manual",
+    value: "manual",
+    icon: IconUser
+  },
+  {
+    label: "Automated",
+    value: "automated",
+    icon: BotMessageSquare
   }
 ]
 

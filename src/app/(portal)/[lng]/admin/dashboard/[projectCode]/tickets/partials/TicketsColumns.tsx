@@ -6,7 +6,12 @@ import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/layout/Table/DataTableColumnHeader"
 import { Ticket, TicketStatus } from "../data/schema"
-import { ticketPriority, ticketStatus, ticketTypes } from "../data/data"
+import {
+  ticketMethod,
+  ticketPriority,
+  ticketStatus,
+  ticketTypes
+} from "../data/data"
 import { TicketsTableRowActions } from "./TicketsTableRowActions"
 import { TicketsRowInfoAction } from "./TicketsRowInfoAction"
 
@@ -73,6 +78,26 @@ export const columns: ColumnDef<Ticket>[] = [
       <div className="w-fit text-nowrap">{row.getValue("email")}</div>
     ),
     meta: { label: "Email", className: "" }
+  },
+  {
+    accessorKey: "country",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Country" />
+    ),
+    cell: ({ row }) => (
+      <div className="w-fit text-nowrap">{row.getValue("country")}</div>
+    ),
+    meta: { label: "Country", className: "" }
+  },
+  {
+    accessorKey: "content",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Content" />
+    ),
+    cell: ({ row }) => (
+      <div className="w-fit text-nowrap">{row.getValue("content")}</div>
+    ),
+    meta: { label: "Content", className: "" }
   },
   {
     accessorKey: "status",
@@ -161,6 +186,40 @@ export const columns: ColumnDef<Ticket>[] = [
     filterFn: "weakEquals",
     enableSorting: false,
     enableHiding: false
+  },
+  {
+    accessorKey: "method",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Method" />
+    ),
+    cell: ({ row }) => {
+      const methodValue = row.getValue("method") as string | undefined
+      if (!methodValue) {
+        return <span className="text-muted-foreground italic">N/A</span>
+      }
+
+      const method = ticketMethod.find(m => m.value === methodValue)
+      if (!method) {
+        return (
+          <span className="text-muted-foreground italic">{methodValue}</span>
+        )
+      }
+
+      return (
+        <div className="flex items-center gap-x-2">
+          {method.icon && (
+            <method.icon size={16} className="text-chip-default-gray" />
+          )}
+          <span className="text-chip-default-gray capitalize">
+            {method.label}
+          </span>
+        </div>
+      )
+    },
+    filterFn: "weakEquals",
+    enableSorting: false,
+    enableHiding: false,
+    meta: { label: "Method", className: "" }
   },
   {
     accessorKey: "createdAt",

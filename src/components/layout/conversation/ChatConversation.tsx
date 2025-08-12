@@ -13,6 +13,11 @@ import Markdown from "react-markdown"
 import { PaginatedResult } from "@/types/paginatedData"
 import { useParams } from "next/navigation"
 import { useApiQuery } from "@/query"
+import ChatScoreBadge from "@/components/ChatScoreBadge"
+
+interface Props {
+  isViewOnly?: boolean
+}
 
 function groupMessagesByDate(messages: ChatMessage[]) {
   return messages.reduce<Record<string, ChatMessage[]>>((groups, msg) => {
@@ -23,7 +28,9 @@ function groupMessagesByDate(messages: ChatMessage[]) {
   }, {})
 }
 
-export default function ChatConversation(): JSX.Element {
+export default function ChatConversation({
+  isViewOnly = false
+}: Props): JSX.Element {
   const params = useParams()
   const { id: threadId } = params as { id: string }
 
@@ -142,7 +149,7 @@ export default function ChatConversation(): JSX.Element {
                           }`}
                         >
                           <div
-                            className={`text-foreground max-w-11/12 rounded-lg px-4 py-2 text-sm font-medium ${
+                            className={`text-foreground relative max-w-11/12 rounded-lg p-4 text-sm font-medium ${
                               message.sender === "user"
                                 ? "rounded-2xl bg-zinc-900 text-zinc-100 dark:bg-zinc-900 dark:text-zinc-100"
                                 : "rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-500 dark:text-zinc-100"
@@ -217,6 +224,17 @@ export default function ChatConversation(): JSX.Element {
                                 .replace(/<br\s*\/?>/gi, "")
                                 .replace(/([^\s]{80})(?!\s)/g, "$1\n")}
                             </Markdown>
+                            {message.sender === "ai" && (
+                              <div className="absolute right-5 -bottom-4 flex items-center space-x-2">
+                                <div className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-[3.5px] text-xs font-medium text-zinc-500 shadow transition-colors duration-300 hover:bg-zinc-200">
+                                  <span>Improve answer</span>
+                                </div>
+                                <ChatScoreBadge
+                                  variant={"Positive"}
+                                  value="0.500"
+                                />
+                              </div>
+                            )}
                           </div>
                           <p className="mt-1 text-xs font-normal text-zinc-600">
                             {format(new Date(message.createdAt), "p")}
@@ -229,16 +247,19 @@ export default function ChatConversation(): JSX.Element {
           </div>
           <div ref={lastItemRef} />
         </ScrollArea>
-        <div className="bg-background flex items-center space-x-2 rounded-b-lg border-t p-3">
-          <Input
-            type="text"
-            placeholder="Live chat is not enabled for this view."
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none"
-          />
-          <Button className="min-w-10 p-0" variant="default">
-            <IconSend className="size-5" />
-          </Button>
-        </div>
+        {!isViewOnly && (
+          <div className="bg-background flex items-center space-x-2 rounded-b-lg border-t p-3">
+            <Input
+              type="text"
+              placeholder="Live chat is not enabled for this view."
+              className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none"
+              disabled
+            />
+            <Button className="min-w-10 p-0" variant="default" disabled>
+              <IconSend className="size-5" />
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

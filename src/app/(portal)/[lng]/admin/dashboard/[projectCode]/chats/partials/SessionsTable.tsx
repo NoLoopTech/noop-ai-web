@@ -132,6 +132,7 @@ export function SessionsTable({ columns }: Props) {
     {
       onSuccess: () => {},
       onError: error => {
+        if (status !== "authenticated" || !token) return
         const errorMessage =
           (error as { message?: string })?.message ||
           "Failed to calculate session scores. Please try again."

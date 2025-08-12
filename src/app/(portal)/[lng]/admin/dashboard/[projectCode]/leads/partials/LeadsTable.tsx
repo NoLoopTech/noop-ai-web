@@ -76,6 +76,7 @@ export function LeadsTable({ columns }: Props) {
     {
       onSuccess: () => {},
       onError: error => {
+        if (status !== "authenticated" || !token) return
         const errorMessage =
           (error as { message?: string })?.message ||
           "Failed to calculate lead scores. Please try again."

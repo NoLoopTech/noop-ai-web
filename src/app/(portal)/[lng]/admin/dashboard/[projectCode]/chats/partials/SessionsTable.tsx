@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -32,6 +32,8 @@ import { SessionsTableToolbar } from "./SessionsTableToolbar"
 import { DateRangeType } from "@/models/filterOptions"
 import { AiScore, Session } from "../data/schema"
 import { format } from "date-fns"
+import { useToast } from "@/lib/hooks/useToast"
+import { useSession } from "next-auth/react"
 
 interface Props {
   columns: ColumnDef<Session>[]
@@ -45,10 +47,6 @@ export function SessionsTable({ columns }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  
-  const [_toastOpen, setToastOpen] = useState(false)
-  const [_toastMessage, setToastMessage] = useState("")
-
 
   const [filters, setFilters] = useState<{
     username: string
@@ -98,6 +96,7 @@ export function SessionsTable({ columns }: Props) {
   // Extract server-side filters from column filters (only for aiScore now)
   const serverFilters = useMemo(() => {
     const aiScoreColumn = columnFilters.find(filter => filter.id === "aiScore")
+    const countryColumn = columnFilters.find(filter => filter.id === "country")
 
     const aiScoreValues = aiScoreColumn?.value
       ? Array.isArray(aiScoreColumn.value)
@@ -105,12 +104,25 @@ export function SessionsTable({ columns }: Props) {
         : [aiScoreColumn.value]
       : []
 
+    const countryValues = countryColumn?.value
+      ? Array.isArray(countryColumn.value)
+        ? countryColumn.value
+        : [countryColumn.value]
+      : []
+
     return {
-      aiScore: aiScoreValues
+      aiScore: aiScoreValues,
+      country: countryValues
     }
   }, [columnFilters])
 
   // Session score calculation mutation
+
+  const { toast } = useToast()
+
+  const { data: session, status } = useSession()
+  const token = session?.apiToken
+  const firedRef = useRef(false)
 
   const scoreMutation = useApiMutation(
     projectId
@@ -118,41 +130,41 @@ export function SessionsTable({ columns }: Props) {
       : "",
     "post",
     {
-      onSuccess: () => {
-        void refetch()
-      },
+      onSuccess: () => {},
       onError: error => {
+        if (status !== "authenticated" || !token) return
         const errorMessage =
           (error as { message?: string })?.message ||
           "Failed to calculate session scores. Please try again."
-        setToastMessage(errorMessage)
-        setToastOpen(true)
-        void refetch()
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        })
       }
     }
   )
 
   useEffect(() => {
     if (!projectId) return
-    // eslint-disable-next-line no-console
-    console.log("Project ID changed, initiating score calculation")
-    scoreMutation.mutate(undefined)
-  }, [projectId])
+    if (status !== "authenticated" || !token) return
+    if (firedRef.current) return
 
+    firedRef.current = true
+    scoreMutation.mutate(undefined)
+  }, [projectId, status, token])
   // TODO: Use this scoreMutation to trigger score calculation
 
-  const {
-    data: paginatedData,
-    isLoading: isChatsLoading,
-    refetch
-  } = useApiQuery<PaginatedResult<ChatSessionResponse>>(
+  const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
+    PaginatedResult<ChatSessionResponse>
+  >(
     [
       "chat-sessions",
       projectId,
       currentPage,
       rowsPerPage,
       filters.username,
-      filters.country,
+      serverFilters.country.join(","),
       serverFilters.aiScore.join(","),
       filters.intent,
       filters.duration,
@@ -161,7 +173,9 @@ export function SessionsTable({ columns }: Props) {
     ],
     `/conversations?projectId=${projectId ?? 4}&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC` +
       (filters.username ? `&username=${filters.username}` : "") +
-      (filters.country ? `&country=${filters.country}` : "") +
+      (serverFilters.country.length > 0
+        ? `&country=${serverFilters.country.join(",")}`
+        : "") +
       (serverFilters.aiScore.length > 0
         ? `&scoring=${serverFilters.aiScore.join(",")}`
         : "") +

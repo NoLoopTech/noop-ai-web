@@ -10,6 +10,7 @@ import { SessionsViewActions } from "./SessionsViewActions"
 import { SessionsSummaryAction } from "./SessionsSummaryAction"
 import { Badge } from "@/components/ui/badge"
 import { aiScoreSchema } from "../data/data"
+import CountryFlag from "react-country-flag"
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -47,7 +48,23 @@ export const columns: ColumnDef<Session>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Country" />
     ),
-    cell: ({ row }) => <span>{row.getValue("country")}</span>,
+    // cell: ({ row }) => <span>{row.getValue("country")}</span>,
+    cell: ({ getValue }) => {
+      const value = getValue<string>()
+      if (!value || value.toUpperCase() === "N/A") {
+        return <span>N/A</span>
+      }
+      const code = value.toUpperCase()
+      return (
+        <span className="flex items-center gap-2">
+          <CountryFlag
+            countryCode={code}
+            svg
+            style={{ width: "1.5em", height: "1.5em" }}
+          />
+        </span>
+      )
+    },
     enableSorting: false,
     enableHiding: false
   },

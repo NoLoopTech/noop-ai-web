@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -32,6 +32,7 @@ import { PaginatedResult } from "@/types/paginatedData"
 import { useToast } from "@/lib/hooks/useToast"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
+import { useSession } from "next-auth/react"
 
 interface Props {
   columns: ColumnDef<Lead>[]
@@ -64,6 +65,10 @@ export function LeadsTable({ columns }: Props) {
   const projectId = useProjectCode()
   const { toast } = useToast()
 
+  const { data: session, status } = useSession()
+  const token = session?.apiToken
+  const firedRef = useRef(false)
+
   // Lead score calculation mutation
   const scoreMutation = useApiMutation(
     projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
@@ -71,6 +76,7 @@ export function LeadsTable({ columns }: Props) {
     {
       onSuccess: () => {},
       onError: error => {
+        if (status !== "authenticated" || !token) return
         const errorMessage =
           (error as { message?: string })?.message ||
           "Failed to calculate lead scores. Please try again."
@@ -86,8 +92,12 @@ export function LeadsTable({ columns }: Props) {
   // Trigger lead score calculation on page load
   useEffect(() => {
     if (!projectId) return
+    if (status !== "authenticated" || !token) return
+    if (firedRef.current) return
+
+    firedRef.current = true
     scoreMutation.mutate(undefined)
-  }, [projectId])
+  }, [projectId, status, token])
 
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}

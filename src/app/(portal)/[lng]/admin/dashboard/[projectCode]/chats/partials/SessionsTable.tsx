@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -120,8 +120,9 @@ export function SessionsTable({ columns }: Props) {
 
   const { toast } = useToast()
 
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const token = session?.apiToken
+  const firedRef = useRef(false)
 
   const scoreMutation = useApiMutation(
     projectId
@@ -131,6 +132,7 @@ export function SessionsTable({ columns }: Props) {
     {
       onSuccess: () => {},
       onError: error => {
+        if (status !== "authenticated" || !token) return
         const errorMessage =
           (error as { message?: string })?.message ||
           "Failed to calculate session scores. Please try again."
@@ -145,11 +147,12 @@ export function SessionsTable({ columns }: Props) {
 
   useEffect(() => {
     if (!projectId) return
-    // eslint-disable-next-line no-console
-    console.log("Project ID changed, initiating score calculation")
-    scoreMutation.mutate(undefined)
-  }, [projectId, token])
+    if (status !== "authenticated" || !token) return
+    if (firedRef.current) return
 
+    firedRef.current = true
+    scoreMutation.mutate(undefined)
+  }, [projectId, status, token])
   // TODO: Use this scoreMutation to trigger score calculation
 
   const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<

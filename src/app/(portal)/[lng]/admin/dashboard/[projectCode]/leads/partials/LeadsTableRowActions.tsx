@@ -77,18 +77,11 @@ export function LeadsTableRowActions({ row }: Props) {
                   value={lead.status}
                   onValueChange={handleStatusChange}
                 >
-                  <DropdownMenuRadioItem value={LeadStatusEnum.New}>
-                    New
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={LeadStatusEnum.Contacted}>
-                    Contacted
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={LeadStatusEnum.Converted}>
-                    Converted
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={LeadStatusEnum.Closed}>
-                    Closed
-                  </DropdownMenuRadioItem>
+                  {Object.entries(LeadStatusEnum).map(([key, value]) => (
+                    <DropdownMenuRadioItem key={value} value={value}>
+                      {key}
+                    </DropdownMenuRadioItem>
+                  ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>

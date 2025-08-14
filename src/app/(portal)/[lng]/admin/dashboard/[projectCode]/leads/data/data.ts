@@ -19,25 +19,10 @@ export const leadPreference = new Map<string, string>([
   ]
 ])
 
-export const leadStatus = [
-  {
-    label: "New",
-    value: LeadStatusEnum.New,
+export const leadStatus = Object.entries(LeadStatusEnum).map(
+  ([key, value]) => ({
+    label: key,
+    value,
     icon: IconStopwatch
-  },
-  {
-    label: "Contacted",
-    value: LeadStatusEnum.Contacted,
-    icon: IconStopwatch
-  },
-  {
-    label: "Converted",
-    value: LeadStatusEnum.Converted,
-    icon: IconStopwatch
-  },
-  {
-    label: "Closed",
-    value: LeadStatusEnum.Closed,
-    icon: IconStopwatch
-  }
-]
+  })
+)

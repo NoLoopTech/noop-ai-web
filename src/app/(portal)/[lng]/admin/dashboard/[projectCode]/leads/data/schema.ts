@@ -1,3 +1,4 @@
+import { LeadStatusEnum } from "@/models/lead"
 import { z } from "zod"
 
 const leadScoreSchema = z.union([
@@ -7,13 +8,9 @@ const leadScoreSchema = z.union([
 ])
 export type LeadScore = z.infer<typeof leadScoreSchema>
 
-const leadStatusSchema = z.union([
-  z.literal("new"),
-  z.literal("contacted"),
-  z.literal("converted"),
-  z.literal("closed")
-])
-export type LeadStatus = z.infer<typeof leadStatusSchema>
+const leadStatusSchema = z.enum(
+  Object.values(LeadStatusEnum) as [string, ...string[]]
+)
 
 const _leadPreferenceSchema = z.array(z.string())
 export type LeadPreference = z.infer<typeof _leadPreferenceSchema>

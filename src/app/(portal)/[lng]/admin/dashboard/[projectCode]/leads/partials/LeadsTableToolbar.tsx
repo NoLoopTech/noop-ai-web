@@ -63,6 +63,13 @@ export function DataTableToolbar<TData>({
     })
   }
 
+  const leadStatusOptions = Object.entries(LeadStatusEnum).map(
+    ([key, value]) => ({
+      label: key,
+      value
+    })
+  )
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
@@ -142,12 +149,7 @@ export function DataTableToolbar<TData>({
           <DataTableFacetedFilter
             column={table.getColumn("status")}
             title="Status"
-            options={[
-              { label: "New", value: LeadStatusEnum.New },
-              { label: "Contacted", value: LeadStatusEnum.Contacted },
-              { label: "Converted", value: LeadStatusEnum.Converted },
-              { label: "Closed", value: LeadStatusEnum.Closed }
-            ]}
+            options={leadStatusOptions}
           />
         )}
 

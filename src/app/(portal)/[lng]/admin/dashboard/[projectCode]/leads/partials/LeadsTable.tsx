@@ -89,7 +89,6 @@ export function LeadsTable({ columns }: Props) {
     }
   )
 
-  // Trigger lead score calculation on page load
   useEffect(() => {
     if (!projectId) return
     if (status !== "authenticated" || !token) return
@@ -102,14 +101,11 @@ export function LeadsTable({ columns }: Props) {
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}
 
-    // Add debounced search term (server-side)
     if (debouncedSearchTerm) params.searchTerm = debouncedSearchTerm
 
-    // Add date range filters (server-side)
     if (filters.startDate) params.startDate = filters.startDate
     if (filters.endDate) params.endDate = filters.endDate
 
-    // Column filters for score (multiple values like AI score)
     columnFilters.forEach(f => {
       if (!f.value || (typeof f.value === "object" && !Array.isArray(f.value)))
         return

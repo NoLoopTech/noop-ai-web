@@ -20,6 +20,10 @@ import {
 import { LeadsRowInfoDrawer } from "./LeadsRowInfoDrawer"
 import { Lead } from "../data/schema"
 import { IconBook, IconPlus } from "@tabler/icons-react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useApiMutation } from "@/query/hooks/useApiMutation"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { LeadStatusEnum } from "@/models/lead"
 
 interface Props {
   row: Row<Lead>
@@ -27,6 +31,21 @@ interface Props {
 
 export function LeadsTableRowActions({ row }: Props) {
   const lead = row.original
+  const queryClient = useQueryClient()
+  const projectId = useProjectCode()
+
+  const updateStatusMutation = useApiMutation(`/leads/updateStatus`, "post", {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project-leads", projectId] })
+    }
+  })
+
+  const handleStatusChange = (newStatus: string) => {
+    updateStatusMutation.mutate({
+      leadId: lead.id,
+      status: newStatus as LeadStatusEnum
+    })
+  }
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
 
@@ -54,16 +73,15 @@ export function LeadsTableRowActions({ row }: Props) {
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Change Status</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={lead.status}>
-                  <DropdownMenuRadioItem value={"new"}>
-                    New
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"Contacted"}>
-                    Contacted
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"Closed"}>
-                    Closed
-                  </DropdownMenuRadioItem>
+                <DropdownMenuRadioGroup
+                  value={lead.status}
+                  onValueChange={handleStatusChange}
+                >
+                  {Object.entries(LeadStatusEnum).map(([key, value]) => (
+                    <DropdownMenuRadioItem key={value} value={value}>
+                      {key.charAt(0) + key.slice(1).toLowerCase()}
+                    </DropdownMenuRadioItem>
+                  ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>

@@ -10,6 +10,7 @@ import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
+import countryData from "@/lib/countryData.json"
 
 export default function ChatList(): JSX.Element {
   const router = useRouter()
@@ -20,6 +21,11 @@ export default function ChatList(): JSX.Element {
   const [pendingThreadId, setPendingThreadId] = useState<string | null>(null)
   const selectedItemRef = useRef<HTMLDivElement>(null)
   const isInitialRender = useRef(true)
+
+  const getCountryName = (code: string) => {
+    const country = countryData.find(c => c.code === code)
+    return country ? country.name : code
+  }
 
   const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
     PaginatedResult<ChatSessionResponse>
@@ -35,7 +41,9 @@ export default function ChatList(): JSX.Element {
     if (!paginatedData?.data) return []
     return paginatedData.data.map(session => ({
       id: session.session.threadId,
-      userName: session.session.country ?? "Guest User",
+      userName: session.session.country
+        ? getCountryName(session.session.country)
+        : "Guest User",
       summary: session.session.summary ?? "No summary",
       score: session.session.score ?? "cold",
       date: new Date(session.session.createdAt)

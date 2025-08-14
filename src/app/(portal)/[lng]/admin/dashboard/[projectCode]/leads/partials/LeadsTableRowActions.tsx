@@ -20,6 +20,8 @@ import {
 import { TasksMutateDrawer } from "./LeadsMutateDrawer"
 import { Lead } from "../data/schema"
 import { IconBook, IconPlus } from "@tabler/icons-react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useApiMutation } from "@/query/hooks/useApiMutation"
 
 interface Props {
   row: Row<Lead>
@@ -27,6 +29,17 @@ interface Props {
 
 export function LeadsTableRowActions({ row }: Props) {
   const lead = row.original
+  const queryClient = useQueryClient()
+
+  const updateStatusMutation = useApiMutation(`/leads/updateStatus`, "post", {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project-leads"] })
+    }
+  })
+
+  const handleStatusChange = (newStatus: string) => {
+    updateStatusMutation.mutate({ leadId: lead.id, status: newStatus })
+  }
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
 
@@ -54,14 +67,17 @@ export function LeadsTableRowActions({ row }: Props) {
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Change Status</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={lead.status}>
+                <DropdownMenuRadioGroup
+                  value={lead.status}
+                  onValueChange={handleStatusChange}
+                >
                   <DropdownMenuRadioItem value={"new"}>
                     New
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"Contacted"}>
+                  <DropdownMenuRadioItem value={"contacted"}>
                     Contacted
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"Closed"}>
+                  <DropdownMenuRadioItem value={"closed"}>
                     Closed
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>

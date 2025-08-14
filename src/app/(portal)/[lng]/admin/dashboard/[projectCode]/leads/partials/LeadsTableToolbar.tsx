@@ -142,10 +142,10 @@ export function DataTableToolbar<TData>({
             column={table.getColumn("status")}
             title="Status"
             options={[
-              { label: "New", value: "New" },
-              { label: "Contacted", value: "Contacted" },
-              { label: "Converted", value: "Converted" },
-              { label: "Closed", value: "Closed" }
+              { label: "New", value: "new" },
+              { label: "Contacted", value: "contacted" },
+              { label: "Converted", value: "converted" },
+              { label: "Closed", value: "closed" }
             ]}
           />
         )}

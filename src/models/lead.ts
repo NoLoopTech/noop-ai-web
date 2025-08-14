@@ -4,6 +4,13 @@ export enum LeadScoreType {
   Hot = "Hot Lead"
 }
 
+export enum LeadStatusEnum {
+  New = "new",
+  Contacted = "contacted",
+  Converted = "converted",
+  Closed = "closed"
+}
+
 export interface Lead {
   id: number
   createdAt: string

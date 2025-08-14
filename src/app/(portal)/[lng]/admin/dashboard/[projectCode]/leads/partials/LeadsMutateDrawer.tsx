@@ -34,6 +34,7 @@ import { IconCircleDashed } from "@tabler/icons-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"
+import { LeadStatusEnum } from "@/models/lead"
 
 interface Props {
   open: boolean
@@ -241,10 +242,16 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                             onValueChange={field.onChange}
                             placeholder="Select status"
                             items={[
-                              { label: "New", value: "new" },
-                              { label: "Contacted", value: "contacted" },
-                              { label: "Converted", value: "converted" },
-                              { label: "Closed", value: "closed" }
+                              { label: "New", value: LeadStatusEnum.New },
+                              {
+                                label: "Contacted",
+                                value: LeadStatusEnum.Contacted
+                              },
+                              {
+                                label: "Converted",
+                                value: LeadStatusEnum.Converted
+                              },
+                              { label: "Closed", value: LeadStatusEnum.Closed }
                             ]}
                             disabled
                             className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"

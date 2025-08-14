@@ -22,6 +22,8 @@ import { Lead } from "../data/schema"
 import { IconBook, IconPlus } from "@tabler/icons-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { LeadStatusEnum } from "@/models/lead"
 
 interface Props {
   row: Row<Lead>
@@ -30,15 +32,19 @@ interface Props {
 export function LeadsTableRowActions({ row }: Props) {
   const lead = row.original
   const queryClient = useQueryClient()
+  const projectId = useProjectCode()
 
   const updateStatusMutation = useApiMutation(`/leads/updateStatus`, "post", {
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["project-leads"] })
+      queryClient.invalidateQueries({ queryKey: ["project-leads", projectId] })
     }
   })
 
   const handleStatusChange = (newStatus: string) => {
-    updateStatusMutation.mutate({ leadId: lead.id, status: newStatus })
+    updateStatusMutation.mutate({
+      leadId: lead.id,
+      status: newStatus as LeadStatusEnum
+    })
   }
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
@@ -71,16 +77,16 @@ export function LeadsTableRowActions({ row }: Props) {
                   value={lead.status}
                   onValueChange={handleStatusChange}
                 >
-                  <DropdownMenuRadioItem value={"new"}>
+                  <DropdownMenuRadioItem value={LeadStatusEnum.New}>
                     New
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"contacted"}>
+                  <DropdownMenuRadioItem value={LeadStatusEnum.Contacted}>
                     Contacted
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"converted"}>
+                  <DropdownMenuRadioItem value={LeadStatusEnum.Converted}>
                     Converted
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"closed"}>
+                  <DropdownMenuRadioItem value={LeadStatusEnum.Closed}>
                     Closed
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>

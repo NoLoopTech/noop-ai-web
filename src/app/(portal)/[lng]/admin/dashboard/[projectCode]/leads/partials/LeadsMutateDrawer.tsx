@@ -34,6 +34,7 @@ import { IconCircleDashed } from "@tabler/icons-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"
+import { LeadStatusEnum } from "@/models/lead"
 
 interface Props {
   open: boolean
@@ -47,7 +48,7 @@ const formSchema = z.object({
   phoneNumber: z.string().min(1, "Phone Number is required."),
   preference: z.array(z.string()).min(1, "Select at least one preference."),
   score: z.enum(["cold", "warm", "hot"], { required_error: "Select a score." }),
-  status: z.enum(["new", "contacted", "closed"], {
+  status: z.enum(Object.values(LeadStatusEnum) as [string, ...string[]], {
     required_error: "Select a status."
   }),
   content: z.string().optional(),
@@ -111,6 +112,13 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
       )
     }
   }
+
+  const leadStatusItems = Object.entries(LeadStatusEnum).map(
+    ([key, value]) => ({
+      label: key,
+      value
+    })
+  )
 
   return (
     <Sheet
@@ -240,11 +248,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                             defaultValue={field.value}
                             onValueChange={field.onChange}
                             placeholder="Select status"
-                            items={[
-                              { label: "New", value: "new" },
-                              { label: "Contacted", value: "contacted" },
-                              { label: "Closed", value: "closed" }
-                            ]}
+                            items={leadStatusItems}
                             disabled
                             className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                           />

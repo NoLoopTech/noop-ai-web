@@ -1,5 +1,6 @@
 import { IconStopwatch } from "@tabler/icons-react"
 import { LeadScore } from "./schema"
+import { LeadStatusEnum } from "@/models/lead"
 
 export const leadScore = new Map<LeadScore, string>([
   ["cold", "text-chip-score-cold"],
@@ -18,20 +19,10 @@ export const leadPreference = new Map<string, string>([
   ]
 ])
 
-export const leadStatus = [
-  {
-    label: "New",
-    value: "new",
+export const leadStatus = Object.entries(LeadStatusEnum).map(
+  ([key, value]) => ({
+    label: key.charAt(0) + key.slice(1).toLowerCase(),
+    value,
     icon: IconStopwatch
-  },
-  {
-    label: "Contacted",
-    value: "contacted",
-    icon: IconStopwatch
-  },
-  {
-    label: "Closed",
-    value: "closed",
-    icon: IconStopwatch
-  }
-]
+  })
+)

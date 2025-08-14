@@ -14,6 +14,7 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
+import { LeadStatusEnum } from "@/models/lead"
 
 interface LeadTableFilters {
   searchTerm: string
@@ -61,6 +62,13 @@ export function DataTableToolbar<TData>({
       endDate: end.toISOString().slice(0, 10)
     })
   }
+
+  const leadStatusOptions = Object.entries(LeadStatusEnum).map(
+    ([key, value]) => ({
+      label: key.charAt(0) + key.slice(1).toLowerCase(),
+      value
+    })
+  )
 
   return (
     <div className="flex items-center justify-between">
@@ -141,12 +149,7 @@ export function DataTableToolbar<TData>({
           <DataTableFacetedFilter
             column={table.getColumn("status")}
             title="Status"
-            options={[
-              { label: "New", value: "New" },
-              { label: "Contacted", value: "Contacted" },
-              { label: "Converted", value: "Converted" },
-              { label: "Closed", value: "Closed" }
-            ]}
+            options={leadStatusOptions}
           />
         )}
 

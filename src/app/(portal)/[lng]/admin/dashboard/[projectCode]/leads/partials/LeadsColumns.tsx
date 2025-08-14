@@ -156,7 +156,12 @@ export const columns: ColumnDef<Lead>[] = [
         </div>
       )
     },
-    filterFn: "weakEquals",
+    filterFn: (row, columnId, filterValue) => {
+      if (Array.isArray(filterValue)) {
+        return filterValue.includes(row.getValue(columnId))
+      }
+      return row.getValue(columnId) === filterValue
+    },
     enableSorting: false,
     enableHiding: false
   },

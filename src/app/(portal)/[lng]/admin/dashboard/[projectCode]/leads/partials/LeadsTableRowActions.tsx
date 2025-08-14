@@ -77,6 +77,9 @@ export function LeadsTableRowActions({ row }: Props) {
                   <DropdownMenuRadioItem value={"contacted"}>
                     Contacted
                   </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value={"converted"}>
+                    Converted
+                  </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value={"closed"}>
                     Closed
                   </DropdownMenuRadioItem>

@@ -10,6 +10,7 @@ export type LeadScore = z.infer<typeof leadScoreSchema>
 const leadStatusSchema = z.union([
   z.literal("new"),
   z.literal("contacted"),
+  z.literal("converted"),
   z.literal("closed")
 ])
 export type LeadStatus = z.infer<typeof leadStatusSchema>

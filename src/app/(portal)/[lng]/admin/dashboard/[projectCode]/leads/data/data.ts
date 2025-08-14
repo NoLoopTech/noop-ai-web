@@ -30,6 +30,11 @@ export const leadStatus = [
     icon: IconStopwatch
   },
   {
+    label: "Converted",
+    value: "converted",
+    icon: IconStopwatch
+  },
+  {
     label: "Closed",
     value: "closed",
     icon: IconStopwatch

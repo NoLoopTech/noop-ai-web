@@ -47,7 +47,7 @@ const formSchema = z.object({
   phoneNumber: z.string().min(1, "Phone Number is required."),
   preference: z.array(z.string()).min(1, "Select at least one preference."),
   score: z.enum(["cold", "warm", "hot"], { required_error: "Select a score." }),
-  status: z.enum(["new", "contacted", "closed"], {
+  status: z.enum(["new", "contacted", "converted", "closed"], {
     required_error: "Select a status."
   }),
   content: z.string().optional(),
@@ -243,6 +243,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                             items={[
                               { label: "New", value: "new" },
                               { label: "Contacted", value: "contacted" },
+                              { label: "Converted", value: "converted" },
                               { label: "Closed", value: "closed" }
                             ]}
                             disabled

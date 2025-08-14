@@ -21,7 +21,7 @@ export const leadPreference = new Map<string, string>([
 
 export const leadStatus = Object.entries(LeadStatusEnum).map(
   ([key, value]) => ({
-    label: key,
+    label: key.charAt(0) + key.slice(1).toLowerCase(),
     value,
     icon: IconStopwatch
   })

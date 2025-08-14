@@ -79,7 +79,7 @@ export function LeadsTableRowActions({ row }: Props) {
                 >
                   {Object.entries(LeadStatusEnum).map(([key, value]) => (
                     <DropdownMenuRadioItem key={value} value={value}>
-                      {key}
+                      {key.charAt(0) + key.slice(1).toLowerCase()}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>

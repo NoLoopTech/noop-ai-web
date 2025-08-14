@@ -65,7 +65,7 @@ export function DataTableToolbar<TData>({
 
   const leadStatusOptions = Object.entries(LeadStatusEnum).map(
     ([key, value]) => ({
-      label: key,
+      label: key.charAt(0) + key.slice(1).toLowerCase(),
       value
     })
   )

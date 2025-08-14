@@ -5,10 +5,10 @@ export enum LeadScoreType {
 }
 
 export enum LeadStatusEnum {
-  New = "new",
-  Contacted = "contacted",
-  Converted = "converted",
-  Closed = "closed"
+  NEW = "new",
+  CONTACTED = "contacted",
+  CONVERTED = "converted",
+  CLOSED = "closed"
 }
 
 export interface Lead {

@@ -44,7 +44,17 @@ export const ticketMethod = [
   },
   {
     label: "Automated",
-    value: "automated",
+    value: "automated-user-inquiry",
+    icon: BotMessageSquare
+  },
+  {
+    label: "Automated",
+    value: "automated-low-confidence-response",
+    icon: BotMessageSquare
+  },
+  {
+    label: "Automated",
+    value: "automated-negative-sentiment-detected",
     icon: BotMessageSquare
   }
 ]

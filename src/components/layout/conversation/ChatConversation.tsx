@@ -230,7 +230,7 @@ export default function ChatConversation({
                                   <span>Improve answer</span>
                                 </div>
                                 <ChatScoreBadge
-                                  variant={"Positive"}
+                                  variant={"normal"}
                                   value="0.500"
                                 />
                               </div>

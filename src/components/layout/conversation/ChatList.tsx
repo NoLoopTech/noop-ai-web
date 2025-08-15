@@ -10,7 +10,25 @@ import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip"
 import countryData from "@/lib/countryData.json"
+
+function getScoreBgClass(score: string) {
+  switch (score) {
+    case "negative":
+      return "bg-badge-negative-background"
+    case "normal":
+      return "bg-badge-normal-background"
+    case "positive":
+      return "bg-badge-positive-background"
+    default:
+      return null
+  }
+}
 
 export default function ChatList(): JSX.Element {
   const router = useRouter()
@@ -41,11 +59,11 @@ export default function ChatList(): JSX.Element {
     if (!paginatedData?.data) return []
     return paginatedData.data.map(session => ({
       id: session.session.threadId,
-      userName: session.session.country
+      userName: session.session.userName
         ? getCountryName(session.session.country)
         : "Guest User",
       summary: session.session.summary ?? "No summary",
-      score: session.session.score ?? "cold",
+      score: session.session.score ?? "Positive",
       date: new Date(session.session.createdAt)
     }))
   }, [paginatedData])
@@ -132,7 +150,21 @@ export default function ChatList(): JSX.Element {
                           <p className="text-chat-info-text-muted max-w-52 truncate text-xs font-normal text-ellipsis">
                             {conversation.summary}
                           </p>
-                          <div className="bg-badge-negative-border size-2 rounded-full"></div>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                className={`size-2 rounded-full ${getScoreBgClass(conversation.score)}`}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              align="center"
+                              className="text-tiny bg-background text-foreground capitalize shadow"
+                            >
+                              <span>{conversation.score}</span>
+                            </TooltipContent>
+                          </Tooltip>
                         </CardContent>
                       </>
                     )}

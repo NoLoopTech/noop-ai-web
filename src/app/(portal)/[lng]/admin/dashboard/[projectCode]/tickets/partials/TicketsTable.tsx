@@ -96,7 +96,7 @@ export function TicketsTable({ columns }: Props) {
       status: ticket.status ?? "active",
       priority: ticket.priority ?? "medium",
       type: ticket.type ?? "information-request",
-      method: ticket.method ?? "automated"
+      method: ticket.method ?? "manual"
     }))
   }, [paginatedData])
 

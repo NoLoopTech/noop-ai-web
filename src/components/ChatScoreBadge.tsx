@@ -3,20 +3,20 @@ import clsxm from "@/utils/clsxm"
 import { IconBolt } from "@tabler/icons-react"
 
 const scoreBadge = cva(
-  "flex items-center gap-x-2 px-2 py-0.5 rounded-lg border-3 text-badge-foreground font-medium text-xs shadow-badge-shadow",
+  "flex items-center gap-x-2 px-2 py-0.5 rounded-lg border-3 text-badge-foreground font-medium text-xs shadow-lg",
   {
     variants: {
       variant: {
-        Positive:
+        positive:
           "bg-badge-positive-background border-badge-positive-border dark:text-foreground",
-        Negative:
+        negative:
           "bg-badge-negative-background border-badge-negative-border dark:text-foreground",
-        Normal:
+        normal:
           "bg-badge-normal-background border-badge-normal-border dark:text-foreground"
       }
     },
     defaultVariants: {
-      variant: "Positive"
+      variant: "positive"
     }
   }
 )
@@ -32,9 +32,13 @@ export default function ChatScoreBadge({
   className
 }: ScoreBadgeProps) {
   return (
-    <div className={clsxm(scoreBadge({ variant }), className)}>
-      <IconBolt width={16} height={16} />
-      {value}
+    <div
+      className={`rounded-xl ${variant === "normal" ? "bg-white" : "bg-zinc-800 dark:bg-zinc-950"}`}
+    >
+      <div className={clsxm(scoreBadge({ variant }), className)}>
+        <IconBolt width={16} height={16} />
+        {value}
+      </div>
     </div>
   )
 }

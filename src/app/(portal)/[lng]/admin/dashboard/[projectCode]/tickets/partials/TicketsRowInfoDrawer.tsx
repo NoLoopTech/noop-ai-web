@@ -22,8 +22,6 @@ import {
 } from "@/components/ui/sheet"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  IconDownload,
-  IconFileText,
   IconPencilMinus,
   IconRectangleFilled,
   IconStopwatch
@@ -33,6 +31,7 @@ import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"
 import { Ticket } from "../data/schema"
 import { ticketMethod, ticketPriority, ticketStatus } from "../data/data"
+import { TicketReasonVariants } from "./TicketReasonVariants"
 
 interface Props {
   open: boolean
@@ -61,16 +60,17 @@ const formSchema = z.object({
     z.literal("feedback"),
     z.literal("complaints")
   ]),
+  method: z.string().optional(),
   createdAt: z.string().optional()
 })
-type LeadForm = z.infer<typeof formSchema>
+type TicketForm = z.infer<typeof formSchema>
 
 export function TicketsRowInfoDrawer({
   open,
   onOpenChange,
   currentRow
 }: Props) {
-  const form = useForm<LeadForm>({
+  const form = useForm<TicketForm>({
     resolver: zodResolver(formSchema),
     defaultValues: currentRow
       ? {
@@ -81,6 +81,7 @@ export function TicketsRowInfoDrawer({
           priority: currentRow.priority ?? "",
           type: currentRow.type ?? "bug",
           content: currentRow.content ?? "",
+          method: currentRow.method ?? "manual",
           createdAt: currentRow.createdAt
             ? new Date(currentRow.createdAt).toISOString().slice(0, 16)
             : ""
@@ -90,6 +91,7 @@ export function TicketsRowInfoDrawer({
           email: "",
           status: "active",
           priority: "",
+          method: "manual",
           type: "bug",
           createdAt: ""
         }
@@ -263,8 +265,8 @@ export function TicketsRowInfoDrawer({
                         <FormItem>
                           <FormLabel>Country</FormLabel>
                           <FormControl>
-                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2">
-                              <div className="flex items-center text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
+                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
+                              <div className="flex items-center">
                                 {currentRow?.country ? (
                                   <>
                                     {/* <CountryFlag
@@ -386,86 +388,12 @@ export function TicketsRowInfoDrawer({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col space-y-2">
-                  <CardTitle className="text-xl font-semibold">
-                    Conversation Request
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col space-y-5">
-                <div className="flex flex-col space-y-1.5">
-                  <h2>User Raised Message</h2>
-                  <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                    {/* {currentRow &&
-                    Array.isArray(currentRow.preference) &&
-                    currentRow.preference.length > 0 ? (
-                      currentRow.preference.map((pref, idx) => (
-                        <div
-                          key={idx}
-                          className="text-foreground bg-secondary flex items-center space-x-1.5 rounded-lg px-2.5 py-1.5 capitalize"
-                        >
-                          <IconCircleDashed className="size-4" />
-                          <p className="text-xs">{pref}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">
-                        No preferences
-                      </span>
-                    )} */}
-                    <p>I want to talk to an agent.</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col space-y-1.5">
-                  <h2>Conversation Summary</h2>
-                  <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                    {currentRow && currentRow.content ? (
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {currentRow.content}
-                      </p>
-                    ) : (
-                      <span className="text-muted-foreground">
-                        No conversation summary available
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-col space-y-1.5">
-                  <h2>File</h2>
-                  <div className="flex w-80 max-w-md items-center space-x-3 rounded-md border border-zinc-300 px-4 py-2.5 text-zinc-500 shadow dark:border-zinc-800">
-                    {currentRow && currentRow.content ? (
-                      <div className="flex w-full items-center justify-between text-zinc-700">
-                        <div className="flex w-max items-center space-x-2">
-                          <IconFileText size={20} />
-                          <p className="truncate mask-ellipse text-sm">
-                            {/* {currentRow.content} */}
-                            Sample.pdf
-                            {/* TODO: Need to add a fix for long file names */}
-                          </p>
-                        </div>
-                        <IconDownload size={20} />
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">
-                        No attachments
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <Button
-                  variant={"default"}
-                  onClick={handleViewTranscript}
-                  className="max-w-max self-end"
-                >
-                  View Transcript
-                </Button>
-              </CardContent>
-            </Card>
+            {currentRow && (
+              <TicketReasonVariants
+                ticket={currentRow}
+                onViewTranscript={handleViewTranscript}
+              />
+            )}
           </div>
         </ScrollArea>
 

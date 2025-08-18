@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import countryData from "@/lib/countryData.json"
+import { getCountryName } from "@/utils"
 
 function getScoreBgClass(score: string) {
   switch (score) {
@@ -39,11 +39,6 @@ export default function ChatList(): JSX.Element {
   const [pendingThreadId, setPendingThreadId] = useState<string | null>(null)
   const selectedItemRef = useRef<HTMLDivElement>(null)
   const isInitialRender = useRef(true)
-
-  const getCountryName = (code: string) => {
-    const country = countryData.find(c => c.code === code)
-    return country ? country.name : code
-  }
 
   const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
     PaginatedResult<ChatSessionResponse>

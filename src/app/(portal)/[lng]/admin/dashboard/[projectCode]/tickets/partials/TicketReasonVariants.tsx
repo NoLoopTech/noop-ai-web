@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { IconFileText, IconDownload } from "@tabler/icons-react"
-import { Ticket } from "../data/schema"
+import { Ticket } from "@/models/ticket/schema"
 
 interface Props {
   ticket: Ticket

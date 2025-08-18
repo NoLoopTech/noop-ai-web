@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import countryData from "@/lib/countryData.json"
+import { getCountryName } from "@/utils"
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -61,10 +61,10 @@ export const columns: ColumnDef<Session>[] = [
         return <span>N/A</span>
       }
       const code = value.toUpperCase()
-      const getCountryName = (code: string) => {
-        const country = countryData.find(c => c.code === code)
-        return country ? country.name : code
-      }
+      // const getCountryName = (code: string) => {
+      //   const country = countryData.find(c => c.code === code)
+      //   return country ? country.name : code
+      // }
       return (
         <Tooltip>
           <TooltipTrigger asChild>

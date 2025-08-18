@@ -4,7 +4,7 @@ import { Row } from "@tanstack/react-table"
 import useDialogState from "@/lib/hooks/useDialogState"
 import { Button } from "@/components/ui/button"
 import LongText from "@/components/LongText"
-import { Ticket } from "../data/schema"
+import { Ticket } from "@/models/ticket/schema"
 import { TicketsRowInfoDrawer } from "./TicketsRowInfoDrawer"
 
 interface Props {

@@ -28,7 +28,7 @@ import { DataTableToolbar } from "./TicketsTableToolbar"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
-import { Ticket } from "../data/schema"
+import { Ticket } from "@/models/ticket/schema"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 

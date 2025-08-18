@@ -29,9 +29,20 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"
-import { Ticket } from "../data/schema"
-import { ticketMethod, ticketPriority, ticketStatus } from "../data/data"
+import { Ticket } from "@/models/ticket/schema"
+import {
+  ticketMethod,
+  ticketPriority,
+  ticketStatus,
+  ticketTypes
+} from "@/models/ticket/options"
 import { TicketReasonVariants } from "./TicketReasonVariants"
+import {
+  TicketMethod,
+  TicketPriority,
+  TicketStatus,
+  TicketType
+} from "@/models/ticket/enum"
 
 interface Props {
   open: boolean
@@ -44,23 +55,14 @@ const formSchema = z.object({
   email: z.string().email("Invalid email address."),
   country: z.string().optional(),
   content: z.string().min(1, "Content is required."),
-  status: z.union([
-    z.literal("active"),
-    z.literal("in-progress"),
-    z.literal("closed")
-  ]),
-  priority: z.string().optional(),
-  type: z.union([
-    z.literal("bug"),
-    z.literal("feature-request"),
-    z.literal("information-request"),
-    z.literal("change-request"),
-    z.literal("technical-support"),
-    z.literal("incident-report"),
-    z.literal("feedback"),
-    z.literal("complaints")
-  ]),
-  method: z.string().optional(),
+  status: z.enum(Object.values(TicketStatus) as [string, ...string[]]),
+  priority: z
+    .enum(Object.values(TicketPriority) as [string, ...string[]])
+    .optional(),
+  type: z.enum(Object.values(TicketType) as [string, ...string[]]),
+  method: z
+    .enum(Object.values(TicketMethod) as [string, ...string[]])
+    .optional(),
   createdAt: z.string().optional()
 })
 type TicketForm = z.infer<typeof formSchema>
@@ -123,9 +125,11 @@ export function TicketsRowInfoDrawer({
   }
 
   // Status
-  const statusObj = currentRow?.status
-    ? ticketStatus.get(currentRow.status)
-    : null
+  const statusObj =
+    currentRow?.status &&
+    ticketStatus[currentRow.status as keyof typeof ticketStatus]
+      ? ticketStatus[currentRow.status as keyof typeof ticketStatus]
+      : null
   const statusLabel = statusObj
     ? statusObj[0]
     : (currentRow?.status ?? "Active")
@@ -265,8 +269,8 @@ export function TicketsRowInfoDrawer({
                         <FormItem>
                           <FormLabel>Country</FormLabel>
                           <FormControl>
-                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
-                              <div className="flex items-center">
+                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 dark:border-zinc-800">
+                              <div className="flex items-center text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
                                 {currentRow?.country ? (
                                   <>
                                     {/* <CountryFlag
@@ -302,13 +306,17 @@ export function TicketsRowInfoDrawer({
                         <FormItem>
                           <FormLabel>Status</FormLabel>
                           <FormControl>
-                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 text-zinc-900 opacity-100 dark:border-zinc-800 dark:text-zinc-400">
+                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 opacity-100 dark:border-zinc-800">
                               <div className="flex items-center text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
                                 <IconStopwatch size={18} />
                               </div>
                               <Input
                                 {...field}
-                                value={currentRow?.status || "Active"}
+                                value={
+                                  ticketPriority.find(
+                                    p => p.value === currentRow?.priority
+                                  )?.label || "Medium"
+                                }
                                 placeholder="Enter status"
                                 disabled
                                 className="border-none pl-1.5 disabled:cursor-default"
@@ -326,16 +334,20 @@ export function TicketsRowInfoDrawer({
                         <FormItem>
                           <FormLabel>Priority</FormLabel>
                           <FormControl>
-                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 text-zinc-900 opacity-100 dark:border-zinc-800 dark:text-zinc-400">
+                            <div className="mt-1 flex cursor-default items-center rounded-md border border-zinc-300 px-2 opacity-100 dark:border-zinc-800">
                               <div className="flex items-center text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
                                 {PriorityIcon && <PriorityIcon size={16} />}
                               </div>
                               <Input
                                 {...field}
-                                value={currentRow?.priority || "Medium"}
+                                value={
+                                  ticketPriority.find(
+                                    p => p.value === currentRow?.priority
+                                  )?.label || "Medium"
+                                }
                                 placeholder="Enter priority"
                                 disabled
-                                className="border-none pl-1.5 disabled:cursor-default"
+                                className="border-none pl-1.5 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </div>
                           </FormControl>
@@ -352,6 +364,11 @@ export function TicketsRowInfoDrawer({
                           <FormControl>
                             <Input
                               {...field}
+                              value={
+                                ticketTypes.find(
+                                  t => t.value === currentRow?.type
+                                )?.label || "Bug"
+                              }
                               placeholder="Enter type"
                               disabled
                               className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"

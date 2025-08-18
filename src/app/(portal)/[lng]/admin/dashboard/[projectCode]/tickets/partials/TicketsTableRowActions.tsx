@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { IconBook, IconPlus } from "@tabler/icons-react"
-import { Ticket } from "../data/schema"
+import { Ticket } from "@/models/ticket/schema"
 import { TicketsRowInfoDrawer } from "./TicketsRowInfoDrawer"
 
 interface Props {

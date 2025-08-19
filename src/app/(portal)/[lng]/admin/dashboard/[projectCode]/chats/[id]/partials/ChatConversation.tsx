@@ -82,7 +82,7 @@ export default function ChatConversation(): JSX.Element {
 
   useEffect(() => {
     if (threadId) {
-      generateSummaryMutation.mutate({ threadId, projectId })
+      generateSummaryMutation.mutate({ threadId })
     }
   }, [threadId])
 

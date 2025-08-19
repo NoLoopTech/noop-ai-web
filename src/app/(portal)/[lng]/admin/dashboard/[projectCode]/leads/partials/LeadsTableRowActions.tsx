@@ -52,7 +52,7 @@ export function LeadsTableRowActions({ row }: Props) {
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
 
   const { toast } = useToast()
-  const deleteLeadMutation = useApiMutation(`/leads/deleteLead`, "delete", {
+  const deleteLeadMutation = useApiMutation(`/leads/lead`, "delete", {
     onSuccess: () => {
       toast({
         title: "Lead deleted",

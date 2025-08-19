@@ -73,7 +73,11 @@ export function LeadsTableRowActions({ row }: Props) {
   })
 
   const handleDelete = () => {
-    deleteLeadMutation.mutate({ leadId: lead.id, threadId: lead.threadId })
+    deleteLeadMutation.mutate({
+      leadId: lead.id,
+      threadId: lead.threadId,
+      projectId
+    })
   }
 
   return (

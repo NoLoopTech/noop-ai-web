@@ -19,11 +19,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { TasksMutateDrawer } from "./LeadsMutateDrawer"
 import { Lead } from "../data/schema"
-import { IconBook, IconPlus } from "@tabler/icons-react"
+// import { IconBook, IconPlus } from "@tabler/icons-react"
+import { IconBook } from "@tabler/icons-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { LeadStatusEnum } from "@/models/lead"
+import { useToast } from "@/lib/hooks/useToast"
 
 interface Props {
   row: Row<Lead>
@@ -48,6 +50,34 @@ export function LeadsTableRowActions({ row }: Props) {
   }
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
+
+  const { toast } = useToast()
+  const deleteLeadMutation = useApiMutation(`/leads/lead`, "delete", {
+    onSuccess: () => {
+      toast({
+        title: "Lead deleted",
+        description: "The lead was deleted successfully."
+      })
+      queryClient.invalidateQueries({ queryKey: ["project-leads", projectId] })
+    },
+    onError: error => {
+      const errorMessage =
+        (error as { message?: string })?.message ||
+        "Failed to delete lead. Please try again."
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  })
+
+  const handleDelete = () => {
+    deleteLeadMutation.mutate({
+      leadId: lead.id,
+      projectId
+    })
+  }
 
   return (
     <>
@@ -85,7 +115,7 @@ export function LeadsTableRowActions({ row }: Props) {
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            <DropdownMenuSub>
+            {/* <DropdownMenuSub>
               <DropdownMenuSubTrigger>Lead Score</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuRadioGroup value={lead.score}>
@@ -100,15 +130,15 @@ export function LeadsTableRowActions({ row }: Props) {
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuItem>
+            </DropdownMenuSub> */}
+            {/* <DropdownMenuItem>
               Add Note
               <DropdownMenuShortcut>
                 <IconPlus className="h-4 w-4" />
               </DropdownMenuShortcut>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete}>
               Delete
               <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
             </DropdownMenuItem>

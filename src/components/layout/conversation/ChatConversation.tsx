@@ -15,7 +15,6 @@ import { useParams } from "next/navigation"
 import { useApiQuery, useApiMutation } from "@/query"
 import { useQueryClient } from "@tanstack/react-query"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery } from "@/query"
 import ChatScoreBadge from "@/components/ChatScoreBadge"
 
 interface Props {

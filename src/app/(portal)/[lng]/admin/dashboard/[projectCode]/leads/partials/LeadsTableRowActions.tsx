@@ -56,8 +56,7 @@ export function LeadsTableRowActions({ row }: Props) {
     onSuccess: () => {
       toast({
         title: "Lead deleted",
-        description: "The lead was deleted successfully.",
-        variant: "default"
+        description: "The lead was deleted successfully."
       })
       queryClient.invalidateQueries({ queryKey: ["project-leads", projectId] })
     },

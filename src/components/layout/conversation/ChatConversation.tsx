@@ -12,6 +12,9 @@ import { format } from "date-fns"
 import Markdown from "react-markdown"
 import { PaginatedResult } from "@/types/paginatedData"
 import { useParams } from "next/navigation"
+import { useApiQuery, useApiMutation } from "@/query"
+import { useQueryClient } from "@tanstack/react-query"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import ChatScoreBadge from "@/components/ChatScoreBadge"
 
@@ -61,6 +64,20 @@ export default function ChatConversation({
 
   const groupDates = useMemo(() => Object.keys(grouped).sort(), [grouped])
 
+  const queryClient = useQueryClient()
+  const projectId = useProjectCode()
+  const generateSummaryMutation = useApiMutation(
+    "/conversations/generateChatSummary",
+    "post",
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["chat-sessions", projectId]
+        })
+      }
+    }
+  )
+
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
@@ -70,6 +87,12 @@ export default function ChatConversation({
       }
     }
   }, [grouped])
+
+  useEffect(() => {
+    if (threadId) {
+      generateSummaryMutation.mutate({ threadId })
+    }
+  }, [threadId])
 
   return (
     <Card className="flex h-full flex-col items-center space-y-3 rounded-lg">

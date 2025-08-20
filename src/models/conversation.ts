@@ -31,3 +31,12 @@ export interface ChatSessionResponse {
   }
   duration: number
 }
+
+export interface ChatDetailsResponse {
+  activeTicketCount: number
+  topicTrend: string | null
+  scorePercent: number | null
+  userName: string | null
+  email: string | null
+  phoneNumber: string | null
+}

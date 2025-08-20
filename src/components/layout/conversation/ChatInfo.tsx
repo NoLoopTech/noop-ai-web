@@ -14,15 +14,30 @@ import {
   IconDotsVertical,
   IconExclamationCircle,
   IconInfoCircle,
-  IconMessages,
+  // IconMessages,
   IconPlus,
   IconTrendingUp,
   IconUsers
 } from "@tabler/icons-react"
 import { Bot } from "lucide-react"
+import { useParams } from "next/navigation"
 import { JSX } from "react"
+import { useApiQuery } from "@/query"
+import { ChatDetailsResponse } from "@/models/conversation"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ChatInfo(): JSX.Element {
+  const params = useParams()
+  const { id: threadId } = params as { id: string }
+
+  const { data: chatDetails, isLoading } = useApiQuery<ChatDetailsResponse>(
+    ["chat-details", threadId],
+    `/conversations/chat/${threadId}/details`,
+    () => ({
+      method: "get"
+    })
+  )
+
   return (
     <ScrollArea
       orientation="vertical"
@@ -33,16 +48,34 @@ export default function ChatInfo(): JSX.Element {
         <Card className="h-max w-full rounded-lg">
           <CardContent className="pb-0">
             <div className="flex flex-col items-center p-5">
-              <h1 className="mb-3 text-2xl font-semibold">Olivia Martin</h1>
-              <p className="mb-2 text-sm font-medium">example@gmail.com</p>
-              <p className="text-sm font-medium text-zinc-500">+94 772259713</p>
+              <h1 className="mb-3 text-2xl font-semibold">
+                {isLoading ? (
+                  <Skeleton className="h-6 w-32" />
+                ) : (
+                  (chatDetails?.userName ?? "Guest User")
+                )}
+              </h1>
+              {isLoading ? (
+                <Skeleton className="mb-2 h-4 w-40" />
+              ) : (
+                <p className="mb-2 text-sm font-medium">
+                  {chatDetails?.email ?? "N/A"}
+                </p>
+              )}
+              {isLoading ? (
+                <Skeleton className="mb-2 h-4 w-40" />
+              ) : (
+                <p className="text-sm font-medium text-zinc-500">
+                  {chatDetails?.phoneNumber ?? "N/A"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        <Button variant="default" className="w-full">
+        {/* <Button variant="default" className="w-full">
           Create Ticket
-        </Button>
+        </Button> */}
 
         <Card className="h-max w-full rounded-lg py-0">
           <CardTitle className="p-4 text-lg font-semibold">
@@ -74,7 +107,14 @@ export default function ChatInfo(): JSX.Element {
                     </div>
                   </HoverCardContent>
                 </HoverCard>
-                <p className="text-sm font-medium">22</p>
+
+                {isLoading ? (
+                  <Skeleton className="h-4 w-10" />
+                ) : (
+                  <p className="text-sm font-medium">
+                    {chatDetails?.activeTicketCount ?? "N/A"}
+                  </p>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <HoverCard openDelay={100}>
@@ -151,13 +191,13 @@ export default function ChatInfo(): JSX.Element {
                 </HoverCard>
                 <p className="text-sm font-medium">70</p>
               </div>
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-2">
                   <IconMessages className="size-4" />
                   <p className="text-sm font-medium">Last Interaction</p>
                 </div>
                 <p className="text-sm font-medium">2 days ago</p>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
@@ -180,14 +220,30 @@ export default function ChatInfo(): JSX.Element {
                   <IconTrendingUp className="size-4" />
                   <p className="text-sm font-medium">Topic Trend</p>
                 </div>
-                <p className="text-sm font-medium">Pricing inquiry</p>
+
+                {isLoading ? (
+                  <Skeleton className="h-4 w-10" />
+                ) : (
+                  <p className="text-sm font-medium">
+                    {chatDetails?.topicTrend ?? "N/A"}
+                  </p>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-2">
                   <Bot size={17} />
                   <p className="text-sm font-medium">Bot Confidence</p>
                 </div>
-                <p className="text-sm font-medium">91%</p>
+
+                {isLoading ? (
+                  <Skeleton className="h-4 w-10" />
+                ) : (
+                  <p className="text-sm font-medium">
+                    {chatDetails?.scorePercent != null
+                      ? `${chatDetails.scorePercent}%`
+                      : "N/A"}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

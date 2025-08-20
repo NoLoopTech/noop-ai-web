@@ -52,7 +52,7 @@ export default function ChatInfo(): JSX.Element {
                 {isLoading ? (
                   <Skeleton className="h-6 w-32" />
                 ) : (
-                  (chatDetails?.userName ?? "N/A")
+                  (chatDetails?.userName ?? "Guest User")
                 )}
               </h1>
               {isLoading ? (

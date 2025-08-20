@@ -32,7 +32,7 @@ export interface ChatSessionResponse {
   duration: number
 }
 
-export interface ChatDetailsDto {
+export interface ChatDetailsResponse {
   activeTicketCount: number
   topicTrend: string | null
   scorePercent: number | null

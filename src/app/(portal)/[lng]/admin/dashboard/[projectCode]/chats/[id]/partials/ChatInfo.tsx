@@ -23,16 +23,16 @@ import { Bot } from "lucide-react"
 import { useParams } from "next/navigation"
 import { JSX } from "react"
 import { useApiQuery } from "@/query"
-import { ChatDetailsDto } from "@/models/conversation"
+import { ChatDetailsResponse } from "@/models/conversation"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ChatInfo(): JSX.Element {
   const params = useParams()
   const { id: threadId } = params as { id: string }
 
-  const { data: chatDetails, isLoading } = useApiQuery<ChatDetailsDto>(
+  const { data: chatDetails, isLoading } = useApiQuery<ChatDetailsResponse>(
     ["chat-details", threadId],
-    `/conversations/chatDetails?threadId=${threadId}`,
+    `/conversations/chat/${threadId}/details`,
     () => ({
       method: "get"
     })

@@ -81,10 +81,10 @@ export default function ChatConversation(): JSX.Element {
   }, [grouped])
 
   useEffect(() => {
-    if (threadId) {
+    if (threadId && !isInitialLoading && initialThreadMessages?.data?.length) {
       generateSummaryMutation.mutate({ threadId })
     }
-  }, [threadId])
+  }, [threadId, isInitialLoading, initialThreadMessages])
 
   return (
     <Card className="flex h-full flex-col items-center space-y-3 rounded-lg">

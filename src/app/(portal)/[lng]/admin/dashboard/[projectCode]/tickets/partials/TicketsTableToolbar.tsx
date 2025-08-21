@@ -16,7 +16,8 @@ import {
 import {
   ticketMethod,
   ticketStatus,
-  ticketTypes
+  ticketTypes,
+  ticketPriority
 } from "@/models/ticket/options"
 import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
 
@@ -132,11 +133,10 @@ export function DataTableToolbar<TData>({
             <DataTableFacetedFilter
               column={table.getColumn("priority")}
               title="Priority"
-              options={[
-                { label: "Low", value: "low" },
-                { label: "Medium", value: "medium" },
-                { label: "High", value: "high" }
-              ]}
+              options={ticketPriority.map(option => ({
+                label: option.label,
+                value: option.value
+              }))}
             />
           )}
           {table.getColumn("status") && (

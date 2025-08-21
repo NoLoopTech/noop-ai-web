@@ -26,6 +26,7 @@ import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/lib/hooks/useToast"
 import { useEffect } from "react"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 
 interface Props {
   row: Row<Ticket>
@@ -38,9 +39,13 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
 
   const queryClient = useQueryClient()
+  const projectId = useProjectCode()
+
   const updateStatusMutation = useApiMutation(`/tickets/updateStatus`, "post", {
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["project-tickets"] })
+      queryClient.invalidateQueries({
+        queryKey: ["project-tickets", projectId]
+      })
     }
   })
 
@@ -58,7 +63,9 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
         title: "Ticket deleted",
         description: "The ticket was deleted successfully."
       })
-      queryClient.invalidateQueries({ queryKey: ["project-tickets"] })
+      queryClient.invalidateQueries({
+        queryKey: ["project-tickets", projectId]
+      })
     },
     onError: error => {
       const errorMessage =
@@ -74,7 +81,8 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
 
   const handleDelete = () => {
     deleteTicketMutation.mutate({
-      ticketId: ticket.id
+      ticketId: ticket.id,
+      projectId
     })
   }
 

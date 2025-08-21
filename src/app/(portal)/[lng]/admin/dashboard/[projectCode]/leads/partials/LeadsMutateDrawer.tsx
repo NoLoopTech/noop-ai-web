@@ -152,7 +152,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
                       See basic leads information
                     </CardDescription>
                   </div>
-                  <Button variant="outline">Edit</Button>
+                  {/* <Button variant="outline">Edit</Button> */}
                 </div>
               </CardHeader>
               <CardContent className="pb-2.5">

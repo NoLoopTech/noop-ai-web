@@ -1,6 +1,6 @@
 export const TicketStatus = {
   ACTIVE: "active",
-  IN_PROGRESS: "in-progress",
+  IN_PROGRESS: "in_progress",
   CLOSED: "closed"
 } as const
 export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus]

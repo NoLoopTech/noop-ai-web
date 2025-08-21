@@ -11,6 +11,12 @@ import { SessionsSummaryAction } from "./SessionsSummaryAction"
 import { Badge } from "@/components/ui/badge"
 import { aiScoreSchema } from "../data/data"
 import CountryFlag from "react-country-flag"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip"
+import { getCountryName } from "@/utils"
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -55,14 +61,30 @@ export const columns: ColumnDef<Session>[] = [
         return <span>N/A</span>
       }
       const code = value.toUpperCase()
+      // const getCountryName = (code: string) => {
+      //   const country = countryData.find(c => c.code === code)
+      //   return country ? country.name : code
+      // }
       return (
-        <span className="flex items-center gap-2">
-          <CountryFlag
-            countryCode={code}
-            svg
-            style={{ width: "1.5em", height: "1.5em" }}
-          />
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-2">
+              <CountryFlag
+                countryCode={code}
+                svg
+                style={{ width: "1.6em", height: "1.5em" }}
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            sideOffset={-45}
+            side="right"
+            align="center"
+            className="text-tiny bg-background text-foreground capitalize shadow"
+          >
+            <span>{getCountryName(code)}</span>
+          </TooltipContent>
+        </Tooltip>
       )
     },
     enableSorting: false,

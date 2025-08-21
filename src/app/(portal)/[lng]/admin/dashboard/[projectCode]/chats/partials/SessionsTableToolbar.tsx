@@ -124,6 +124,7 @@ export function SessionsTableToolbar<TData>({
             Reset Date Range
           </Button>
         )} */}
+        {/* TODO: remove commented code later */}
 
         {table.getColumn("country") && (
           <DataTableFacetedFilter

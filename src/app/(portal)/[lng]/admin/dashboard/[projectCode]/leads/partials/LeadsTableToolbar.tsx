@@ -131,6 +131,7 @@ export function DataTableToolbar<TData>({
             Reset Date Range
           </Button>
         )} */}
+        {/* TODO: remove commented code later */}
 
         {/* Score filter - updated labels without "Lead" and works like AI Score */}
         {table.getColumn("score") && (

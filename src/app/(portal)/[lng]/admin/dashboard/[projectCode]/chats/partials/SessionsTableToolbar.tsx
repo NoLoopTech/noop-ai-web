@@ -69,6 +69,18 @@ export function SessionsTableToolbar<TData>({
     })
   }
 
+  const handleFilterReset = () => {
+    table.resetColumnFilters()
+    setFilters({
+      ...filters,
+      duration: "",
+      startDate: "",
+      endDate: "",
+      dateRangeType: "" as DateRangeType,
+      username: ""
+    })
+  }
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
@@ -78,33 +90,16 @@ export function SessionsTableToolbar<TData>({
           onChange={e => setFilters({ ...filters, username: e.target.value })}
           className="h-8 w-[150px] lg:w-[300px]"
         />
-        {/* <SingleSelectDropdown
-          options={[...dateRangeOptions]}
-          value={filters.dateRangeType}
-          onChange={handleDateRangeChange}
-          placeholder="Date Range"
-          className="h-8 w-[150px] lg:w-[200px]"
-        /> */}
         <Select
-          value={filters.dateRangeType || "reset"}
+          value={filters.dateRangeType || ""}
           onValueChange={val => {
-            if (val === "reset") {
-              setFilters({
-                ...filters,
-                dateRangeType: "" as DateRangeType,
-                startDate: "",
-                endDate: ""
-              })
-            } else {
-              handleDateRangeChange(val)
-            }
+            handleDateRangeChange(val)
           }}
         >
           <SelectTrigger className="h-8 w-[150px] lg:w-[200px]">
             <SelectValue placeholder="Date Range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="reset">Reset</SelectItem>
             {dateRangeOptions.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -112,7 +107,7 @@ export function SessionsTableToolbar<TData>({
             ))}
           </SelectContent>
         </Select>
-        {(filters.dateRangeType || filters.startDate || filters.endDate) && (
+        {/* {(filters.dateRangeType || filters.startDate || filters.endDate) && (
           <Button
             variant="outline"
             size="sm"
@@ -128,7 +123,7 @@ export function SessionsTableToolbar<TData>({
           >
             Reset Date Range
           </Button>
-        )}
+        )} */}
 
         {table.getColumn("country") && (
           <DataTableFacetedFilter
@@ -158,7 +153,7 @@ export function SessionsTableToolbar<TData>({
           }}
         >
           <SelectTrigger className="h-8 w-[150px] lg:w-[180px]">
-            <SelectValue placeholder="All Durations" />
+            <SelectValue placeholder="Duration" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Durations</SelectItem>
@@ -171,10 +166,15 @@ export function SessionsTableToolbar<TData>({
               ))}
           </SelectContent>
         </Select>
-        {isFiltered && (
+        {(isFiltered ||
+          filters.dateRangeType ||
+          filters.startDate ||
+          filters.endDate ||
+          filters.duration ||
+          filters.username) && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={handleFilterReset}
             className="h-8 px-2 lg:px-3"
           >
             Reset

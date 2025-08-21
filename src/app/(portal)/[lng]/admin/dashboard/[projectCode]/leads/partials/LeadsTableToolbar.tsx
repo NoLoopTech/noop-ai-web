@@ -70,6 +70,17 @@ export function DataTableToolbar<TData>({
     })
   )
 
+  const handleFilterReset = () => {
+    table.resetColumnFilters()
+    setFilters({
+      ...filters,
+      startDate: "",
+      endDate: "",
+      dateRangeType: "" as DateRangeType,
+      searchTerm: ""
+    })
+  }
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
@@ -85,25 +96,15 @@ export function DataTableToolbar<TData>({
 
         {/* Date Range Filter */}
         <Select
-          value={filters.dateRangeType || "reset"}
+          value={filters.dateRangeType || ""}
           onValueChange={val => {
-            if (val === "reset") {
-              setFilters({
-                ...filters,
-                dateRangeType: "" as DateRangeType,
-                startDate: "",
-                endDate: ""
-              })
-            } else {
-              handleDateRangeChange(val)
-            }
+            handleDateRangeChange(val)
           }}
         >
           <SelectTrigger className="h-8 w-[150px] lg:w-[200px]">
             <SelectValue placeholder="Date Range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="reset">Reset</SelectItem>
             {dateRangeOptions.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -113,7 +114,7 @@ export function DataTableToolbar<TData>({
         </Select>
 
         {/* Reset Date Range Button */}
-        {(filters.dateRangeType || filters.startDate || filters.endDate) && (
+        {/* {(filters.dateRangeType || filters.startDate || filters.endDate) && (
           <Button
             variant="outline"
             size="sm"
@@ -129,7 +130,7 @@ export function DataTableToolbar<TData>({
           >
             Reset Date Range
           </Button>
-        )}
+        )} */}
 
         {/* Score filter - updated labels without "Lead" and works like AI Score */}
         {table.getColumn("score") && (
@@ -153,10 +154,14 @@ export function DataTableToolbar<TData>({
           />
         )}
 
-        {isFiltered && (
+        {(isFiltered ||
+          filters.searchTerm ||
+          filters.dateRangeType ||
+          filters.startDate ||
+          filters.endDate) && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={handleFilterReset}
             className="h-8 px-2 lg:px-3"
           >
             Reset

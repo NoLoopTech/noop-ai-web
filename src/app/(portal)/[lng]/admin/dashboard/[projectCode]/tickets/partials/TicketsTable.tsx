@@ -58,7 +58,7 @@ export function TicketsTable({ columns }: Props) {
     searchTerm: "",
     startDate: "",
     endDate: "",
-    dateRangeType: "today"
+    dateRangeType: ""
   })
 
   // Debounce the search term for server-side filtering
@@ -99,19 +99,6 @@ export function TicketsTable({ columns }: Props) {
       method: ticket.method ?? "manual"
     }))
   }, [paginatedData])
-
-  // const combinedTickets = useMemo(() => {
-  //   const minLength = Math.min(tickets.length, data.length)
-  //   return Array.from({ length: minLength }, (_, i) => ({
-  //     id: tickets[i].id,
-  //     userName: tickets[i].userName,
-  //     email: tickets[i].email,
-  //     status: data[i]?.status || "open",
-  //     priority: data[i]?.priority || "medium",
-  //     type: data[i]?.type || "bug",
-  //     createdAt: tickets[i].createdAt
-  //   }))
-  // }, [tickets, data])
 
   const table = useReactTable({
     data: tickets,

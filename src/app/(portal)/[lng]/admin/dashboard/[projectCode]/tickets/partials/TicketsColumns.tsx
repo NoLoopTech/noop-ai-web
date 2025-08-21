@@ -14,6 +14,13 @@ import {
 } from "@/models/ticket/options"
 import { TicketsTableRowActions } from "./TicketsTableRowActions"
 import { TicketsRowInfoAction } from "./TicketsRowInfoAction"
+import CountryFlag from "react-country-flag"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip"
+import { getCountryName } from "@/utils"
 
 export const columns: ColumnDef<Ticket>[] = [
   {
@@ -84,9 +91,34 @@ export const columns: ColumnDef<Ticket>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Country" />
     ),
-    cell: ({ row }) => (
-      <div className="w-fit text-nowrap">{row.getValue("country")}</div>
-    ),
+    cell: ({ row }) => {
+      const value = row.getValue("country") as string | undefined
+      if (!value || value.toUpperCase() === "N/A") {
+        return <span>N/A</span>
+      }
+      const code = value.toUpperCase()
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-2">
+              <CountryFlag
+                countryCode={code}
+                svg
+                style={{ width: "1.6em", height: "1.5em" }}
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            sideOffset={-45}
+            side="right"
+            align="center"
+            className="text-tiny bg-background text-foreground capitalize shadow"
+          >
+            <span>{getCountryName(code)}</span>
+          </TooltipContent>
+        </Tooltip>
+      )
+    },
     meta: { label: "Country", className: "" }
   },
   {

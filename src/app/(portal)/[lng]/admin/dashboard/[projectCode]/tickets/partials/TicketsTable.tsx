@@ -31,6 +31,8 @@ import { PaginatedResult } from "@/types/paginatedData"
 import { Ticket } from "@/models/ticket/schema"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
+import { IconLoader2 } from "@tabler/icons-react"
+import { TicketsTableRowActions } from "./TicketsTableRowActions"
 
 interface Props {
   columns: ColumnDef<Ticket>[]
@@ -40,13 +42,14 @@ interface Props {
 export function TicketsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    country: false,
+    country: true,
     content: false
   })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [tableLoading, setTableLoading] = useState(false)
 
   // Server-side filters state
   const [filters, setFilters] = useState<{
@@ -64,26 +67,41 @@ export function TicketsTable({ columns }: Props) {
   // Debounce the search term for server-side filtering
   const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
 
+  const filterParams = useMemo(() => {
+    const params: Record<string, string> = {}
+
+    if (debouncedSearchTerm) params.searchTerm = debouncedSearchTerm
+    if (filters.startDate) params.startDate = filters.startDate
+    if (filters.endDate) params.endDate = filters.endDate
+
+    columnFilters.forEach(f => {
+      if (!f.value) return
+      if (f.id === "priority") params.priority = String(f.value)
+      if (f.id === "status") params.status = String(f.value)
+      if (f.id === "method") params.method = String(f.value)
+      if (f.id === "type") params.type = String(f.value)
+    })
+
+    return params
+  }, [columnFilters, debouncedSearchTerm, filters.startDate, filters.endDate])
+
   const projectId = useProjectCode()
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams({
+      projectId: String(projectId ?? 0),
+      page: String(currentPage),
+      limit: String(rowsPerPage),
+      ...filterParams
+    })
+    return `/tickets?${params.toString()}`
+  }, [projectId, currentPage, rowsPerPage, filterParams])
 
   const { data: paginatedData, isLoading: isTicketsLoading } = useApiQuery<
     PaginatedResult<Ticket>
   >(
-    [
-      "project-tickets",
-      projectId,
-      currentPage,
-      rowsPerPage,
-      debouncedSearchTerm,
-      filters.startDate,
-      filters.endDate
-    ],
-    `/tickets?projectId=${
-      projectId ?? 4
-    }&page=${currentPage}&limit=${rowsPerPage}` +
-      (debouncedSearchTerm ? `&searchTerm=${debouncedSearchTerm}` : "") +
-      (filters.startDate ? `&startDate=${filters.startDate}` : "") +
-      (filters.endDate ? `&endDate=${filters.endDate}` : ""),
+    ["project-tickets", projectId, currentPage, rowsPerPage, filterParams],
+    queryString,
     () => ({
       method: "get"
     })
@@ -146,7 +164,7 @@ export function TicketsTable({ columns }: Props) {
         filters={filters}
         setFilters={setFilters}
       />
-      <div className="rounded-md border">
+      <div className="relative rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
@@ -181,6 +199,11 @@ export function TicketsTable({ columns }: Props) {
                     <TableCell key={cell.id}>
                       {isTicketsLoading ? (
                         <div className="shine h-8 w-full rounded-lg"></div>
+                      ) : cell.column.id === "actions" ? (
+                        <TicketsTableRowActions
+                          row={row}
+                          setTableLoading={setTableLoading}
+                        />
                       ) : (
                         flexRender(
                           cell.column.columnDef.cell,
@@ -213,6 +236,11 @@ export function TicketsTable({ columns }: Props) {
             )}
           </TableBody>
         </Table>
+        {tableLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/2 backdrop-blur-sm">
+            <IconLoader2 className="text-primary h-12 w-12 animate-spin" />
+          </div>
+        )}
       </div>
       <DataTablePagination table={table} />
     </div>

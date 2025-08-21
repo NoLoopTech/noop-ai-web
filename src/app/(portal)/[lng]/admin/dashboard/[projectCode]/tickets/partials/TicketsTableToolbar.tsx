@@ -13,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-import { ticketStatus } from "@/models/ticket/options"
+import {
+  ticketMethod,
+  ticketStatus,
+  ticketTypes
+} from "@/models/ticket/options"
 import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
 
 interface TicketTableFilters {
@@ -142,6 +146,26 @@ export function DataTableToolbar<TData>({
               options={Object.entries(ticketStatus).map(([value, [label]]) => ({
                 label,
                 value
+              }))}
+            />
+          )}
+          {table.getColumn("method") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("method")}
+              title="Method"
+              options={ticketMethod.map(option => ({
+                label: option.label,
+                value: option.value
+              }))}
+            />
+          )}
+          {table.getColumn("type") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("type")}
+              title="Type"
+              options={ticketTypes.map(option => ({
+                label: option.label,
+                value: option.value
               }))}
             />
           )}

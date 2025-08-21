@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sheet"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  IconPencilMinus,
+  // IconPencilMinus,
   IconRectangleFilled,
   IconStopwatch
 } from "@tabler/icons-react"
@@ -43,6 +43,7 @@ import {
   TicketStatus,
   TicketType
 } from "@/models/ticket/enum"
+import CountryFlag from "react-country-flag"
 
 interface Props {
   open: boolean
@@ -213,10 +214,10 @@ export function TicketsRowInfoDrawer({
                       Ticket Information
                     </CardTitle>
                   </div>
-                  <Button variant="outline">
+                  {/* <Button variant="outline">
                     <IconPencilMinus size={16} />
                     Edit
-                  </Button>
+                  </Button> */}
                 </div>
               </CardHeader>
               <CardContent className="pb-2.5">
@@ -273,12 +274,14 @@ export function TicketsRowInfoDrawer({
                               <div className="flex items-center text-zinc-400 dark:border-zinc-800 dark:text-zinc-400">
                                 {currentRow?.country ? (
                                   <>
-                                    {/* <CountryFlag
-                countryCode={countryNameToCode(currentRow.country)}
-                svg
-                style={{ width: "1.5em", height: "1.5em" }}
-              /> */}
-                                    <IconRectangleFilled size={20} />
+                                    <CountryFlag
+                                      countryCode={currentRow.country}
+                                      svg
+                                      style={{
+                                        width: "1.5em",
+                                        height: "1.5em"
+                                      }}
+                                    />
                                   </>
                                 ) : (
                                   <>

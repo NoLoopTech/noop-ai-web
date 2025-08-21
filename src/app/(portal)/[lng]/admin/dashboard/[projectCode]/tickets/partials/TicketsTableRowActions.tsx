@@ -22,15 +22,73 @@ import { Ticket } from "@/models/ticket/schema"
 import { TicketsRowInfoDrawer } from "./TicketsRowInfoDrawer"
 import { TicketStatus } from "@/models/ticket/enum"
 import { ticketStatus } from "@/models/ticket/options"
+import { useApiMutation } from "@/query/hooks/useApiMutation"
+import { useQueryClient } from "@tanstack/react-query"
+import { useToast } from "@/lib/hooks/useToast"
+import { useEffect } from "react"
 
 interface Props {
   row: Row<Ticket>
+  setTableLoading?: (loading: boolean) => void
 }
 
-export function TicketsTableRowActions({ row }: Props) {
+export function TicketsTableRowActions({ row, setTableLoading }: Props) {
   const ticket = row.original
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
+
+  const queryClient = useQueryClient()
+  const updateStatusMutation = useApiMutation(`/tickets/updateStatus`, "post", {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project-tickets"] })
+    }
+  })
+
+  const handleStatusChange = (newStatus: string) => {
+    updateStatusMutation.mutate({
+      ticketId: ticket.id,
+      status: newStatus
+    })
+  }
+
+  const { toast } = useToast()
+  const deleteTicketMutation = useApiMutation(`/tickets/ticket`, "delete", {
+    onSuccess: () => {
+      toast({
+        title: "Ticket deleted",
+        description: "The ticket was deleted successfully."
+      })
+      queryClient.invalidateQueries({ queryKey: ["project-tickets"] })
+    },
+    onError: error => {
+      const errorMessage =
+        (error as { message?: string })?.message ||
+        "Failed to delete ticket. Please try again."
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  })
+
+  const handleDelete = () => {
+    deleteTicketMutation.mutate({
+      ticketId: ticket.id
+    })
+  }
+
+  useEffect(() => {
+    if (setTableLoading) {
+      setTableLoading(
+        updateStatusMutation.isPending || deleteTicketMutation.isPending
+      )
+    }
+  }, [
+    updateStatusMutation.isPending,
+    deleteTicketMutation.isPending,
+    setTableLoading
+  ])
 
   return (
     <>
@@ -56,7 +114,10 @@ export function TicketsTableRowActions({ row }: Props) {
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Change Status</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={ticket.status}>
+                <DropdownMenuRadioGroup
+                  value={ticket.status}
+                  onValueChange={handleStatusChange}
+                >
                   {Object.values(TicketStatus).map(status => (
                     <DropdownMenuRadioItem key={status} value={status}>
                       {ticketStatus[status][0]}
@@ -88,7 +149,7 @@ export function TicketsTableRowActions({ row }: Props) {
               </DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete}>
               Delete
               <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
             </DropdownMenuItem>

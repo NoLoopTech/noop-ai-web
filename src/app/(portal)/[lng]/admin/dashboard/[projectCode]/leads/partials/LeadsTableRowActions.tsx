@@ -26,12 +26,14 @@ import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { LeadStatusEnum } from "@/models/lead"
 import { useToast } from "@/lib/hooks/useToast"
+import { useEffect } from "react"
 
 interface Props {
   row: Row<Lead>
+  setTableLoading?: (loading: boolean) => void
 }
 
-export function LeadsTableRowActions({ row }: Props) {
+export function LeadsTableRowActions({ row, setTableLoading }: Props) {
   const lead = row.original
   const queryClient = useQueryClient()
   const projectId = useProjectCode()
@@ -78,6 +80,18 @@ export function LeadsTableRowActions({ row }: Props) {
       projectId
     })
   }
+
+  useEffect(() => {
+    if (setTableLoading) {
+      setTableLoading(
+        updateStatusMutation.isPending || deleteLeadMutation.isPending
+      )
+    }
+  }, [
+    updateStatusMutation.isPending,
+    deleteLeadMutation.isPending,
+    setTableLoading
+  ])
 
   return (
     <>

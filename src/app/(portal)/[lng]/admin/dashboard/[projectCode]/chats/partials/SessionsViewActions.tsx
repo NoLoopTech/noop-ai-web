@@ -19,6 +19,7 @@ export function SessionsViewActions({ row }: SessionsViewActionsProps) {
   return (
     <div className="flex items-center gap-1">
       <Link
+        prefetch={false}
         href={`${currentUrl}${row.original.id}`}
         className="hover:text-primary w-[80px] font-semibold underline"
       >

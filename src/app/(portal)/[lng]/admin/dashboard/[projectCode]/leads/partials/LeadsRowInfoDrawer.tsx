@@ -30,7 +30,7 @@ import {
   CardTitle
 } from "@/components/ui/card"
 import { format } from "date-fns"
-import { IconCircleDashed, IconPencilMinus } from "@tabler/icons-react"
+import { IconCircleDashed } from "@tabler/icons-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"
@@ -145,10 +145,7 @@ export function LeadsRowInfoDrawer({ open, onOpenChange, currentRow }: Props) {
                       See basic leads information
                     </CardDescription>
                   </div>
-                  <Button variant="outline">
-                    <IconPencilMinus size={16} />
-                    Edit
-                  </Button>
+                  {/* <Button variant="outline">Edit</Button> */}
                 </div>
               </CardHeader>
               <CardContent className="pb-2.5">

@@ -33,6 +33,8 @@ import { useToast } from "@/lib/hooks/useToast"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { useSession } from "next-auth/react"
+import { IconLoader2 } from "@tabler/icons-react"
+import { LeadsTableRowActions } from "./LeadsTableRowActions"
 
 interface Props {
   columns: ColumnDef<Lead>[]
@@ -45,6 +47,7 @@ export function LeadsTable({ columns }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [tableLoading, setTableLoading] = useState(false)
 
   // Server-side filters state (minimal addition)
   const [filters, setFilters] = useState<{
@@ -225,7 +228,7 @@ export function LeadsTable({ columns }: Props) {
         filters={filters}
         setFilters={setFilters}
       />
-      <div className="rounded-md border">
+      <div className="relative rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
@@ -260,6 +263,11 @@ export function LeadsTable({ columns }: Props) {
                     <TableCell key={cell.id}>
                       {isLeadsLoading ? (
                         <div className="shine h-8 w-full rounded-lg"></div>
+                      ) : cell.column.id === "actions" ? (
+                        <LeadsTableRowActions
+                          row={row}
+                          setTableLoading={setTableLoading}
+                        />
                       ) : (
                         flexRender(
                           cell.column.columnDef.cell,
@@ -292,6 +300,11 @@ export function LeadsTable({ columns }: Props) {
             )}
           </TableBody>
         </Table>
+        {tableLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/2 backdrop-blur-sm">
+            <IconLoader2 className="text-primary h-12 w-12 animate-spin" />
+          </div>
+        )}
       </div>
       <DataTablePagination table={table} />
     </div>

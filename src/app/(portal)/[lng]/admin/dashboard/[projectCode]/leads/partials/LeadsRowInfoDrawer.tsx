@@ -30,7 +30,7 @@ import {
   CardTitle
 } from "@/components/ui/card"
 import { format } from "date-fns"
-import { IconCircleDashed } from "@tabler/icons-react"
+import { IconCircleDashed, IconPencilMinus } from "@tabler/icons-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"
@@ -56,9 +56,7 @@ const formSchema = z.object({
 })
 type LeadForm = z.infer<typeof formSchema>
 
-export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
-  const isUpdate = !!currentRow
-
+export function LeadsRowInfoDrawer({ open, onOpenChange, currentRow }: Props) {
   const form = useForm<LeadForm>({
     resolver: zodResolver(formSchema),
     defaultValues: currentRow
@@ -108,7 +106,7 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
   const handleViewTranscript = () => {
     if (currentRow?.threadId) {
       router.push(
-        `/admin/dashboard/${projectCode}/chats/${currentRow.threadId}`
+        `/admin/dashboard/${projectCode}/leads/${currentRow.threadId}`
       )
     }
   }
@@ -130,13 +128,8 @@ export function TasksMutateDrawer({ open, onOpenChange, currentRow }: Props) {
     >
       <SheetContent className="flex min-w-3xl flex-col">
         <SheetHeader>
-          <SheetTitle>{isUpdate ? "Update" : "Create"} Task</SheetTitle>
-          <SheetDescription>
-            {isUpdate
-              ? "Update the task by providing necessary info."
-              : "Add a new task by providing necessary info."}
-            Click save when you&apos;re done.
-          </SheetDescription>
+          <SheetTitle>Leads Details</SheetTitle>
+          <SheetDescription>Lead details and Chats</SheetDescription>
         </SheetHeader>
 
         <ScrollArea scrollbarVariant="tiny">

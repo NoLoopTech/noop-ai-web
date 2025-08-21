@@ -1,12 +1,7 @@
 import { columns } from "./partials/TicketsColumns"
-import { ticketListSchema } from "./data/schema"
-import { getTickets } from "./data/ticket"
 import { TicketsTable } from "./partials/TicketsTable"
 
 export default function TicketsPage() {
-  const tickets = getTickets()
-  const ticketList = ticketListSchema.parse(tickets)
-
   return (
     <>
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -15,7 +10,7 @@ export default function TicketsPage() {
         </div>
       </div>
       <div className="flex-1">
-        <TicketsTable data={ticketList} columns={columns} />
+        <TicketsTable columns={columns} />
       </div>
     </>
   )

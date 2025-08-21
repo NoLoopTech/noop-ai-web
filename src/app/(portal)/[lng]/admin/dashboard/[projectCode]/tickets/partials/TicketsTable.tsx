@@ -28,18 +28,21 @@ import { DataTableToolbar } from "./TicketsTableToolbar"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
-import { Ticket } from "../data/schema"
+import { Ticket } from "@/models/ticket/schema"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 
 interface Props {
   columns: ColumnDef<Ticket>[]
-  data: Ticket[]
+  // data: Ticket[]
 }
 
-export function TicketsTable({ columns, data }: Props) {
+export function TicketsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    country: false,
+    content: false
+  })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -55,7 +58,7 @@ export function TicketsTable({ columns, data }: Props) {
     searchTerm: "",
     startDate: "",
     endDate: "",
-    dateRangeType: "today"
+    dateRangeType: ""
   })
 
   // Debounce the search term for server-side filtering
@@ -88,24 +91,17 @@ export function TicketsTable({ columns, data }: Props) {
 
   const tickets = useMemo((): Ticket[] => {
     if (!paginatedData?.data) return []
-    return paginatedData.data
+    return paginatedData.data.map(ticket => ({
+      ...ticket,
+      status: ticket.status ?? "active",
+      priority: ticket.priority ?? "medium",
+      type: ticket.type ?? "information-request",
+      method: ticket.method ?? "manual"
+    }))
   }, [paginatedData])
 
-  const combinedTickets = useMemo(() => {
-    const minLength = Math.min(tickets.length, data.length)
-    return Array.from({ length: minLength }, (_, i) => ({
-      id: tickets[i].id,
-      userName: tickets[i].userName,
-      email: tickets[i].email,
-      status: data[i]?.status || "open",
-      priority: data[i]?.priority || "medium",
-      type: data[i]?.type || "bug",
-      createdAt: tickets[i].createdAt
-    }))
-  }, [tickets, data])
-
   const table = useReactTable({
-    data: combinedTickets,
+    data: tickets,
     columns,
     state: {
       sorting,

@@ -18,8 +18,10 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { IconBook, IconPlus } from "@tabler/icons-react"
-import { Ticket } from "../data/schema"
-import { TicketsMutateDrawer } from "./TicketsMutateDrawer"
+import { Ticket } from "@/models/ticket/schema"
+import { TicketsRowInfoDrawer } from "./TicketsRowInfoDrawer"
+import { TicketStatus } from "@/models/ticket/enum"
+import { ticketStatus } from "@/models/ticket/options"
 
 interface Props {
   row: Row<Ticket>
@@ -55,15 +57,11 @@ export function TicketsTableRowActions({ row }: Props) {
               <DropdownMenuSubTrigger>Change Status</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuRadioGroup value={ticket.status}>
-                  <DropdownMenuRadioItem value={"new"}>
-                    New
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"Contacted"}>
-                    Contacted
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={"Closed"}>
-                    Closed
-                  </DropdownMenuRadioItem>
+                  {Object.values(TicketStatus).map(status => (
+                    <DropdownMenuRadioItem key={status} value={status}>
+                      {ticketStatus[status][0]}
+                    </DropdownMenuRadioItem>
+                  ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
@@ -98,7 +96,7 @@ export function TicketsTableRowActions({ row }: Props) {
         </DropdownMenu>
       </div>
 
-      <TicketsMutateDrawer
+      <TicketsRowInfoDrawer
         key="ticket-update"
         open={open === "edit"}
         onOpenChange={() => setOpen("edit")}

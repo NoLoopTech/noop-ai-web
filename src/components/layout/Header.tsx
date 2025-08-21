@@ -26,35 +26,31 @@ export function Header() {
   const basePath = "/" + segments.slice(0, projectCodeIdx + 1).join("/")
 
   const specialCases: Record<string, string> = {
-    "chats/[id]": "Chat Room"
+    chats: "Chats",
+    "chats/[id]": "Chat Room",
+    leads: "Leads",
+    "leads/[id]": "Transcript",
+    tickets: "Tickets",
+    "tickets/[id]": "Transcript"
   }
 
   const capitalize = (str: string) =>
     str.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
 
-  let breadcrumbs: { label: string; href?: string }[] = []
+  const breadcrumbs = afterProject.map((seg, idx) => {
+    const currentPath = afterProject.slice(0, idx + 1)
+    const isLast = idx === afterProject.length - 1
 
-  if (afterProject.length === 0) {
-    breadcrumbs = []
-  } else if (afterProject[0] === "chats" && afterProject.length === 2) {
-    breadcrumbs = [
-      {
-        label: specialCases["chats"] || capitalize("chats"),
-        href: `${basePath}/chats`
-      },
-      {
-        label: specialCases["chats/[id]"] || "Chat Room"
-      }
-    ]
-  } else {
-    breadcrumbs = afterProject.map((seg, idx) => ({
-      label: capitalize(seg),
-      href:
-        idx < afterProject.length - 1
-          ? basePath + "/" + afterProject.slice(0, idx + 1).join("/")
-          : undefined
-    }))
-  }
+    const pathPattern =
+      isLast && idx > 0
+        ? `${afterProject[idx - 1]}/[id]`
+        : currentPath.join("/")
+
+    const label = specialCases[pathPattern] || capitalize(seg)
+    const href = isLast ? undefined : `${basePath}/${currentPath.join("/")}`
+
+    return { label, href }
+  })
 
   return (
     <header

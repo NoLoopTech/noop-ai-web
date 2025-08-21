@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-import { ticketStatus } from "../data/data"
+import { ticketStatus } from "@/models/ticket/options"
 import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
 
 interface TicketTableFilters {
@@ -139,12 +139,10 @@ export function DataTableToolbar<TData>({
             <DataTableFacetedFilter
               column={table.getColumn("status")}
               title="Status"
-              options={Array.from(ticketStatus.entries()).map(
-                ([value, [label]]) => ({
-                  label,
-                  value
-                })
-              )}
+              options={Object.entries(ticketStatus).map(([value, [label]]) => ({
+                label,
+                value
+              }))}
             />
           )}
         </div>

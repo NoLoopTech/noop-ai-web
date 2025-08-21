@@ -59,7 +59,7 @@ export function LeadsTable({ columns }: Props) {
     searchTerm: "",
     startDate: "",
     endDate: "",
-    dateRangeType: "today"
+    dateRangeType: ""
   })
 
   // Debounce the search term for server-side filtering

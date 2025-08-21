@@ -3,7 +3,7 @@
 import { Row } from "@tanstack/react-table"
 import useDialogState from "@/lib/hooks/useDialogState"
 import { Button } from "@/components/ui/button"
-import { TasksMutateDrawer } from "./LeadsMutateDrawer"
+import { LeadsRowInfoDrawer } from "./LeadsRowInfoDrawer"
 import { Lead } from "../data/schema"
 import LongText from "@/components/LongText"
 
@@ -28,7 +28,7 @@ export function LeadsRowInfoAction({ row }: Props) {
         </Button>
       </div>
 
-      <TasksMutateDrawer
+      <LeadsRowInfoDrawer
         key="task-update"
         open={open === "edit"}
         onOpenChange={() => setOpen("edit")}

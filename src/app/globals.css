@@ -150,7 +150,7 @@
   --color-chip-default-gray: hsla(240, 4%, 46%, 1);
 
   /* Badge group */
-  --color-badge-shadow: box-shadow: 0px 0px 8px 1px hsla(0, 0%, 0%, 0.15);
+  --shadow-badge-shadow: 0px 0px 8px 1px hsla(0, 0%, 0%, 0.15);
   --color-badge-foreground: hsla(240, 5%, 96%, 1);
   --color-badge-positive-background: hsla(184, 100%, 41%, 0.8);
   --color-badge-positive-border: hsla(184, 100%, 41%, 1);

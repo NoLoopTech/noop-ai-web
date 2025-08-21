@@ -17,7 +17,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { TasksMutateDrawer } from "./LeadsMutateDrawer"
+import { LeadsRowInfoDrawer } from "./LeadsRowInfoDrawer"
 import { Lead } from "../data/schema"
 // import { IconBook, IconPlus } from "@tabler/icons-react"
 import { IconBook } from "@tabler/icons-react"
@@ -160,7 +160,7 @@ export function LeadsTableRowActions({ row, setTableLoading }: Props) {
         </DropdownMenu>
       </div>
 
-      <TasksMutateDrawer
+      <LeadsRowInfoDrawer
         key="task-update"
         open={open === "edit"}
         onOpenChange={() => setOpen("edit")}

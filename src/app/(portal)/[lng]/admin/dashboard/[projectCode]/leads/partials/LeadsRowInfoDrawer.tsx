@@ -30,7 +30,7 @@ import {
   CardTitle
 } from "@/components/ui/card"
 import { format } from "date-fns"
-import { IconCircleDashed, IconPencilMinus } from "@tabler/icons-react"
+import { IconCircleDashed } from "@tabler/icons-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useRouter } from "next/navigation"

@@ -41,7 +41,7 @@ export function DataTableRowActions({ row, setTableLoading }: Props) {
         description: "The chat was deleted successfully."
       })
       queryClient.invalidateQueries({
-        queryKey: ["project-chats", projectId]
+        queryKey: ["chat-sessions", projectId]
       })
     },
     onError: error => {

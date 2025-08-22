@@ -263,7 +263,7 @@ export function SessionsTable({ columns }: Props) {
         filters={filters}
         setFilters={setFilters}
       />
-      <div className="rounded-md border">
+      <div className="relative rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (

@@ -13,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-import { ticketStatus } from "@/models/ticket/options"
+import {
+  ticketStatus,
+  ticketTypes,
+  ticketPriority
+} from "@/models/ticket/options"
 import { dateRangeOptions, type DateRangeType } from "@/models/filterOptions"
 
 interface TicketTableFilters {
@@ -128,11 +132,10 @@ export function DataTableToolbar<TData>({
             <DataTableFacetedFilter
               column={table.getColumn("priority")}
               title="Priority"
-              options={[
-                { label: "Low", value: "low" },
-                { label: "Medium", value: "medium" },
-                { label: "High", value: "high" }
-              ]}
+              options={ticketPriority.map(option => ({
+                label: option.label,
+                value: option.value
+              }))}
             />
           )}
           {table.getColumn("status") && (
@@ -142,6 +145,26 @@ export function DataTableToolbar<TData>({
               options={Object.entries(ticketStatus).map(([value, [label]]) => ({
                 label,
                 value
+              }))}
+            />
+          )}
+          {table.getColumn("method") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("method")}
+              title="Method"
+              options={[
+                { label: "Manual", value: "manual" },
+                { label: "Automated", value: "automated" }
+              ]}
+            />
+          )}
+          {table.getColumn("type") && (
+            <DataTableFacetedFilter
+              column={table.getColumn("type")}
+              title="Type"
+              options={ticketTypes.map(option => ({
+                label: option.label,
+                value: option.value
               }))}
             />
           )}

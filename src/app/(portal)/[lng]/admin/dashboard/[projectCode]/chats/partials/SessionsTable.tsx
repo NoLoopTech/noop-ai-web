@@ -34,6 +34,8 @@ import { AiScore, Session } from "../data/schema"
 import { format } from "date-fns"
 import { useToast } from "@/lib/hooks/useToast"
 import { useSession } from "next-auth/react"
+import { DataTableRowActions } from "./SessionsTableRowActions"
+import { IconLoader2 } from "@tabler/icons-react"
 
 interface Props {
   columns: ColumnDef<Session>[]
@@ -47,6 +49,7 @@ export function SessionsTable({ columns }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [tableLoading, setTableLoading] = useState(false)
 
   const [filters, setFilters] = useState<{
     username: string
@@ -207,7 +210,8 @@ export function SessionsTable({ columns }: Props) {
       dateTime: format(session.session.createdAt, "MMM d, yyyy  h:mm a"),
       userName: session.session.userName ?? "Guest User",
       email: session.session.email ?? "Not Provided",
-      intent: session.session.intent ?? "Not Determined"
+      intent: session.session.intent ?? "Not Determined",
+      threadId: session.session.threadId
     }))
   }, [paginatedData])
 
@@ -259,7 +263,7 @@ export function SessionsTable({ columns }: Props) {
         filters={filters}
         setFilters={setFilters}
       />
-      <div className="rounded-md border">
+      <div className="relative rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
@@ -292,9 +296,18 @@ export function SessionsTable({ columns }: Props) {
                 >
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+                      {isChatsLoading ? (
+                        <div className="shine h-8 w-full rounded-lg"></div>
+                      ) : cell.column.id === "actions" ? (
+                        <DataTableRowActions
+                          row={row}
+                          setTableLoading={setTableLoading}
+                        />
+                      ) : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
                       )}
                     </TableCell>
                   ))}
@@ -322,6 +335,11 @@ export function SessionsTable({ columns }: Props) {
             )}
           </TableBody>
         </Table>
+        {tableLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/2 backdrop-blur-sm">
+            <IconLoader2 className="text-primary h-12 w-12 animate-spin" />
+          </div>
+        )}
       </div>
       <DataTablePagination table={table} />
     </div>

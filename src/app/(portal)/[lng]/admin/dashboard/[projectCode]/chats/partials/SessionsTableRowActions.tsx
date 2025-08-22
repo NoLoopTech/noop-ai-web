@@ -1,7 +1,7 @@
 "use client"
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons"
-// import { Row } from "@tanstack/react-table"
+import { Row } from "@tanstack/react-table"
 import { Edit2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,16 +13,61 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import useDialogState from "@/lib/hooks/useDialogState"
-// import { Session, sessionSchema } from "../data/schema"
+import { useApiMutation } from "@/query"
+import { useToast } from "@/lib/hooks/useToast"
+import { useQueryClient } from "@tanstack/react-query"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { Session } from "../data/schema"
+import { useEffect } from "react"
 
-// interface Props {
-//   row: Row<Session>
-// }
+interface Props {
+  row: Row<Session>
+  setTableLoading?: (loading: boolean) => void
+}
 
 // export function DataTableRowActions({ row }: Props) {
 // const session = sessionSchema.parse(row.original)
-export function DataTableRowActions() {
+export function DataTableRowActions({ row, setTableLoading }: Props) {
   const [_open, setOpen] = useDialogState<"edit" | "detail">(null)
+  const session = row.original
+  const queryClient = useQueryClient()
+  const projectId = useProjectCode()
+
+  const { toast } = useToast()
+  const deleteChatMutation = useApiMutation(`/conversations/chat`, "delete", {
+    onSuccess: () => {
+      toast({
+        title: "Chat deleted",
+        description: "The chat was deleted successfully."
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["chat-sessions", projectId]
+      })
+    },
+    onError: error => {
+      const errorMessage =
+        (error as { message?: string })?.message ||
+        "Failed to delete chat. Please try again."
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    }
+  })
+
+  // If your mutation expects an object:
+  const handleDelete = () => {
+    deleteChatMutation.mutate({
+      threadId: session.threadId,
+      projectId: projectId
+    })
+  }
+  useEffect(() => {
+    if (setTableLoading) {
+      setTableLoading(deleteChatMutation.isPending)
+    }
+  }, [deleteChatMutation.isPending, setTableLoading])
 
   return (
     <>
@@ -68,7 +113,7 @@ export function DataTableRowActions() {
               </DropdownMenuSubContent>
             </DropdownMenuSub> */}
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDelete}>
               Delete
               <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
             </DropdownMenuItem>

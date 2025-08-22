@@ -14,7 +14,6 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import {
-  ticketMethod,
   ticketStatus,
   ticketTypes,
   ticketPriority
@@ -153,10 +152,10 @@ export function DataTableToolbar<TData>({
             <DataTableFacetedFilter
               column={table.getColumn("method")}
               title="Method"
-              options={ticketMethod.map(option => ({
-                label: option.label,
-                value: option.value
-              }))}
+              options={[
+                { label: "Manual", value: "manual" },
+                { label: "Automated", value: "automated" }
+              ]}
             />
           )}
           {table.getColumn("type") && (

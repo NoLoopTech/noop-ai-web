@@ -76,10 +76,13 @@ export function TicketsTable({ columns }: Props) {
 
     columnFilters.forEach(f => {
       if (!f.value) return
-      if (f.id === "priority") params.priority = String(f.value)
-      if (f.id === "status") params.status = String(f.value)
-      if (f.id === "method") params.method = String(f.value)
-      if (f.id === "type") params.type = String(f.value)
+      columnFilters.forEach(f => {
+        if (!f.value) return
+        if (f.id === "priority") params.priority = String(f.value)
+        if (f.id === "status") params.status = String(f.value)
+        if (f.id === "method") params.method = String(f.value)
+        if (f.id === "type") params.type = String(f.value)
+      })
     })
 
     return params

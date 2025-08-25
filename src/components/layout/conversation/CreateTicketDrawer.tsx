@@ -66,8 +66,6 @@ export default function CreateTicketDrawer({
   email,
   phone
 }: CreateTicketDrawerProps) {
-  // eslint-disable-next-line no-console
-  console.log(" props ", { open, onOpenChange, threadId, name, email, phone })
   const form = useForm<CreateTicketInput>({
     resolver: zodResolver(createTicketSchema),
     defaultValues: {
@@ -327,7 +325,9 @@ export default function CreateTicketDrawer({
                   variant="default"
                   disabled={createTicketMutation.isPending}
                 >
-                  Create Ticket
+                  {createTicketMutation.isPending
+                    ? "Creating..."
+                    : "Create Ticket"}
                 </Button>
               </div>
             </form>

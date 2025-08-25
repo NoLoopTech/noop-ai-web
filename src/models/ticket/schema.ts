@@ -37,3 +37,33 @@ const _ticketSchema = z.object({
   deletedAt: z.coerce.date().optional()
 })
 export type Ticket = z.infer<typeof _ticketSchema>
+
+export const createTicketSchema = z.object({
+  threadId: z.string().min(1, "Thread ID is required"),
+  userName: z.string().min(1, "Ticket name is required"),
+  email: z.string().email("Invalid email address"),
+  priority: z
+    .preprocess(
+      val => (val === "" ? undefined : val),
+      ticketPrioritySchema.optional()
+    )
+    .refine(val => !!val, {
+      message: "Choose from the dropdown"
+    }),
+  type: z
+    .preprocess(
+      val => (val === "" ? undefined : val),
+      ticketTypesSchema.optional()
+    )
+    .refine(val => !!val, {
+      message: "Choose from the dropdown"
+    }),
+  content: z.string().min(1, "Description is required"),
+  subject: z.string().min(1, "Subject is required"),
+  phoneNumber: z
+    .string()
+    .min(7, "Phone number must be at least 7 digits")
+    .max(12, "Phone number must be at most 12 digits")
+    .regex(/^[0-9]+$/, "Phone number must contain only digits")
+})
+export type CreateTicketInput = z.infer<typeof createTicketSchema>

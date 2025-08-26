@@ -86,8 +86,8 @@ function StatsCard({
   range
 }: Dashboard2Stats) {
   const chartConfig = {
-    month: {
-      label: "month",
+    day: {
+      label: "day",
       color: strokeColor
     }
   } satisfies ChartConfig

@@ -4,8 +4,8 @@ import {
   IconGift,
   IconMenuOrder,
   IconProps,
-  // IconSubscript,
-  IconMessages
+  IconMessages,
+  IconSubscript
 } from "@tabler/icons-react"
 import { useApiQuery } from "@/query"
 
@@ -60,65 +60,65 @@ export function useDashboard2Stats(
   }
 }
 
-// export const dashboard2Stats: Dashboard2Stats[] = [
-//   {
-//     label: "Total Conversations",
-//     description: "Total number of conversations",
-//     stats: 4682,
-//     type: "up",
-//     percentage: 15.54,
-//     chartData: [
-//       { month: "Monday", value: 200 },
-//       { month: "Tuesday", value: 305 },
-//       { month: "Webnesday", value: 237 },
-//       { month: "Thursday", value: 73 },
-//       { month: "Friday", value: 209 },
-//       { month: "Saturday", value: 10 },
-//       { month: "Sunday", value: 214 }
-//     ],
-//     strokeColor: "var(--chart-1)",
-//     icon: IconSubscript,
-//     range: "7"
-//   },
-//   {
-//     label: "New Orders",
-//     description: "Total number of new orders",
-//     stats: 1226,
-//     type: "down",
-//     percentage: 40.2,
-//     chartData: [
-//       { month: "Monday", value: 186 },
-//       { month: "Tuesday", value: 305 },
-//       { month: "Webnesday", value: 237 },
-//       { month: "Thursday", value: 73 },
-//       { month: "Friday", value: 209 },
-//       { month: "Saturday", value: 214 },
-//       { month: "Sunday", value: 214 }
-//     ],
-//     strokeColor: "var(--chart-2)",
-//     icon: IconMenuOrder,
-//     range: "7"
-//   },
-//   {
-//     label: "Avg Order Revenue",
-//     description: "Average order of revenue",
-//     stats: 1080,
-//     type: "up",
-//     percentage: 10.8,
-//     chartData: [
-//       { month: "Monday", value: 50 },
-//       { month: "Tuesday", value: 125 },
-//       { month: "Webnesday", value: 240 },
-//       { month: "Thursday", value: 93 },
-//       { month: "Friday", value: 209 },
-//       { month: "Saturday", value: 150 },
-//       { month: "Sunday", value: 300 }
-//     ],
-//     strokeColor: "#6366f1",
-//     icon: IconGift,
-//     range: "7"
-//   }
-// ]
+export const dummyStats: Dashboard2Stats[] = [
+  {
+    label: "Total Conversations",
+    description: "Total number of conversations",
+    stats: 4682,
+    type: "up",
+    percentage: 15.54,
+    chartData: [
+      { month: "Monday", value: 200 },
+      { month: "Tuesday", value: 305 },
+      { month: "Webnesday", value: 237 },
+      { month: "Thursday", value: 73 },
+      { month: "Friday", value: 209 },
+      { month: "Saturday", value: 10 },
+      { month: "Sunday", value: 214 }
+    ],
+    strokeColor: "var(--chart-1)",
+    icon: IconSubscript,
+    range: "7"
+  },
+  {
+    label: "New Orders",
+    description: "Total number of new orders",
+    stats: 1226,
+    type: "down",
+    percentage: 40.2,
+    chartData: [
+      { month: "Monday", value: 186 },
+      { month: "Tuesday", value: 305 },
+      { month: "Webnesday", value: 237 },
+      { month: "Thursday", value: 73 },
+      { month: "Friday", value: 209 },
+      { month: "Saturday", value: 214 },
+      { month: "Sunday", value: 214 }
+    ],
+    strokeColor: "var(--chart-2)",
+    icon: IconMenuOrder,
+    range: "7"
+  },
+  {
+    label: "Avg Order Revenue",
+    description: "Average order of revenue",
+    stats: 1080,
+    type: "up",
+    percentage: 10.8,
+    chartData: [
+      { month: "Monday", value: 50 },
+      { month: "Tuesday", value: 125 },
+      { month: "Webnesday", value: 240 },
+      { month: "Thursday", value: 93 },
+      { month: "Friday", value: 209 },
+      { month: "Saturday", value: 150 },
+      { month: "Sunday", value: 300 }
+    ],
+    strokeColor: "#6366f1",
+    icon: IconGift,
+    range: "7"
+  }
+]
 
 export type Dashboard2Stats = {
   label: string

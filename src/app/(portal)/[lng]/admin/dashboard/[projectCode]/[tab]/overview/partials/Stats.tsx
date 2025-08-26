@@ -15,13 +15,8 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import {
-  Dashboard2Stats,
-  // dashboard2Stats,
-  useDashboard2Stats
-} from "../data/data"
+import { Dashboard2Stats, dummyStats, useDashboard2Stats } from "../data/data"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { Skeleton } from "@/components/ui/skeleton"
 import { DashboardRange } from "@/models/dashboard"
 
 interface StatsProps {
@@ -43,30 +38,31 @@ function getSinceLabel(range: string) {
   }
 }
 export default function Stats({ range }: StatsProps) {
-  const projectIdRaw = useProjectCode()
-  const projectId = typeof projectIdRaw === "number" ? projectIdRaw : undefined
-  const queryEnabled = typeof projectId === "number"
+  const projectId = useProjectCode() ?? 0
 
   const {
     data: dashboard2Stats,
     isLoading,
     error
-  } = useDashboard2Stats(projectId ?? 0, {
-    enabled: queryEnabled,
-    range
-  })
+  } = useDashboard2Stats(projectId, { range })
 
-  if (!queryEnabled) return <div>No project selected.</div>
+  if (!projectId) return <div>No project selected.</div>
   if (isLoading) {
     return (
-      <div className="grid auto-rows-auto grid-cols-3 gap-5 md:grid-cols-6 lg:grid-cols-9">
-        {[...Array(3)].map((_, i) => (
-          <StatsCardSkeleton key={i} />
+      <>
+        {dummyStats.map((stats, i) => (
+          <StatsCard
+            key={i}
+            {...stats}
+            label="Loading..."
+            stats={0}
+            percentage={0}
+            description="Loading..."
+          />
         ))}
-      </div>
+      </>
     )
   }
-
   if (error) return <div>Error loading stats</div>
   if (!dashboard2Stats) return null
   return (
@@ -75,31 +71,6 @@ export default function Stats({ range }: StatsProps) {
         <StatsCard key={stats.label} {...stats} range={range} />
       ))}
     </>
-  )
-}
-
-function StatsCardSkeleton() {
-  return (
-    <Card className="col-span-3 h-full lg:col-span-2 xl:col-span-2">
-      {/* Header skeleton */}
-      <div className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
-        <Skeleton className="h-4 w-24 rounded-sm" /> {/* Title */}
-        <Skeleton className="h-4 w-4 rounded-full" /> {/* Icon */}
-      </div>
-
-      {/* Content skeleton */}
-      <div className="flex h-[calc(100%_-_48px)] flex-col justify-between gap-4 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-7 w-16 rounded-sm" /> {/* Number */}
-          <Skeleton className="h-12 w-[70px] rounded-sm" /> {/* Chart */}
-        </div>
-        <Skeleton className="h-3 w-24 rounded-sm" /> {/* Since last... */}
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-3 w-20 rounded-sm" /> {/* Comparison */}
-          <Skeleton className="h-3 w-12 rounded-sm" /> {/* % */}
-        </div>
-      </div>
-    </Card>
   )
 }
 

@@ -40,6 +40,10 @@ export default function ChatInfo(): JSX.Element {
     })
   )
 
+  function handleDrawerShown() {
+    setDrawerOpen(true)
+  }
+
   return (
     <ScrollArea
       orientation="vertical"
@@ -78,7 +82,7 @@ export default function ChatInfo(): JSX.Element {
         <Button
           variant="default"
           className="w-full"
-          onClick={() => setDrawerOpen(true)}
+          onClick={handleDrawerShown}
         >
           Create Ticket
         </Button>

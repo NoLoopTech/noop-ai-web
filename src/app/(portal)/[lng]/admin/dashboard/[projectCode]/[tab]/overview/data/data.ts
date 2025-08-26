@@ -8,6 +8,7 @@ import {
   IconSubscript
 } from "@tabler/icons-react"
 import { useApiQuery } from "@/query"
+import { DashboardRange } from "@/models/dashboard"
 
 const iconMap: Record<
   string,
@@ -45,7 +46,7 @@ export function useDashboard2Stats(
 ) {
   const query = useApiQuery<Dashboard2Stats[]>(
     ["dashboard-stats", projectId, options?.range],
-    `/dashboard/overview/${projectId}/stats?range=${options?.range ?? "7"}`,
+    `/dashboard/overview/${projectId}/stats?range=${options?.range ?? DashboardRange.WEEK}`,
     () => ({
       method: "get"
     }),
@@ -55,7 +56,7 @@ export function useDashboard2Stats(
   return {
     ...query,
     data: query.data
-      ? enrichDashboard2Stats(query.data, options?.range ?? "7")
+      ? enrichDashboard2Stats(query.data, options?.range ?? DashboardRange.WEEK)
       : []
   }
 }

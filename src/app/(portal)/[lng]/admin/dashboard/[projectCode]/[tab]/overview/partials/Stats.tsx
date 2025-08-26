@@ -15,15 +15,91 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import { Dashboard2Stats, dashboard2Stats } from "../data/data"
+import {
+  Dashboard2Stats,
+  // dashboard2Stats,
+  useDashboard2Stats
+} from "../data/data"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { Skeleton } from "@/components/ui/skeleton"
+import { DashboardRange } from "@/models/dashboard"
 
-export default function Stats() {
+interface StatsProps {
+  range: string
+}
+
+function getSinceLabel(range: string) {
+  switch (range) {
+    case DashboardRange.WEEK:
+      return "Since last week"
+    case DashboardRange.MONTH:
+      return "Since last month"
+    case DashboardRange.QUARTER:
+      return "Since last 3 months"
+    case DashboardRange.YEAR:
+      return "Since last year"
+    default:
+      return ""
+  }
+}
+export default function Stats({ range }: StatsProps) {
+  const projectIdRaw = useProjectCode()
+  const projectId = typeof projectIdRaw === "number" ? projectIdRaw : undefined
+  const queryEnabled = typeof projectId === "number"
+
+  const {
+    data: dashboard2Stats,
+    isLoading,
+    error
+  } = useDashboard2Stats(projectId ?? 0, {
+    enabled: queryEnabled,
+    range
+  })
+
+  if (!queryEnabled) return <div>No project selected.</div>
+  if (isLoading) {
+    return (
+      <div className="grid auto-rows-auto grid-cols-3 gap-5 md:grid-cols-6 lg:grid-cols-9">
+        {[...Array(3)].map((_, i) => (
+          <StatsCardSkeleton key={i} />
+        ))}
+      </div>
+    )
+  }
+
+  if (error) return <div>Error loading stats</div>
+  if (!dashboard2Stats) return null
   return (
     <>
       {dashboard2Stats.map(stats => (
-        <StatsCard key={stats.label} {...stats} />
+        <StatsCard key={stats.label} {...stats} range={range} />
       ))}
     </>
+  )
+}
+
+function StatsCardSkeleton() {
+  return (
+    <Card className="col-span-3 h-full lg:col-span-2 xl:col-span-2">
+      {/* Header skeleton */}
+      <div className="flex flex-row items-center justify-between px-4 pt-4 pb-2">
+        <Skeleton className="h-4 w-24 rounded-sm" /> {/* Title */}
+        <Skeleton className="h-4 w-4 rounded-full" /> {/* Icon */}
+      </div>
+
+      {/* Content skeleton */}
+      <div className="flex h-[calc(100%_-_48px)] flex-col justify-between gap-4 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-7 w-16 rounded-sm" /> {/* Number */}
+          <Skeleton className="h-12 w-[70px] rounded-sm" /> {/* Chart */}
+        </div>
+        <Skeleton className="h-3 w-24 rounded-sm" /> {/* Since last... */}
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-3 w-20 rounded-sm" /> {/* Comparison */}
+          <Skeleton className="h-3 w-12 rounded-sm" /> {/* % */}
+        </div>
+      </div>
+    </Card>
   )
 }
 
@@ -35,7 +111,8 @@ function StatsCard({
   percentage,
   chartData,
   strokeColor,
-  icon: Icon
+  icon: Icon,
+  range
 }: Dashboard2Stats) {
   const chartConfig = {
     month: {
@@ -79,11 +156,13 @@ function StatsCard({
               </LineChart>
             </ChartContainer>
           </div>
-          <p className="text-muted-foreground text-xs">Since Last week</p>
+          <p className="text-muted-foreground text-xs">
+            {getSinceLabel(range)}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-5">
-          <div className="text-sm font-semibold">Details</div>
+          <div className="text-sm font-semibold">Comparison</div>
           <div
             className={cn("flex items-center gap-1", {
               "text-emerald-500 dark:text-emerald-400": type === "up",

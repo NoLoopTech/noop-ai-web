@@ -21,14 +21,16 @@ import {
 } from "@tabler/icons-react"
 import { Bot } from "lucide-react"
 import { useParams } from "next/navigation"
-import { JSX } from "react"
+import { JSX, useState } from "react"
 import { useApiQuery } from "@/query"
 import { ChatDetailsResponse } from "@/models/conversation"
 import { Skeleton } from "@/components/ui/skeleton"
+import CreateTicketDrawer from "./CreateTicketDrawer"
 
 export default function ChatInfo(): JSX.Element {
   const params = useParams()
   const { id: threadId } = params as { id: string }
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const { data: chatDetails, isLoading } = useApiQuery<ChatDetailsResponse>(
     ["chat-details", threadId],
@@ -37,6 +39,10 @@ export default function ChatInfo(): JSX.Element {
       method: "get"
     })
   )
+
+  function handleDrawerShown() {
+    setDrawerOpen(true)
+  }
 
   return (
     <ScrollArea
@@ -73,9 +79,21 @@ export default function ChatInfo(): JSX.Element {
           </CardContent>
         </Card>
 
-        {/* <Button variant="default" className="w-full">
+        <Button
+          variant="default"
+          className="w-full"
+          onClick={handleDrawerShown}
+        >
           Create Ticket
-        </Button> */}
+        </Button>
+        <CreateTicketDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          threadId={threadId}
+          name={chatDetails?.userName || ""}
+          email={chatDetails?.email || ""}
+          phone={chatDetails?.phoneNumber || ""}
+        />
 
         <Card className="h-max w-full rounded-lg py-0">
           <CardTitle className="p-4 text-lg font-semibold">

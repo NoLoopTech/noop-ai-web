@@ -7,16 +7,7 @@ import {
 } from "@/components/ui/select"
 import { DashboardRange, dateRangeOptions } from "@/models/dashboard"
 import { CalendarIcon } from "lucide-react"
-
-function getDateRange(value: DashboardRange) {
-  const today = new Date()
-  const end = new Date(today)
-  const start = new Date(today)
-  start.setDate(today.getDate() - Number(value) + 1)
-  // Format as YYYY-MM-DD for backend
-  const format = (d: Date) => d.toISOString().slice(0, 10)
-  return { startDate: format(start), endDate: format(end) }
-}
+import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 
 function getDateRangeLabel(value: string): string {
   const today = new Date()
@@ -33,32 +24,17 @@ function getDateRangeLabel(value: string): string {
   return `${format(start)} - ${format(end)}`
 }
 
-export function DateRangeDropdown({
-  value,
-  onChange,
-  onRangeChange,
-  className
-}: {
-  value: DashboardRange
-  onChange?: (v: DashboardRange) => void
-  onRangeChange?: (range: {
-    value: DashboardRange
-    startDate: string
-    endDate: string
-  }) => void
-  className?: string
-}) {
+export function DateRangeDropdown({ className }: { className?: string }) {
+  const { dateRange, setDateRange } = useDashboardFilters()
+
   function handleChange(v: string) {
     const rangeValue = v as DashboardRange
-    onChange?.(rangeValue)
-    if (onRangeChange) {
-      const { startDate, endDate } = getDateRange(rangeValue)
-      onRangeChange({ value: rangeValue, startDate, endDate })
-    }
+    setDateRange(rangeValue)
   }
+
   return (
     <div className="flex items-center gap-3">
-      <Select value={value} onValueChange={handleChange}>
+      <Select value={dateRange} onValueChange={handleChange}>
         <SelectTrigger className={className ?? "h-8 w-[120px] lg:w-[150px]"}>
           <SelectValue placeholder="Date Range" />
         </SelectTrigger>
@@ -72,7 +48,7 @@ export function DateRangeDropdown({
       </Select>
       <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <CalendarIcon className="h-4 w-4" />
-        <span>{getDateRangeLabel(value)}</span>
+        <span>{getDateRangeLabel(dateRange)}</span>
       </div>
     </div>
   )

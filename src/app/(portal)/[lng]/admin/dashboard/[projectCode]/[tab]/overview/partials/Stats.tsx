@@ -18,10 +18,7 @@ import {
 import { Dashboard2Stats, dummyStats, useDashboard2Stats } from "../data/data"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { DashboardRange } from "@/models/dashboard"
-
-interface StatsProps {
-  range: string
-}
+import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 
 function getSinceLabel(range: string) {
   switch (range) {
@@ -37,7 +34,8 @@ function getSinceLabel(range: string) {
       return ""
   }
 }
-export default function Stats({ range }: StatsProps) {
+export default function Stats() {
+  const { dateRange: range } = useDashboardFilters()
   const projectId = useProjectCode() ?? 0
 
   const {

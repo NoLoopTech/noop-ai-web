@@ -7,18 +7,15 @@ import Stats from "./partials/Stats"
 import Subscription from "./partials/Subscriptions"
 import TeamMembers from "./partials/TeamMembers"
 import TotalRevenue from "./partials/TotalRevenue"
-import { useState } from "react"
-import { DashboardRange } from "@/models/dashboard"
 
 export default function Overview() {
-  const [dateRange, setDateRange] = useState(DashboardRange.WEEK)
   return (
     <>
       <div className="mb-4 flex justify-start">
-        <DateRangeDropdown value={dateRange} onChange={setDateRange} />
+        <DateRangeDropdown />
       </div>
       <div className="grid auto-rows-auto grid-cols-3 gap-5 md:grid-cols-6 lg:grid-cols-9">
-        <Stats range={dateRange} />
+        <Stats />
         <div className="col-span-3">
           <TotalRevenue />
         </div>

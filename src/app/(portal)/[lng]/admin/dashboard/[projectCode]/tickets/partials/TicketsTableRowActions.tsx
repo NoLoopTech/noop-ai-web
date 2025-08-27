@@ -17,7 +17,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { IconBook, IconPlus } from "@tabler/icons-react"
+// import { IconBook, IconPlus } from "@tabler/icons-react"
+import { IconBook } from "@tabler/icons-react"
 import { Ticket } from "@/models/ticket/schema"
 import { TicketsRowInfoDrawer } from "./TicketsRowInfoDrawer"
 import { TicketStatus } from "@/models/ticket/enum"
@@ -150,12 +151,12 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub> */}
-            <DropdownMenuItem>
+            {/* <DropdownMenuItem>
               Add Note
               <DropdownMenuShortcut>
                 <IconPlus className="h-4 w-4" />
               </DropdownMenuShortcut>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleDelete}>
               Delete

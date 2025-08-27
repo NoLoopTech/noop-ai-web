@@ -10,12 +10,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   IconArrowRight,
-  IconBellRinging,
-  IconDotsVertical,
+  // IconBellRinging,
+  // IconDotsVertical,
   IconExclamationCircle,
   IconInfoCircle,
   // IconMessages,
-  IconPlus,
+  // IconPlus,
   IconTrendingUp,
   IconUsers
 } from "@tabler/icons-react"
@@ -26,6 +26,14 @@ import { useApiQuery } from "@/query"
 import { ChatDetailsResponse } from "@/models/conversation"
 import { Skeleton } from "@/components/ui/skeleton"
 import CreateTicketDrawer from "./CreateTicketDrawer"
+
+function formatTopicTrend(trend?: string) {
+  if (!trend) return "N/A"
+  return trend
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
 
 export default function ChatInfo(): JSX.Element {
   const params = useParams()
@@ -207,7 +215,13 @@ export default function ChatInfo(): JSX.Element {
                     </div>
                   </HoverCardContent>
                 </HoverCard>
-                <p className="text-sm font-medium">70</p>
+                {isLoading ? (
+                  <Skeleton className="h-4 w-10" />
+                ) : (
+                  <p className="text-sm font-medium">
+                    {chatDetails?.potentialLeadScore ?? "N/A"}
+                  </p>
+                )}
               </div>
               {/* <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-2">
@@ -231,7 +245,13 @@ export default function ChatInfo(): JSX.Element {
                   <IconUsers className="size-4" />
                   <p className="text-sm font-medium">Segment Detected</p>
                 </div>
-                <p className="text-sm font-medium">22</p>
+                {isLoading ? (
+                  <Skeleton className="h-4 w-10" />
+                ) : (
+                  <p className="text-sm font-medium">
+                    {chatDetails?.segments ?? "N/A"}
+                  </p>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-x-2">
@@ -243,7 +263,9 @@ export default function ChatInfo(): JSX.Element {
                   <Skeleton className="h-4 w-10" />
                 ) : (
                   <p className="text-sm font-medium">
-                    {chatDetails?.topicTrend ?? "N/A"}
+                    {chatDetails?.topicTrend
+                      ? formatTopicTrend(chatDetails.topicTrend)
+                      : "N/A"}
                   </p>
                 )}
               </div>
@@ -267,7 +289,7 @@ export default function ChatInfo(): JSX.Element {
           </CardContent>
         </Card>
 
-        <Card className="h-max w-full rounded-lg py-0">
+        {/* <Card className="h-max w-full rounded-lg py-0">
           <CardTitle className="flex items-center justify-between p-4 text-lg font-semibold">
             Quick Notes
             <Button variant="ghost" className="h-7 w-7 p-0">
@@ -321,7 +343,7 @@ export default function ChatInfo(): JSX.Element {
               </CardContent>
             </Card>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </ScrollArea>
   )

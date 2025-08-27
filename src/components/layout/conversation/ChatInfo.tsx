@@ -27,6 +27,14 @@ import { ChatDetailsResponse } from "@/models/conversation"
 import { Skeleton } from "@/components/ui/skeleton"
 import CreateTicketDrawer from "./CreateTicketDrawer"
 
+function formatTopicTrend(trend?: string) {
+  if (!trend) return "N/A"
+  return trend
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
 export default function ChatInfo(): JSX.Element {
   const params = useParams()
   const { id: threadId } = params as { id: string }
@@ -255,7 +263,9 @@ export default function ChatInfo(): JSX.Element {
                   <Skeleton className="h-4 w-10" />
                 ) : (
                   <p className="text-sm font-medium">
-                    {chatDetails?.topicTrend ?? "N/A"}
+                    {chatDetails?.topicTrend
+                      ? formatTopicTrend(chatDetails.topicTrend)
+                      : "N/A"}
                   </p>
                 )}
               </div>

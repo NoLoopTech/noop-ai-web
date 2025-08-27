@@ -39,4 +39,6 @@ export interface ChatDetailsResponse {
   userName: string | null
   email: string | null
   phoneNumber: string | null
+  potentialLeadScore: number | null
+  segments: number | null
 }

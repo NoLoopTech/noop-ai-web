@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/select"
 import { DashboardRange, dateRangeOptions } from "@/models/dashboard"
 import { CalendarIcon } from "lucide-react"
-import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 
 function getDateRangeLabel(value: string): string {
   const today = new Date()
@@ -24,17 +23,22 @@ function getDateRangeLabel(value: string): string {
   return `${format(start)} - ${format(end)}`
 }
 
-export function DateRangeDropdown({ className }: { className?: string }) {
-  const { dateRange, setDateRange } = useDashboardFilters()
-
+export function DateRangeDropdown({
+  value,
+  onChange,
+  className
+}: {
+  value: DashboardRange
+  onChange: (v: DashboardRange) => void
+  className?: string
+}) {
   function handleChange(v: string) {
-    const rangeValue = v as DashboardRange
-    setDateRange(rangeValue)
+    onChange(v as DashboardRange)
   }
 
   return (
     <div className="flex items-center gap-3">
-      <Select value={dateRange} onValueChange={handleChange}>
+      <Select value={value} onValueChange={handleChange}>
         <SelectTrigger className={className ?? "h-8 w-[120px] lg:w-[150px]"}>
           <SelectValue placeholder="Date Range" />
         </SelectTrigger>
@@ -48,7 +52,7 @@ export function DateRangeDropdown({ className }: { className?: string }) {
       </Select>
       <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <CalendarIcon className="h-4 w-4" />
-        <span>{getDateRangeLabel(dateRange)}</span>
+        <span>{getDateRangeLabel(value)}</span>
       </div>
     </div>
   )

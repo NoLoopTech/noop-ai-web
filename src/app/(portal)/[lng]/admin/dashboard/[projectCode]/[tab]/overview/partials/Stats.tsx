@@ -15,13 +15,58 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import { Dashboard2Stats, dashboard2Stats } from "../data/data"
+import { Dashboard2Stats, dummyStats, useDashboard2Stats } from "../data/data"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { DashboardRange } from "@/models/dashboard"
+import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 
+function getSinceLabel(range: string) {
+  switch (range) {
+    case DashboardRange.WEEK:
+      return "Since last week"
+    case DashboardRange.MONTH:
+      return "Since last month"
+    case DashboardRange.QUARTER:
+      return "Since last 3 months"
+    case DashboardRange.YEAR:
+      return "Since last year"
+    default:
+      return ""
+  }
+}
 export default function Stats() {
+  const { dateRange: range } = useDashboardFilters()
+  const projectId = useProjectCode() ?? 0
+
+  const {
+    data: dashboard2Stats,
+    isLoading,
+    error
+  } = useDashboard2Stats(projectId, { range })
+
+  if (!projectId) return <div>No project selected.</div>
+  if (isLoading) {
+    return (
+      <>
+        {dummyStats.map((stats, i) => (
+          <StatsCard
+            key={i}
+            {...stats}
+            label="Loading..."
+            stats={0}
+            percentage={0}
+            description="Loading..."
+          />
+        ))}
+      </>
+    )
+  }
+  if (error) return <div>Error loading stats</div>
+  if (!dashboard2Stats) return null
   return (
     <>
       {dashboard2Stats.map(stats => (
-        <StatsCard key={stats.label} {...stats} />
+        <StatsCard key={stats.label} {...stats} range={range} />
       ))}
     </>
   )
@@ -35,11 +80,12 @@ function StatsCard({
   percentage,
   chartData,
   strokeColor,
-  icon: Icon
+  icon: Icon,
+  range
 }: Dashboard2Stats) {
   const chartConfig = {
-    month: {
-      label: "month",
+    day: {
+      label: "day",
       color: strokeColor
     }
   } satisfies ChartConfig
@@ -79,11 +125,13 @@ function StatsCard({
               </LineChart>
             </ChartContainer>
           </div>
-          <p className="text-muted-foreground text-xs">Since Last week</p>
+          <p className="text-muted-foreground text-xs">
+            {getSinceLabel(range)}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-5">
-          <div className="text-sm font-semibold">Details</div>
+          <div className="text-sm font-semibold">Comparison</div>
           <div
             className={cn("flex items-center gap-1", {
               "text-emerald-500 dark:text-emerald-400": type === "up",

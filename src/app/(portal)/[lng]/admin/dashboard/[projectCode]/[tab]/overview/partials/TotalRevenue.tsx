@@ -7,6 +7,7 @@ import { useDashboard2Stats } from "../data/data"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { Skeleton } from "@/components/ui/skeleton"
+import { DashboardRange } from "@/models/dashboard"
 
 // const data = [
 //   {
@@ -42,6 +43,21 @@ import { Skeleton } from "@/components/ui/skeleton"
 //     subscription: 189
 //   }
 // ]
+
+function getRangeLabel(range: string) {
+  switch (range) {
+    case DashboardRange.WEEK:
+      return "Since last week"
+    case DashboardRange.MONTH:
+      return "Since last month"
+    case DashboardRange.QUARTER:
+      return "Since last 3 months"
+    case DashboardRange.YEAR:
+      return "Since last year"
+    default:
+      return ""
+  }
+}
 
 const chartConfig = {
   revenue: {
@@ -116,15 +132,7 @@ export default function TotalRevenue() {
           {botRatingsStat.percentage != null
             ? `+${botRatingsStat.percentage}%`
             : ""}{" "}
-          {range === "7"
-            ? "since last week"
-            : range === "30"
-              ? "since last month"
-              : range === "90"
-                ? "since last 3 months"
-                : range === "365"
-                  ? "since last year"
-                  : ""}
+          {getRangeLabel(range)}
         </p>
         <ChartContainer config={chartConfig} className="h-[80px] w-full">
           <LineChart

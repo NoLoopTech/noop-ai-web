@@ -149,7 +149,7 @@ export default function ChatList(): JSX.Element {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div
-                                className={`size-2 rounded-full ${getScoreBgClass(conversation.score)}`}
+                                className={`size-2 rounded-full ${getScoreBgClass(conversation.score.toString())}`}
                               />
                             </TooltipTrigger>
                             <TooltipContent

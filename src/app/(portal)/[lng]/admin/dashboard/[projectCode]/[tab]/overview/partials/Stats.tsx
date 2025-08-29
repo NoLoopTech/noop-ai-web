@@ -43,21 +43,29 @@ export default function Stats() {
     isLoading,
     error
   } = useDashboard2Stats(projectId, { range })
+  const allowedLabels = [
+    "Total Conversations",
+    "Avg Messages per Chat",
+    "Messages Sent"
+  ]
 
   if (!projectId) return <div>No project selected.</div>
   if (isLoading) {
     return (
       <>
-        {dummyStats.map((stats, i) => (
-          <StatsCard
-            key={i}
-            {...stats}
-            label="Loading..."
-            stats={0}
-            percentage={0}
-            description="Loading..."
-          />
-        ))}
+        {dummyStats
+          .filter(stats => allowedLabels.includes(stats.label))
+          .map((stats, i) => (
+            <StatsCard
+              key={i}
+              {...stats}
+              label="Loading..."
+              stats={0}
+              percentage={0}
+              description="Loading..."
+              className="animate-pulse opacity-60"
+            />
+          ))}
       </>
     )
   }
@@ -65,9 +73,11 @@ export default function Stats() {
   if (!dashboard2Stats) return null
   return (
     <>
-      {dashboard2Stats.map(stats => (
-        <StatsCard key={stats.label} {...stats} range={range} />
-      ))}
+      {dashboard2Stats
+        .filter(stats => allowedLabels.includes(stats.label))
+        .map(stats => (
+          <StatsCard key={stats.label} {...stats} range={range} />
+        ))}
     </>
   )
 }
@@ -81,8 +91,9 @@ function StatsCard({
   chartData,
   strokeColor,
   icon: Icon,
-  range
-}: Dashboard2Stats) {
+  range,
+  className
+}: Dashboard2Stats & { className?: string }) {
   const chartConfig = {
     day: {
       label: "day",
@@ -91,7 +102,9 @@ function StatsCard({
   } satisfies ChartConfig
 
   return (
-    <Card className="col-span-3 h-full lg:col-span-2 xl:col-span-2">
+    <Card
+      className={cn("col-span-3 h-full lg:col-span-2 xl:col-span-2", className)}
+    >
       <CardHeader className="flex flex-row items-center justify-between gap-5 space-y-0 pt-4 pb-2">
         <CardTitle className="flex items-center gap-2 truncate text-sm font-medium">
           <Icon size={16} />

@@ -252,8 +252,8 @@ export default function ChatConversation({
                                   <span>Improve answer</span>
                                 </div>
                                 <ChatScoreBadge
-                                  variant={"normal"}
-                                  value="0.500"
+                                  variant="normal"
+                                  value={String(message.confidenceScore ?? 0)}
                                 />
                               </div>
                             )}

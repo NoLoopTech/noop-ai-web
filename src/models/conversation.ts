@@ -11,6 +11,7 @@ export interface ChatMessage {
   userName?: string
   email?: string
   country?: string
+  confidenceScore: number
 }
 
 export interface ChatSessionResponse {

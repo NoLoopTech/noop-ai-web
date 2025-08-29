@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChatMessage } from "@/models/conversation"
+import { ChatMessage, SCORE_RANGES, ScoringOption } from "@/models/conversation"
 import { IconSend } from "@tabler/icons-react"
 import { format } from "date-fns"
 import Markdown from "react-markdown"
@@ -28,6 +28,22 @@ function groupMessagesByDate(messages: ChatMessage[]) {
     groups[date].push(msg)
     return groups
   }, {})
+}
+
+function getScoreVariant(score: number): ScoringOption {
+  if (
+    score >= SCORE_RANGES[ScoringOption.POSITIVE].min &&
+    score <= SCORE_RANGES[ScoringOption.POSITIVE].max
+  ) {
+    return ScoringOption.POSITIVE
+  }
+  if (
+    score >= SCORE_RANGES[ScoringOption.NORMAL].min &&
+    score < SCORE_RANGES[ScoringOption.NORMAL].max
+  ) {
+    return ScoringOption.NORMAL
+  }
+  return ScoringOption.NEGATIVE
 }
 
 export default function ChatConversation({
@@ -252,7 +268,9 @@ export default function ChatConversation({
                                   <span>Improve answer</span>
                                 </div>
                                 <ChatScoreBadge
-                                  variant="normal"
+                                  variant={getScoreVariant(
+                                    Number(message.confidenceScore ?? 0)
+                                  )}
                                   value={String(message.confidenceScore ?? 0)}
                                 />
                               </div>

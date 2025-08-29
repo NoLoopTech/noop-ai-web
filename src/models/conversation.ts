@@ -44,3 +44,15 @@ export interface ChatDetailsResponse {
   potentialLeadScore: number | null
   segments: number | null
 }
+
+export enum ScoringOption {
+  POSITIVE = "positive",
+  NEGATIVE = "negative",
+  NORMAL = "normal"
+}
+
+export const SCORE_RANGES = {
+  [ScoringOption.POSITIVE]: { min: 0.6, max: 1.0 },
+  [ScoringOption.NORMAL]: { min: 0.4, max: 0.6 },
+  [ScoringOption.NEGATIVE]: { min: 0.0, max: 0.4 }
+} as const

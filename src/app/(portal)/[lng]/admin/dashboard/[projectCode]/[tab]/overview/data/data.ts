@@ -5,7 +5,9 @@ import {
   IconMenuOrder,
   IconProps,
   IconMessages,
-  IconSubscript
+  IconSubscript,
+  IconCreditCard,
+  IconActivityHeartbeat
 } from "@tabler/icons-react"
 import { useApiQuery } from "@/query"
 import { DashboardRange } from "@/models/dashboard"
@@ -15,14 +17,14 @@ const iconMap: Record<
   ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>
 > = {
   "Total Conversations": IconMessages,
-  "New Orders": IconMenuOrder,
-  "Avg Order Revenue": IconGift
+  "Avg Messages per Chat": IconCreditCard,
+  "Messages Sent": IconActivityHeartbeat
 }
 
 const strokeColorMap: Record<string, string> = {
   "Total Conversations": "var(--chart-1)",
-  "New Orders": "var(--chart-2)",
-  "Avg Order Revenue": "#6366f1"
+  "Avg Messages per Chat": "var(--chart-2)",
+  "Messages Sent": "#6366f1"
 }
 
 function enrichDashboard2Stats(
@@ -82,8 +84,8 @@ export const dummyStats: Dashboard2Stats[] = [
     range: "7"
   },
   {
-    label: "New Orders",
-    description: "Total number of new orders",
+    label: "Avg Messages per Chat",
+    description: "Average number of messages per chat",
     stats: 1226,
     type: "down",
     percentage: 40.2,
@@ -101,8 +103,8 @@ export const dummyStats: Dashboard2Stats[] = [
     range: "7"
   },
   {
-    label: "Avg Order Revenue",
-    description: "Average order of revenue",
+    label: "Messages Sent",
+    description: "Total number of messages sent",
     stats: 1080,
     type: "up",
     percentage: 10.8,
@@ -125,12 +127,17 @@ export type Dashboard2Stats = {
   label: string
   description: string
   stats: number
+  revenue?: number
+  subscription?: number
+  thumbs?: number
   type: "up" | "down"
   percentage: number
-  chartData: {
-    [x: string]: PropertyKey
-    value: number
-  }[]
+  chartData: Array<{
+    day?: string
+    value?: number
+    revenue?: number
+    subscription?: number
+  }>
   strokeColor: string
   icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>
   range: string

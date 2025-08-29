@@ -11,6 +11,7 @@ export interface ChatMessage {
   userName?: string
   email?: string
   country?: string
+  confidenceScore: number
 }
 
 export interface ChatSessionResponse {
@@ -21,7 +22,7 @@ export interface ChatSessionResponse {
     deletedAt: string | null
     userName: string
     email: string
-    score: string
+    score: number
     summary: string
     threadId: string
     projectId: number
@@ -30,6 +31,7 @@ export interface ChatSessionResponse {
     intent: string
   }
   duration: number
+  scoreCategory: string
 }
 
 export interface ChatDetailsResponse {
@@ -42,3 +44,15 @@ export interface ChatDetailsResponse {
   potentialLeadScore: number | null
   segments: number | null
 }
+
+export enum ScoringOption {
+  POSITIVE = "positive",
+  NEGATIVE = "negative",
+  NORMAL = "normal"
+}
+
+export const SCORE_RANGES = {
+  [ScoringOption.POSITIVE]: { min: 0.6, max: 1.0 },
+  [ScoringOption.NORMAL]: { min: 0.4, max: 0.6 },
+  [ScoringOption.NEGATIVE]: { min: 0.0, max: 0.4 }
+} as const

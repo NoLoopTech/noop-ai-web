@@ -19,9 +19,9 @@ export const durationOptions = [
 ] as const
 
 export const scoringOptions = [
-  { value: "Positive", label: "Positive" },
-  { value: "Negative", label: "Negative" },
-  { value: "Normal", label: "Normal" }
+  { value: "positive", label: "Positive" },
+  { value: "negative", label: "Negative" },
+  { value: "normal", label: "Normal" }
 ] as const
 
 export const dateRangeOptions = [

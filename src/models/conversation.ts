@@ -21,7 +21,7 @@ export interface ChatSessionResponse {
     deletedAt: string | null
     userName: string
     email: string
-    score: string
+    score: number
     summary: string
     threadId: string
     projectId: number
@@ -30,6 +30,7 @@ export interface ChatSessionResponse {
     intent: string
   }
   duration: number
+  scoreCategory: string
 }
 
 export interface ChatDetailsResponse {

@@ -204,7 +204,7 @@ export function SessionsTable({ columns }: Props) {
     return paginatedData.data.map(session => ({
       id: session.session.threadId,
       country: session.session.country ?? "N/A",
-      aiScore: (session.session.score as AiScore) ?? "Normal",
+      aiScore: (session.scoreCategory as AiScore) ?? "normal",
       duration: secondsToMinutes(session.duration),
       chatSummary: session.session.summary,
       dateTime: format(session.session.createdAt, "MMM d, yyyy  h:mm a"),

@@ -1,9 +1,9 @@
 import { z } from "zod"
 
 const aiScoreSchema = z.union([
-  z.literal("Positive"),
-  z.literal("Negative"),
-  z.literal("Normal")
+  z.literal("positive"),
+  z.literal("negative"),
+  z.literal("normal")
 ])
 export type AiScore = z.infer<typeof aiScoreSchema>
 

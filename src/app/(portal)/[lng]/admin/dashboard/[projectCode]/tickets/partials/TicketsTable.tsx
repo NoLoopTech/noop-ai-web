@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -26,13 +26,16 @@ import {
 import { DataTablePagination } from "@/components/layout/Table/DataTablePagination"
 import { DataTableToolbar } from "./TicketsTableToolbar"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery } from "@/query"
+import { useApiMutation, useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { Ticket } from "@/models/ticket/schema"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { IconLoader2 } from "@tabler/icons-react"
 import { TicketsTableRowActions } from "./TicketsTableRowActions"
+import { useSession } from "next-auth/react"
+import { toast } from "@/lib/hooks/useToast"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface Props {
   columns: ColumnDef<Ticket>[]
@@ -159,6 +162,38 @@ export function TicketsTable({ columns }: Props) {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues()
   })
+
+  const queryClient = useQueryClient()
+  const { data: session, status } = useSession()
+  const token = session?.apiToken
+  const initiateTypeClassificationMutation = useApiMutation(
+    projectId ? `/tickets/initiateTicketTypeClassification/${projectId}` : "",
+    "post",
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["project-tickets", projectId]
+        })
+      },
+      onError: error => {
+        if (status !== "authenticated" || !token) return
+        const errorMessage =
+          (error as { message?: string })?.message ||
+          "Ticket type classification failed. Please try again."
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        })
+      }
+    }
+  )
+  useEffect(() => {
+    if (!projectId) return
+    if (status !== "authenticated" || !token) return
+
+    initiateTypeClassificationMutation.mutate(undefined)
+  }, [projectId, status, token])
 
   return (
     <div className="space-y-4">

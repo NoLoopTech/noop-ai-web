@@ -205,15 +205,16 @@ export const columns: ColumnDef<Ticket>[] = [
     cell: ({ row }) => {
       const type = ticketTypes.find(t => t.value === row.getValue("type"))
 
-      if (!type) {
-        return null
-      }
-
+      // INFO: show skeleton if data is undefined (or loading). This can be due to two states, data is actually not available or data is still loading. So this is a compromise. If data is unavaialable due to data not being in the table, it will show an inifite loader
       return (
         <div className="flex w-36 items-center">
-          <span className="text-foreground bg-chip-ticket-type-bg border-chip-ticket-type-border rounded-md border px-3 py-1 text-xs font-semibold capitalize">
-            {type.label}
-          </span>
+          {type ? (
+            <span className="text-foreground bg-chip-ticket-type-bg border-chip-ticket-type-border rounded-md border px-3 py-1 text-xs font-semibold capitalize">
+              {type.label}
+            </span>
+          ) : (
+            <div className="shine h-8 w-full rounded-lg"></div>
+          )}
         </div>
       )
     },

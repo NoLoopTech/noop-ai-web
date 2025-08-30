@@ -52,23 +52,23 @@ export const columns: ColumnDef<Session>[] = [
   {
     accessorKey: "country",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Country" />
+      <DataTableColumnHeader
+        column={column}
+        title="Country"
+        className="ml-2 w-16 text-[13px]"
+      />
     ),
-    // cell: ({ row }) => <span>{row.getValue("country")}</span>,
     cell: ({ getValue }) => {
       const value = getValue<string>()
       if (!value || value.toUpperCase() === "N/A") {
         return <span>N/A</span>
       }
       const code = value.toUpperCase()
-      // const getCountryName = (code: string) => {
-      //   const country = countryData.find(c => c.code === code)
-      //   return country ? country.name : code
-      // }
+
       return (
         <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex items-center gap-2">
+          <TooltipTrigger asChild className="flex items-center justify-center">
+            <span className="flex items-center">
               <CountryFlag
                 countryCode={code}
                 svg
@@ -77,9 +77,7 @@ export const columns: ColumnDef<Session>[] = [
             </span>
           </TooltipTrigger>
           <TooltipContent
-            sideOffset={-45}
-            side="right"
-            align="center"
+            side="top"
             className="text-tiny bg-background text-foreground capitalize shadow"
           >
             <span>{getCountryName(code)}</span>
@@ -133,10 +131,11 @@ export const columns: ColumnDef<Session>[] = [
       <DataTableColumnHeader column={column} title="Intent" />
     ),
     cell: ({ row }) => {
+      const intent = row.getValue("intent") as string
       return (
         <div className="flex space-x-2">
-          <span className="max-w-32 truncate font-medium sm:max-w-72 md:max-w-[31rem]">
-            {row.getValue("intent")}
+          <span className="max-w-32 truncate font-medium capitalize sm:max-w-72 md:max-w-[31rem]">
+            {intent.replace(/_/g, " ")}
           </span>
         </div>
       )

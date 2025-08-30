@@ -24,7 +24,6 @@ import { useParams } from "next/navigation"
 import { JSX, useState } from "react"
 import { useApiQuery } from "@/query"
 import { ChatDetailsResponse } from "@/models/conversation"
-import { Skeleton } from "@/components/ui/skeleton"
 import CreateTicketDrawer from "./CreateTicketDrawer"
 
 function formatTopicTrend(trend?: string) {
@@ -62,22 +61,22 @@ export default function ChatInfo(): JSX.Element {
         <Card className="h-max w-full rounded-lg">
           <CardContent className="pb-0">
             <div className="flex flex-col items-center p-5">
-              <h1 className="mb-3 text-2xl font-semibold">
+              <div className="mb-3 text-2xl font-semibold">
                 {isLoading ? (
-                  <Skeleton className="h-6 w-32" />
+                  <div className="shine mb-3 h-6 w-32 rounded-lg" />
                 ) : (
-                  (chatDetails?.userName ?? "Guest User")
+                  <h1>{"Guest User"}</h1>
                 )}
-              </h1>
+              </div>
               {isLoading ? (
-                <Skeleton className="mb-2 h-4 w-40" />
+                <div className="shine mb-2.5 h-3.5 w-40 rounded-lg" />
               ) : (
-                <p className="mb-2 text-sm font-medium">
+                <p className="mb-2.5 text-sm font-medium">
                   {chatDetails?.email ?? "N/A"}
                 </p>
               )}
               {isLoading ? (
-                <Skeleton className="mb-2 h-4 w-40" />
+                <div className="shine mb-2 h-3.5 w-40 rounded-lg" />
               ) : (
                 <p className="text-sm font-medium text-zinc-500">
                   {chatDetails?.phoneNumber ?? "N/A"}
@@ -135,7 +134,7 @@ export default function ChatInfo(): JSX.Element {
                 </HoverCard>
 
                 {isLoading ? (
-                  <Skeleton className="h-4 w-10" />
+                  <div className="shine h-4 w-10 rounded-lg" />
                 ) : (
                   <p className="text-sm font-medium">
                     {chatDetails?.activeTicketCount ?? "N/A"}
@@ -216,7 +215,7 @@ export default function ChatInfo(): JSX.Element {
                   </HoverCardContent>
                 </HoverCard>
                 {isLoading ? (
-                  <Skeleton className="h-4 w-10" />
+                  <div className="shine h-4 w-10 rounded-lg" />
                 ) : (
                   <p className="text-sm font-medium">
                     {chatDetails?.potentialLeadScore ?? "N/A"}
@@ -246,7 +245,7 @@ export default function ChatInfo(): JSX.Element {
                   <p className="text-sm font-medium">Segment Detected</p>
                 </div>
                 {isLoading ? (
-                  <Skeleton className="h-4 w-10" />
+                  <div className="shine h-4 w-10 rounded-lg" />
                 ) : (
                   <p className="text-sm font-medium">
                     {chatDetails?.segments ?? "N/A"}
@@ -260,7 +259,7 @@ export default function ChatInfo(): JSX.Element {
                 </div>
 
                 {isLoading ? (
-                  <Skeleton className="h-4 w-10" />
+                  <div className="shine h-4 w-10 rounded-lg" />
                 ) : (
                   <p className="text-sm font-medium">
                     {chatDetails?.topicTrend
@@ -276,7 +275,7 @@ export default function ChatInfo(): JSX.Element {
                 </div>
 
                 {isLoading ? (
-                  <Skeleton className="h-4 w-10" />
+                  <div className="shine h-4 w-10 rounded-lg" />
                 ) : (
                   <p className="text-sm font-medium">
                     {chatDetails?.scorePercent != null

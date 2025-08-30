@@ -15,20 +15,21 @@ import {
   TooltipContent,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import { getCountryName } from "@/utils"
+import { getCountryName, getScoreVariant } from "@/utils"
+import { aiScoreBg } from "@/app/(portal)/[lng]/admin/dashboard/[projectCode]/chats/data/data"
 
-function getScoreBgClass(score: string) {
-  switch (score) {
-    case "negative":
-      return "bg-badge-negative-background"
-    case "normal":
-      return "bg-badge-normal-background"
-    case "positive":
-      return "bg-badge-positive-background"
-    default:
-      return null
-  }
-}
+// function getScoreBgClass(score: string) {
+//   switch (score) {
+//     case "negative":
+//       return "bg-badge-negative-background"
+//     case "normal":
+//       return "bg-badge-normal-background"
+//     case "positive":
+//       return "bg-badge-positive-background"
+//     default:
+//       return null
+//   }
+// }
 
 export default function ChatList(): JSX.Element {
   const router = useRouter()
@@ -149,7 +150,7 @@ export default function ChatList(): JSX.Element {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div
-                                className={`size-2 rounded-full ${getScoreBgClass(conversation.score.toString())}`}
+                                className={`size-2 rounded-full ${aiScoreBg.get(getScoreVariant(conversation.score))}`}
                               />
                             </TooltipTrigger>
                             <TooltipContent
@@ -157,7 +158,7 @@ export default function ChatList(): JSX.Element {
                               align="center"
                               className="text-tiny bg-background text-foreground capitalize shadow"
                             >
-                              <span>{conversation.score}</span>
+                              <span>{getScoreVariant(conversation.score)}</span>
                             </TooltipContent>
                           </Tooltip>
                         </CardContent>

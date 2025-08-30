@@ -35,7 +35,7 @@ import { createTicketSchema, CreateTicketInput } from "@/models/ticket/schema"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import countryData from "@/lib/countryData.json"
 import { useEffect, useState } from "react"
-import { Combobox } from "@/components/ui/combo-box"
+import { Combobox } from "@/components/ui/combobox"
 interface CreateTicketDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -205,18 +205,19 @@ export default function CreateTicketDrawer({
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
                       <div className="flex gap-2">
-                        <div className="w-[120px] flex-shrink-0">
-                          <Combobox
-                            options={countryCodeOptions.map(opt => ({
-                              value: opt.value,
-                              label: opt.label
-                            }))}
-                            value={phoneCountryCode}
-                            onChange={val => {
-                              if (val) setPhoneCountryCode(val)
-                            }}
-                          />
-                        </div>
+                        <Combobox
+                          options={countryCodeOptions.map(opt => ({
+                            value: opt.value,
+                            label: opt.label
+                          }))}
+                          align="start"
+                          value={phoneCountryCode}
+                          className="w-32"
+                          popoverContentClassName="w-32"
+                          onChange={val => {
+                            if (val) setPhoneCountryCode(val)
+                          }}
+                        />
 
                         <Input
                           {...field}

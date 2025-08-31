@@ -101,6 +101,24 @@ export default function ChatConversation({
     }
   }, [threadId, isInitialLoading, initialThreadMessages])
 
+  const handleImproveAnswerClick = (message: ChatMessage) => () => {
+    if (selectedConversation?.messages) {
+      const messageIndex = selectedConversation.messages.findIndex(
+        m => m.id === message.id
+      )
+      if (messageIndex > 0) {
+        const userMessage = selectedConversation.messages[messageIndex - 1]
+        if (userMessage?.sender === "user") {
+          setSelectedMessages({
+            userMessage: userMessage.content,
+            aiResponse: message.content
+          })
+          setImproveDrawerOpen(true)
+        }
+      }
+    }
+  }
+
   return (
     <Card className="flex h-full flex-col items-center space-y-3 rounded-lg">
       <CardContent className="flex h-full w-full flex-col justify-between rounded-t-lg p-0 pt-2">
@@ -255,27 +273,7 @@ export default function ChatConversation({
                             {message.sender === "ai" && (
                               <div className="absolute right-5 -bottom-4 flex items-center space-x-2">
                                 <div
-                                  onClick={() => {
-                                    if (selectedConversation?.messages) {
-                                      const messageIndex =
-                                        selectedConversation.messages.findIndex(
-                                          m => m.id === message.id
-                                        )
-                                      if (messageIndex > 0) {
-                                        const userMessage =
-                                          selectedConversation.messages[
-                                            messageIndex - 1
-                                          ]
-                                        if (userMessage?.sender === "user") {
-                                          setSelectedMessages({
-                                            userMessage: userMessage.content,
-                                            aiResponse: message.content
-                                          })
-                                          setImproveDrawerOpen(true)
-                                        }
-                                      }
-                                    }
-                                  }}
+                                  onClick={handleImproveAnswerClick(message)}
                                   className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-[3.5px] text-xs font-medium text-zinc-500 shadow transition-colors duration-300 hover:bg-zinc-200"
                                 >
                                   <span>Improve answer</span>

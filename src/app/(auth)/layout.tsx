@@ -13,8 +13,9 @@ import "@/app/globals.css"
 import { ThemeProvider } from "@/components/layout/ThemeProvider"
 
 export const metadata = {
-  title: "Noopy AI",
-  description: "Noopy AI"
+  title: "Noopy – Powering Smart Conversations",
+  description:
+    "Manage your AI agents, chatbots, and client leads with Noopy's smart admin dashboard."
 }
 
 export default async function RootLayout({

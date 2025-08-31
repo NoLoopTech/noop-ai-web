@@ -1,12 +1,12 @@
 "use client"
 
-import { JSX, useEffect, useMemo, useRef } from "react"
+import { JSX, useEffect, useMemo, useRef, useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChatMessage, SCORE_RANGES, ScoringOption } from "@/models/conversation"
+import { ChatMessage } from "@/models/conversation"
 import { IconSend } from "@tabler/icons-react"
 import { format } from "date-fns"
 import Markdown from "react-markdown"
@@ -16,6 +16,8 @@ import { useApiQuery, useApiMutation } from "@/query"
 import { useQueryClient } from "@tanstack/react-query"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import ChatScoreBadge from "@/components/ChatScoreBadge"
+import { getScoreVariant } from "@/utils"
+import ImproveAnswerDrawer from "./ImproveAnswerDrawer"
 
 interface Props {
   isViewOnly?: boolean
@@ -30,22 +32,6 @@ function groupMessagesByDate(messages: ChatMessage[]) {
   }, {})
 }
 
-function getScoreVariant(score: number): ScoringOption {
-  if (
-    score >= SCORE_RANGES[ScoringOption.POSITIVE].min &&
-    score <= SCORE_RANGES[ScoringOption.POSITIVE].max
-  ) {
-    return ScoringOption.POSITIVE
-  }
-  if (
-    score >= SCORE_RANGES[ScoringOption.NORMAL].min &&
-    score < SCORE_RANGES[ScoringOption.NORMAL].max
-  ) {
-    return ScoringOption.NORMAL
-  }
-  return ScoringOption.NEGATIVE
-}
-
 export default function ChatConversation({
   isViewOnly = false
 }: Props): JSX.Element {
@@ -54,6 +40,12 @@ export default function ChatConversation({
 
   const listRef = useRef<HTMLDivElement>(null)
   const lastItemRef = useRef<HTMLDivElement>(null)
+
+  const [isImproveDrawerOpen, setImproveDrawerOpen] = useState(false)
+  const [selectedMessages, setSelectedMessages] = useState<{
+    userMessage: string
+    aiResponse: string
+  } | null>(null)
 
   const { data: initialThreadMessages, isLoading: isInitialLoading } =
     useApiQuery<PaginatedResult<ChatMessage>>(
@@ -108,6 +100,24 @@ export default function ChatConversation({
       generateSummaryMutation.mutate({ threadId })
     }
   }, [threadId, isInitialLoading, initialThreadMessages])
+
+  const handleImproveAnswerClick = (message: ChatMessage) => () => {
+    if (selectedConversation?.messages) {
+      const messageIndex = selectedConversation.messages.findIndex(
+        m => m.id === message.id
+      )
+      if (messageIndex > 0) {
+        const userMessage = selectedConversation.messages[messageIndex - 1]
+        if (userMessage?.sender === "user") {
+          setSelectedMessages({
+            userMessage: userMessage.content,
+            aiResponse: message.content
+          })
+          setImproveDrawerOpen(true)
+        }
+      }
+    }
+  }
 
   return (
     <Card className="flex h-full flex-col items-center space-y-3 rounded-lg">
@@ -187,7 +197,7 @@ export default function ChatConversation({
                           }`}
                         >
                           <div
-                            className={`text-foreground relative max-w-11/12 rounded-lg p-4 text-sm font-medium ${
+                            className={`text-foreground relative max-w-11/12 min-w-xs rounded-lg p-4 text-sm font-medium ${
                               message.sender === "user"
                                 ? "rounded-2xl bg-zinc-900 text-zinc-100 dark:bg-zinc-900 dark:text-zinc-100"
                                 : "rounded-2xl bg-zinc-100 text-zinc-700 dark:bg-zinc-500 dark:text-zinc-100"
@@ -258,13 +268,14 @@ export default function ChatConversation({
                                 )
                               }}
                             >
-                              {message.content
-                                .replace(/<br\s*\/?>/gi, "")
-                                .replace(/([^\s]{80})(?!\s)/g, "$1\n")}
+                              {message.content}
                             </Markdown>
                             {message.sender === "ai" && (
                               <div className="absolute right-5 -bottom-4 flex items-center space-x-2">
-                                <div className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-[3.5px] text-xs font-medium text-zinc-500 shadow transition-colors duration-300 hover:bg-zinc-200">
+                                <div
+                                  onClick={handleImproveAnswerClick(message)}
+                                  className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-[3.5px] text-xs font-medium text-zinc-500 shadow transition-colors duration-300 hover:bg-zinc-200"
+                                >
                                   <span>Improve answer</span>
                                 </div>
                                 <ChatScoreBadge
@@ -301,6 +312,13 @@ export default function ChatConversation({
           </div>
         )}
       </CardContent>
+
+      <ImproveAnswerDrawer
+        open={isImproveDrawerOpen}
+        onOpenChange={setImproveDrawerOpen}
+        userMessage={selectedMessages?.userMessage}
+        aiResponse={selectedMessages?.aiResponse}
+      />
     </Card>
   )
 }

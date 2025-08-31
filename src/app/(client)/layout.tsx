@@ -8,8 +8,9 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider"
 const montserrat = Montserrat({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Noopy AI",
-  description: "Noopy AI"
+  title: "Noopy – Powering Smart Conversations",
+  description:
+    "Manage your AI agents, chatbots, and client leads with Noopy's smart admin dashboard."
 }
 
 export default async function RootLayout({

@@ -28,7 +28,7 @@ export type TicketType = (typeof TicketType)[keyof typeof TicketType]
 export const TicketMethod = {
   MANUAL: "manual",
   AUTOMATED_USER_INQUIRY: "automated_user_inquiry",
-  AUTOMATED_LOW_CONFIDENCE: "automated_low_confidence",
-  AUTOMATED_NEGATIVE_SENTIMENT: "automated_negative_sentiment"
+  AUTOMATED_LOW_CONFIDENCE: "automated_low_confidence_response",
+  AUTOMATED_NEGATIVE_SENTIMENT: "automated_negative_sentiment_detected"
 } as const
 export type TicketMethod = (typeof TicketMethod)[keyof typeof TicketMethod]

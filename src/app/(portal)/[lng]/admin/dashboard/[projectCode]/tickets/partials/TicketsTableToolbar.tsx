@@ -67,6 +67,17 @@ export function DataTableToolbar<TData>({
     })
   }
 
+  const handleFilterReset = () => {
+    table.resetColumnFilters()
+    setFilters({
+      ...filters,
+      startDate: "",
+      endDate: "",
+      dateRangeType: "" as DateRangeType,
+      searchTerm: ""
+    })
+  }
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
@@ -80,7 +91,7 @@ export function DataTableToolbar<TData>({
         />
 
         {/* Date Range Filter */}
-        <Select
+        {/* <Select
           value={filters.dateRangeType || "reset"}
           onValueChange={val => {
             if (val === "reset") {
@@ -100,6 +111,23 @@ export function DataTableToolbar<TData>({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="reset">Reset</SelectItem>
+            {dateRangeOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select> */}
+        <Select
+          value={filters.dateRangeType || ""}
+          onValueChange={val => {
+            handleDateRangeChange(val)
+          }}
+        >
+          <SelectTrigger className="h-8 w-[150px] lg:w-[200px]">
+            <SelectValue placeholder="Date Range" />
+          </SelectTrigger>
+          <SelectContent>
             {dateRangeOptions.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -169,10 +197,24 @@ export function DataTableToolbar<TData>({
             />
           )}
         </div>
-        {isFiltered && (
+        {/* {isFiltered && (
           <Button
             variant="ghost"
             onClick={() => table.resetColumnFilters()}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reset
+            <Cross2Icon className="ml-2 h-4 w-4" />
+          </Button>
+        )} */}
+        {(isFiltered ||
+          filters.dateRangeType ||
+          filters.startDate ||
+          filters.endDate ||
+          filters.searchTerm) && (
+          <Button
+            variant="ghost"
+            onClick={handleFilterReset}
             className="h-8 px-2 lg:px-3"
           >
             Reset

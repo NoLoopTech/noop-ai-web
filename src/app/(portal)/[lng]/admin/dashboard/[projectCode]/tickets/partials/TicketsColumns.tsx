@@ -54,6 +54,43 @@ export const columns: ColumnDef<Ticket>[] = [
     enableHiding: false
   },
   {
+    accessorKey: "country",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Country"
+        className="ml-2 w-16"
+      />
+    ),
+    cell: ({ row }) => {
+      const value = row.getValue("country") as string | undefined
+      if (!value || value.toUpperCase() === "N/A") {
+        return <span>N/A</span>
+      }
+      const code = value.toUpperCase()
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild className="flex items-center justify-center">
+            <span className="flex items-center">
+              <CountryFlag
+                countryCode={code}
+                svg
+                style={{ width: "1.6em", height: "1.5em" }}
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            className="text-tiny bg-background text-foreground capitalize shadow"
+          >
+            <span>{getCountryName(code)}</span>
+          </TooltipContent>
+        </Tooltip>
+      )
+    },
+    meta: { label: "Country", className: "" }
+  },
+  {
     accessorKey: "id",
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -86,41 +123,7 @@ export const columns: ColumnDef<Ticket>[] = [
     ),
     meta: { label: "Email", className: "" }
   },
-  {
-    accessorKey: "country",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Country" />
-    ),
-    cell: ({ row }) => {
-      const value = row.getValue("country") as string | undefined
-      if (!value || value.toUpperCase() === "N/A") {
-        return <span>N/A</span>
-      }
-      const code = value.toUpperCase()
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex items-center gap-2">
-              <CountryFlag
-                countryCode={code}
-                svg
-                style={{ width: "1.6em", height: "1.5em" }}
-              />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent
-            sideOffset={-45}
-            side="right"
-            align="center"
-            className="text-tiny bg-background text-foreground capitalize shadow"
-          >
-            <span>{getCountryName(code)}</span>
-          </TooltipContent>
-        </Tooltip>
-      )
-    },
-    meta: { label: "Country", className: "" }
-  },
+
   {
     accessorKey: "content",
     header: ({ column }) => (

@@ -11,8 +11,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Shadcnblocks - Admin Kit",
-  description: "Shadcnblocks - Admin Kit built with NextJS"
+  title: "Noopy – Powering Smart Conversations",
+  description:
+    "Manage your AI agents, chatbots, and client leads with Noopy's smart admin dashboard."
 }
 
 export default function RootLayout({

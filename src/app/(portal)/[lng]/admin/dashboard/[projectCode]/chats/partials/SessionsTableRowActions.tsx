@@ -2,7 +2,7 @@
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons"
 import { Row } from "@tanstack/react-table"
-import { Edit2 } from "lucide-react"
+// import { Edit2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -72,9 +72,9 @@ export function DataTableRowActions({ row, setTableLoading }: Props) {
   return (
     <>
       <div className="flex items-center gap-1">
-        <Button size="icon" variant="ghost" onClick={() => setOpen("edit")}>
+        {/* <Button size="icon" variant="ghost" onClick={() => setOpen("edit")}>
           <Edit2 />
-        </Button>
+        </Button> */}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

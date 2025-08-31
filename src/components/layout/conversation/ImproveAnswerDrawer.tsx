@@ -17,7 +17,7 @@ import {
   SheetHeader,
   SheetTitle
 } from "@/components/ui/sheet"
-import { useApiQuery, useFastApiMutation } from "@/query"
+import { useApiMutation, useApiQuery } from "@/query"
 import { useToast } from "@/lib/hooks/useToast"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -25,6 +25,14 @@ import { useEffect, useMemo } from "react"
 import { z } from "zod"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { UserProject } from "@/models/project"
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
 
 interface ImproveAnswerDrawerProps {
   open: boolean
@@ -34,8 +42,8 @@ interface ImproveAnswerDrawerProps {
 }
 
 const improveAnswerSchema = z.object({
-  user_question: z.string(),
-  improved_response: z.string().min(1, "Expected response cannot be empty.")
+  userQuestion: z.string(),
+  improvedResponse: z.string().min(1, "Expected response cannot be empty.")
 })
 
 type ImproveAnswerInput = z.infer<typeof improveAnswerSchema>
@@ -49,8 +57,8 @@ export default function ImproveAnswerDrawer({
   const form = useForm<ImproveAnswerInput>({
     resolver: zodResolver(improveAnswerSchema),
     defaultValues: {
-      user_question: "",
-      improved_response: ""
+      userQuestion: "",
+      improvedResponse: ""
     }
   })
 
@@ -68,56 +76,49 @@ export default function ImproveAnswerDrawer({
   const webName = useMemo(() => {
     if (!userProjects || !projectId) return ""
     const selectedProject = userProjects.find(p => p.id === projectId)
-    return selectedProject?.code ?? ""
+    return selectedProject?.chatbotCode ?? ""
   }, [userProjects, projectId])
 
-  const improveAnswerMutation = useFastApiMutation(
-    `${process.env.NEXT_PUBLIC_FAST_API_URL}chat/improve/${webName}`,
-    "post",
-    {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "Submission successful!"
-        })
-        onOpenChange(false)
-        form.reset()
-      },
-      onError: error => {
-        const errorMessage =
-          (error as { message?: string })?.message ||
-          "Failed to submit. Please try again."
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        })
-      }
+  const improveAnswerMutation = useApiMutation<
+    boolean,
+    ImproveAnswerInput & { webName: string },
+    ApiError
+  >("/conversations/improveAnswer", "post", {
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Answer has been updated successfully."
+      })
+      onOpenChange(false)
+    },
+    onError: error => {
+      toast({
+        title: "Error updating answer",
+        description:
+          error?.response?.data?.message ||
+          "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      })
     }
-  )
-
-  //   const onSubmit = (data: ImproveAnswerInput) => {
-  //     improveAnswerMutation.mutate(data)
-  //   }
+  })
 
   const onSubmit = (data: ImproveAnswerInput) => {
     if (!webName) {
       toast({
-        title: "Error",
-        description:
-          "Project information is not available yet. Please try again shortly.",
+        title: "Project not found",
+        description: "Could not determine the project to update.",
         variant: "destructive"
       })
       return
     }
-    improveAnswerMutation.mutate(data)
+    improveAnswerMutation.mutate({ ...data, webName })
   }
 
   useEffect(() => {
     if (open) {
       form.reset({
-        user_question: userMessage ?? "",
-        improved_response: ""
+        userQuestion: userMessage ?? "",
+        improvedResponse: ""
       })
     }
   }, [open, userMessage, form])
@@ -145,20 +146,26 @@ export default function ImproveAnswerDrawer({
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex flex-col space-y-5 py-2"
             >
-              <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  User message
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    readOnly
-                    value={userMessage}
-                    placeholder="User's question"
-                    className="mt-1 resize-none text-sm font-normal text-zinc-500"
-                    rows={6}
-                  />
-                </FormControl>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="userQuestion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium">
+                      User message
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        readOnly
+                        placeholder="User's question"
+                        className="mt-1 resize-none text-sm font-normal text-zinc-500"
+                        rows={6}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
               <FormItem>
                 <FormLabel className="text-sm font-medium">
@@ -177,7 +184,7 @@ export default function ImproveAnswerDrawer({
 
               <FormField
                 control={form.control}
-                name="improved_response"
+                name="improvedResponse"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium">

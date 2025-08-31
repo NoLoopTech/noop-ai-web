@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { IconFileText, IconDownload } from "@tabler/icons-react"
 import { Ticket } from "@/models/ticket/schema"
+import { TicketMethod } from "@/models/ticket/enum"
 
 interface Props {
   ticket: Ticket
@@ -56,8 +57,8 @@ function ViewTranscriptButton({ onClick }: { onClick?: () => void }) {
 }
 
 export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
-  switch (`${ticket.method}`) {
-    case "automated-user-inquiry":
+  switch (ticket.method) {
+    case TicketMethod.AUTOMATED_USER_INQUIRY:
       return (
         <Card>
           <CardHeader>
@@ -91,7 +92,7 @@ export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
           </CardContent>
         </Card>
       )
-    case "automated-low-confidence-response":
+    case TicketMethod.AUTOMATED_LOW_CONFIDENCE:
       return (
         <Card>
           <CardHeader>
@@ -119,7 +120,7 @@ export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
           </CardContent>
         </Card>
       )
-    case "automated-negative-sentiment-detected":
+    case TicketMethod.AUTOMATED_NEGATIVE_SENTIMENT:
       return (
         <Card>
           <CardHeader>
@@ -150,7 +151,7 @@ export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
           </CardContent>
         </Card>
       )
-    case "manual":
+    case TicketMethod.MANUAL:
       return (
         <Card>
           <CardHeader>

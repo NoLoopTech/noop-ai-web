@@ -21,7 +21,7 @@ const ticketMethodSchema = z.enum(
 )
 export type TicketMethodType = z.infer<typeof ticketMethodSchema>
 
-const _ticketSchema = z.object({
+const ticketSchema = z.object({
   id: z.string(),
   threadId: z.string(),
   userName: z.string(),
@@ -32,11 +32,18 @@ const _ticketSchema = z.object({
   type: ticketTypesSchema,
   method: ticketMethodSchema,
   content: z.string(),
+  subject: z.string(),
+  userDescription: z.string(),
+  userAsked: z.string(),
+  userResponse: z.string(),
+  intent: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),
   deletedAt: z.coerce.date().optional()
 })
-export type Ticket = z.infer<typeof _ticketSchema>
+export type Ticket = z.infer<typeof ticketSchema>
+
+export const ticketListSchema = z.array(ticketSchema)
 
 export const createTicketSchema = z.object({
   threadId: z.string().min(1, "Thread ID is required"),

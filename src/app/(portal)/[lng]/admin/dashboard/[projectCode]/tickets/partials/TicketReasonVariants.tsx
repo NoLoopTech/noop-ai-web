@@ -70,16 +70,14 @@ export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
             <div className="flex flex-col space-y-1.5">
               <h2>Ticket Subject</h2>
               <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                <p>I want to talk to an agent.</p>
+                <p>{ticket.subject}</p>
               </div>
             </div>
             <div className="flex flex-col space-y-1.5">
               <h2>User Description</h2>
               <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
                 {ticket.content ? (
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {ticket.content}
-                  </p>
+                  <p>{ticket.content}</p>
                 ) : (
                   <span className="text-muted-foreground">
                     No user description available
@@ -104,14 +102,14 @@ export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
             <div className="flex flex-col space-y-1.5">
               <h2>Chat Intent</h2>
               <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                <p>Pricing Inquiry</p>
+                <p>{ticket.intent}</p>
               </div>
             </div>
 
             <div className="flex flex-col space-y-1.5">
-              <h2>Pricing Inquiry</h2>
+              <h2>User Asked</h2>
               <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                <p>Do we have an installment option for the Pro Plan?</p>
+                <p>{ticket.userAsked}</p>
               </div>
             </div>
             <ConversationSummary content={ticket.content} />
@@ -132,17 +130,14 @@ export function TicketReasonVariants({ ticket, onViewTranscript }: Props) {
             <div className="flex flex-col space-y-1.5">
               <h2>Chat Intent</h2>
               <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                <p>Pricing Inquiry</p>
+                <p>{ticket.intent}</p>
               </div>
             </div>
 
             <div className="flex flex-col space-y-1.5">
               <h2>User Response</h2>
               <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
-                <p>
-                  That&apos;s ridiculous. I cancelled it right away. This is not
-                  okay.
-                </p>
+                <p>{ticket.userResponse}</p>
               </div>
             </div>
             <ConversationSummary content={ticket.content} />

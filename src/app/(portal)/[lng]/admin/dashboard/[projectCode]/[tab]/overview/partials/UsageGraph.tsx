@@ -257,6 +257,8 @@ export default function UsageGraph() {
                   //     ? "end"
                   //     : "middle"
                   // }
+
+                  // INFO: Kept for reference if needed later
                   label={{
                     value:
                       aggregation === "daily"

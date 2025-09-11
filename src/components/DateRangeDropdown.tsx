@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import { DashboardRange, dateRangeOptions } from "@/models/dashboard"
 import { CalendarIcon } from "lucide-react"
 
@@ -39,7 +40,7 @@ export function DateRangeDropdown({
   return (
     <div className="flex items-center gap-3">
       <Select value={value} onValueChange={handleChange}>
-        <SelectTrigger className={className ?? "h-8 w-[120px] lg:w-[150px]"}>
+        <SelectTrigger className={cn("h-8 w-[120px] lg:w-[150px]", className)}>
           <SelectValue placeholder="Date Range" />
         </SelectTrigger>
         <SelectContent>
@@ -50,7 +51,8 @@ export function DateRangeDropdown({
           ))}
         </SelectContent>
       </Select>
-      <div className="text-muted-foreground flex items-center gap-2 text-sm">
+
+      <div className="text-muted-foreground flex items-center gap-2 rounded-md border border-slate-300/65 px-3 py-[5px] text-sm dark:border-slate-800">
         <CalendarIcon className="h-4 w-4" />
         <span>{getDateRangeLabel(value)}</span>
       </div>

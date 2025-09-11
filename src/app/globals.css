@@ -32,6 +32,9 @@
   --chart-3: hsl(197 37% 24%);
   --chart-4: hsl(43 74% 66%);
   --chart-5: hsl(27 87% 67%);
+  --chart-stat-green: hsla(159, 55%, 49%, 1);
+  --chart-stat-blue: hsla(212, 57%, 51%, 1);
+  --chart-stat-red: hsla(14, 94%, 69%, 1);
   --radius: 0.6rem;
   --sidebar: var(--background);
   --sidebar-background: var(--background);
@@ -44,6 +47,13 @@
   --sidebar-ring: var(--ring);
   --ticket-type-bg: hsla(0, 0%, 100%, 1);
   --ticket-type-border: hsla(214, 32%, 91%, 1);
+
+  /* Custom chart colors */
+  --chart-stat-green: hsla(159, 55%, 49%, 1);
+  --chart-stat-blue: hsla(212, 57%, 51%, 1);
+  --chart-stat-orange: hsla(14, 94%, 69%, 1);
+  --chart-usage-green: hsla(173, 58%, 39%, 1);
+  --chart-usage-orange: hsla(12, 76%, 61%, 1);
 }
 
 .dark {
@@ -73,6 +83,13 @@
   --chart-5: hsl(340 75% 55%);
   --ticket-type-bg: hsl(217.2 32.6% 17.5%);
   --ticket-type-border: hsl(215 20.2% 25.1%);
+
+  /* Custom chart colors */
+  --chart-stat-green: hsla(159, 55%, 49%, 1);
+  --chart-stat-blue: hsla(212, 57%, 51%, 1);
+  --chart-stat-orange: hsla(14, 94%, 69%, 1);
+  --chart-usage-green: hsla(173, 58%, 39%, 1);
+  --chart-usage-orange: hsla(12, 76%, 61%, 1);
 }
 
 @theme inline {
@@ -112,6 +129,13 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+
+  /* Custom chart colors */
+  --color-chart-stat-green: var(--chart-stat-green);
+  --color-chart-stat-blue: var(--chart-stat-blue);
+  --color-chart-stat-orange: var(--chart-stat-orange);
+  --color-chart-usage-green: var(--chart-usage-green);
+  --color-chart-usage-orange: var(--chart-usage-orange);
 
   /* Chip group */
   /* Chip group -> chat */
@@ -238,6 +262,18 @@
     }
     100% {
       background-position: -200% 0;
+    }
+  }
+
+  @layer utilities {
+    /* SVG Stroke Shine effect */
+    .svg-shine-stroke {
+      stroke: url(#svg-shine-gradient);
+      /* For Tabler icons, you may need to set stroke-width and other props via Tailwind or inline */
+    }
+    .dark .svg-shine-stroke,
+    .dark\:svg-shine-stroke {
+      stroke: url(#svg-shine-gradient-dark);
     }
   }
 }

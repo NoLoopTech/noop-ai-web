@@ -4,8 +4,10 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Legend,
   ResponsiveContainer,
-  XAxis
+  XAxis,
+  YAxis
 } from "recharts"
 import {
   Card,
@@ -17,37 +19,45 @@ import {
 import {
   ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
+  ChartTooltip
 } from "@/components/ui/chart"
+import { CustomChartLegend } from "@/components/CustomChartLegend"
+import { CustomChartTooltip } from "@/components/ui/CustomChartTooltip"
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 }
+  { day: "Jan 1", leads: 186, tickets: 80 },
+  { day: "Jan 2", leads: 305, tickets: 200 },
+  { day: "Jan 3", leads: 237, tickets: 120 },
+  { day: "Jan 4", leads: 73, tickets: 190 },
+  { day: "Jan 5", leads: 209, tickets: 130 },
+  { day: "Jan 6", leads: 214, tickets: 140 }
 ]
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)"
+  leads: {
+    label: "Leads",
+    color: "var(--chart-usage-green)"
   },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)"
+  tickets: {
+    label: "Tickets",
+    color: "var(--chart-usage-orange)"
   }
 } satisfies ChartConfig
 
+const valueToLabelMap = {
+  leads: "Leads",
+  tickets: "Tickets"
+}
+
 export default function Sales() {
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle>Sale Activity - Monthly</CardTitle>
-        <CardDescription>
-          Showing total sales for the last 6 months
+    <Card className="h-96">
+      <CardHeader className="flex flex-col space-y-0.5">
+        <CardTitle className="text-base font-semibold">
+          Leads and Tickets Over Time
+        </CardTitle>
+        <CardDescription className="text-sm">
+          Trending up by 5.2%
         </CardDescription>
       </CardHeader>
       <CardContent className="h-[calc(100%_-_90px)]">
@@ -56,60 +66,79 @@ export default function Sales() {
             <AreaChart
               accessibilityLayer
               data={chartData}
-              margin={{
-                left: 12,
-                right: 12
-              }}
+              // margin={{
+              //   left: 12,
+              //   right: 12
+              // }}
             >
               <CartesianGrid vertical={false} />
               <XAxis
-                dataKey="month"
+                dataKey="day"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={value => value.slice(0, 3)}
               />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                label={{
+                  value: "Tickets & Leads Count",
+                  angle: -90,
+                  position: "insideLeft",
+                  offset: 5,
+                  style: { textAnchor: "middle" }
+                }}
+              />
+              <Legend
+                content={<CustomChartLegend valueToLabel={valueToLabelMap} />}
+              />
+              <ChartTooltip
+                cursor={true}
+                content={<CustomChartTooltip chartConfig={chartConfig} />}
+              />
+
               <defs>
-                <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="fillLeads" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-desktop)"
+                    stopColor="var(--chart-usage-green)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-desktop)"
+                    stopColor="var(--chart-usage-green)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
-                <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="fillTickets" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-mobile)"
+                    stopColor="var(--chart-usage-orange)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-mobile)"
+                    stopColor="var(--chart-usage-orange)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
               </defs>
+
               <Area
-                dataKey="mobile"
+                dataKey="tickets"
                 type="natural"
-                fill="url(#fillMobile)"
+                fill="url(#fillTickets)"
                 fillOpacity={0.4}
-                stroke="var(--color-mobile)"
+                stroke="var(--chart-usage-orange)"
                 stackId="a"
               />
               <Area
-                dataKey="desktop"
+                dataKey="leads"
                 type="natural"
-                fill="url(#fillDesktop)"
+                fill="url(#fillLeads)"
                 fillOpacity={0.4}
-                stroke="var(--color-desktop)"
+                stroke="var(--chart-usage-green)"
                 stackId="a"
               />
             </AreaChart>

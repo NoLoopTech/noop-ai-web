@@ -1,15 +1,7 @@
-import {
-  IconAnalyze,
-  IconFileReport,
-  IconNotification,
-  IconSettings2
-} from "@tabler/icons-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Header } from "@/components/layout/Header"
 import Analytics from "./analytics/page"
 import Overview from "./overview/page"
-import Dashboard1Actions from "./partials/DashboardActions"
-import { TooltipProvider } from "@radix-ui/react-tooltip"
 
 type Props = {
   params: Promise<{ tab?: string }>
@@ -24,12 +16,12 @@ export default async function Dashboard1Page({ params }: Props) {
       <Header />
 
       <div className="space-y-4 p-4">
-        <div className="mb-2 flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
+        {/* <div className="mb-2 flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <Dashboard1Actions />
-        </div>
+        </div> */}
         <Tabs orientation="vertical" defaultValue={tab} className="space-y-4">
-          <div className="w-full overflow-x-auto pb-2">
+          {/* <div className="w-full overflow-x-auto pb-2">
             <TabsList>
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <IconSettings2 size={14} />
@@ -59,15 +51,15 @@ export default async function Dashboard1Page({ params }: Props) {
                 Notifications
               </TabsTrigger>
             </TabsList>
-          </div>
-          <TooltipProvider>
-            <TabsContent value="overview" className="space-y-4">
-              <Overview />
-            </TabsContent>
-            <TabsContent value="analytics" className="space-y-4">
-              <Analytics />
-            </TabsContent>
-          </TooltipProvider>
+          </div> */}
+
+          {/* TODO: Remove the commented code later */}
+          <TabsContent value="overview" className="space-y-4">
+            <Overview />
+          </TabsContent>
+          <TabsContent value="analytics" className="space-y-4">
+            <Analytics />
+          </TabsContent>
         </Tabs>
       </div>
     </>

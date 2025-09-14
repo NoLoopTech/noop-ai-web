@@ -65,7 +65,7 @@ export const columns: ColumnDef<Ticket>[] = [
     cell: ({ row }) => {
       const value = row.getValue("country") as string | undefined
       if (!value || value.toUpperCase() === "N/A") {
-        return <span>N/A</span>
+        return <span className="block w-full text-center">N/A</span>
       }
       const code = value.toUpperCase()
       return (

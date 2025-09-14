@@ -292,7 +292,7 @@ export function LeadsRowInfoDrawer({ open, onOpenChange, currentRow }: Props) {
               <CardContent className="flex flex-col space-y-5">
                 <div className="flex flex-col space-y-1.5">
                   <h2>Captured Preferences</h2>
-                  <div className="flex items-center space-x-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
+                  <div className="flex flex-wrap items-center gap-3 rounded-md border border-zinc-300 p-4 text-zinc-500 dark:border-zinc-800">
                     {currentRow &&
                     Array.isArray(currentRow.preference) &&
                     currentRow.preference.length > 0 ? (

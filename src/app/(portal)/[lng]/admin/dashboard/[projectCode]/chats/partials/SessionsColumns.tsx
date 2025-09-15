@@ -55,13 +55,13 @@ export const columns: ColumnDef<Session>[] = [
       <DataTableColumnHeader
         column={column}
         title="Country"
-        className="ml-2 w-16 text-[13px]"
+        className="ml-2 w-10 text-[13px]"
       />
     ),
     cell: ({ getValue }) => {
       const value = getValue<string>()
       if (!value || value.toUpperCase() === "N/A") {
-        return <span>N/A</span>
+        return <span className="block w-full text-center">N/A</span>
       }
       const code = value.toUpperCase()
 

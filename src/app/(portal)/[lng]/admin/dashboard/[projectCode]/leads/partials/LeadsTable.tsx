@@ -151,9 +151,15 @@ export function LeadsTable({ columns }: Props) {
     if (!pref) return []
 
     return pref
-      .replace(/^{|}$/g, "")
+      .replace(/^[{\[]|[}\]]$/g, "")
       .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-      .map(s => s.trim().replace(/^"|"$/g, ""))
+      .map(s =>
+        s
+          .trim()
+          .replace(/^["']+|["']+$/g, "")
+          .replace(/''+/g, "'")
+          .replace(/[^a-zA-Z0-9 ']/g, "")
+      )
       .filter(Boolean)
   }
 

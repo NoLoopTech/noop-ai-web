@@ -264,18 +264,6 @@
       background-position: -200% 0;
     }
   }
-
-  @layer utilities {
-    /* SVG Stroke Shine effect */
-    .svg-shine-stroke {
-      stroke: url(#svg-shine-gradient);
-      /* For Tabler icons, you may need to set stroke-width and other props via Tailwind or inline */
-    }
-    .dark .svg-shine-stroke,
-    .dark\:svg-shine-stroke {
-      stroke: url(#svg-shine-gradient-dark);
-    }
-  }
 }
 
 @utility faded-bottom {

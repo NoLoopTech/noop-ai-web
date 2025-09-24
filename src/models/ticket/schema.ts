@@ -29,7 +29,7 @@ const ticketSchema = z.object({
   country: z.string().optional(),
   status: ticketStatusSchema,
   priority: ticketPrioritySchema,
-  type: ticketTypesSchema,
+  type: ticketTypesSchema || z.string(),
   method: ticketMethodSchema,
   content: z.string(),
   subject: z.string(),

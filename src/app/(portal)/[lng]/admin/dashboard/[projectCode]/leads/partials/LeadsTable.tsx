@@ -35,6 +35,7 @@ import { useDebounce } from "@/lib/hooks/useDebounce"
 import { useSession } from "next-auth/react"
 import { IconLoader2 } from "@tabler/icons-react"
 import { LeadsTableRowActions } from "./LeadsTableRowActions"
+import { cleanStrings } from "@/utils"
 
 interface Props {
   columns: ColumnDef<Lead>[]
@@ -147,22 +148,6 @@ export function LeadsTable({ columns }: Props) {
     })
   )
 
-  function parsePreference(pref: string | null | undefined): string[] {
-    if (!pref) return []
-
-    return pref
-      .replace(/^[{\[]|[}\]]$/g, "")
-      .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-      .map(s =>
-        s
-          .trim()
-          .replace(/^["']+|["']+$/g, "")
-          .replace(/''+/g, "'")
-          .replace(/[^a-zA-Z0-9 ']/g, "")
-      )
-      .filter(Boolean)
-  }
-
   function normalizeScore(
     score: string | null | undefined
   ): "hot" | "warm" | "cold" {
@@ -183,7 +168,7 @@ export function LeadsTable({ columns }: Props) {
 
     return paginatedData.data.map(lead => ({
       ...lead,
-      preference: parsePreference(lead.preference?.toString()),
+      preference: cleanStrings(lead.preference?.toString()),
       score: normalizeScore(lead.score),
       status: lead.status ?? "new"
     }))

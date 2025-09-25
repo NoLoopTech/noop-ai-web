@@ -20,7 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from "@/components/ui/tooltip"
-import { getCountryName } from "@/utils"
+import { cleanStrings, getCountryName } from "@/utils"
 
 export const columns: ColumnDef<Ticket>[] = [
   {
@@ -206,7 +206,8 @@ export const columns: ColumnDef<Ticket>[] = [
       <DataTableColumnHeader column={column} title="Type" />
     ),
     cell: ({ row }) => {
-      const type = ticketTypes.find(t => t.value === row.getValue("type"))
+      const value = row.getValue("type") as string
+      const type = ticketTypes.find(t => t.value === value)
 
       // INFO: show skeleton if data is undefined (or loading). This can be due to two states, data is actually not available or data is still loading. So this is a compromise. If data is unavaialable due to data not being in the table, it will show an inifite loader
       return (
@@ -215,8 +216,12 @@ export const columns: ColumnDef<Ticket>[] = [
             <span className="text-foreground bg-chip-ticket-type-bg border-chip-ticket-type-border rounded-md border px-3 py-1 text-xs font-semibold capitalize">
               {type.label}
             </span>
+          ) : value ? (
+            <span className="border-chip-ticket-type-border rounded-md border px-3 py-1 text-xs font-semibold text-amber-400 capitalize">
+              {cleanStrings(value)}
+            </span>
           ) : (
-            <div className="shine h-8 w-full rounded-lg"></div>
+            <span className="shine h-8 w-full rounded-lg" />
           )}
         </div>
       )

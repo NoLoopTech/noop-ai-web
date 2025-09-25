@@ -6,6 +6,7 @@ import {
 } from "@tabler/icons-react"
 import { BotMessageSquare } from "lucide-react"
 import { TicketMethod, TicketPriority, TicketStatus, TicketType } from "./enum"
+import { cleanStrings } from "@/utils"
 
 // INFO: keep the commented code for the moment
 
@@ -22,7 +23,7 @@ import { TicketMethod, TicketPriority, TicketStatus, TicketType } from "./enum"
 
 export const ticketTypes = Object.values(TicketType).map(type => ({
   value: type,
-  label: type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+  label: cleanStrings(type)
 }))
 
 export const ticketPriority = [

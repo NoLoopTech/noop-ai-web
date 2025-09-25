@@ -23,7 +23,7 @@ import { cleanStrings } from "@/utils"
 
 export const ticketTypes = Object.values(TicketType).map(type => ({
   value: type,
-  label: cleanStrings(type)
+  label: cleanStrings(type).toString()
 }))
 
 export const ticketPriority = [

@@ -1,5 +1,21 @@
+"use client"
+
+import { lazy, Suspense } from "react"
 import { columns } from "./partials/LeadsColumns"
-import { LeadsTable } from "./partials/LeadsTable"
+
+const LeadsTable = lazy(() =>
+  import("./partials/LeadsTable").then(module => ({
+    default: module.LeadsTable
+  }))
+)
+
+const TableSkeleton = () => (
+  <div className="space-y-4">
+    <div className="shine h-10 w-full rounded-lg" />
+    <div className="shine h-96 w-full rounded-lg" />
+    <div className="shine h-10 w-full rounded-lg" />
+  </div>
+)
 
 export default function LeadsPage() {
   return (
@@ -10,7 +26,9 @@ export default function LeadsPage() {
         </div>
       </div>
       <div className="flex-1">
-        <LeadsTable columns={columns} />
+        <Suspense fallback={<TableSkeleton />}>
+          <LeadsTable columns={columns} />
+        </Suspense>
       </div>
     </>
   )

@@ -1,5 +1,21 @@
+"use client"
+
+import { lazy, Suspense } from "react"
 import { columns } from "./partials/SessionsColumns"
-import { SessionsTable } from "./partials/SessionsTable"
+
+const SessionsTable = lazy(() =>
+  import("./partials/SessionsTable").then(module => ({
+    default: module.SessionsTable
+  }))
+)
+
+const TableSkeleton = () => (
+  <div className="space-y-4">
+    <div className="shine h-10 w-full rounded-lg" />
+    <div className="shine h-96 w-full rounded-lg" />
+    <div className="shine h-10 w-full rounded-lg" />
+  </div>
+)
 
 export default function SessionsPage() {
   return (
@@ -10,7 +26,9 @@ export default function SessionsPage() {
         </div>
       </div>
       <div className="flex-1">
-        <SessionsTable columns={columns} />
+        <Suspense fallback={<TableSkeleton />}>
+          <SessionsTable columns={columns} />
+        </Suspense>
       </div>
     </>
   )

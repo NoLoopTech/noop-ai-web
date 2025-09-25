@@ -1,7 +1,5 @@
-import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Header } from "@/components/layout/Header"
-import Analytics from "./analytics/page"
-import Overview from "./overview/page"
+import TabRouter from "./components/TabRouter"
 
 type Props = {
   params: Promise<{ tab?: string }>
@@ -20,47 +18,8 @@ export default async function Dashboard1Page({ params }: Props) {
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <Dashboard1Actions />
         </div> */}
-        <Tabs orientation="vertical" defaultValue={tab} className="space-y-4">
-          {/* <div className="w-full overflow-x-auto pb-2">
-            <TabsList>
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <IconSettings2 size={14} />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="analytics"
-                className="flex items-center gap-2"
-              >
-                <IconAnalyze size={16} />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger
-                value="reports"
-                className="flex items-center gap-2"
-                disabled
-              >
-                <IconFileReport size={16} />
-                Reports
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="flex items-center gap-2"
-                disabled
-              >
-                <IconNotification size={16} />
-                Notifications
-              </TabsTrigger>
-            </TabsList>
-          </div> */}
 
-          {/* TODO: Remove the commented code later */}
-          <TabsContent value="overview" className="space-y-4">
-            <Overview />
-          </TabsContent>
-          <TabsContent value="analytics" className="space-y-4">
-            <Analytics />
-          </TabsContent>
-        </Tabs>
+        <TabRouter defaultTab={tab} />
       </div>
     </>
   )

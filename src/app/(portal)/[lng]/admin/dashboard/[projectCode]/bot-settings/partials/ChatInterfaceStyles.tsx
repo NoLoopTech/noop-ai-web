@@ -30,8 +30,8 @@ import FullBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-full.
 import HalfBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-half.svg"
 import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
-import { FileInput } from "@/components/FileInput"
 import { useEffect } from "react"
+import CircularCrop from "@/components/CircularCrop"
 
 interface ChatInterfaceStylesProps {
   tabVariants: {
@@ -61,11 +61,13 @@ const formSchema = z.object({
     .enum(["Half Background", "Full Background"])
     .default("Full Background"),
   profilePicture: z
-    .instanceof(File)
-    .refine(file => file.size <= 1048576, {
-      message: "File size must be less than 1MB"
-    })
-    .optional(),
+    .instanceof(File, { message: "Please select a valid image file" })
+    .refine(
+      file => ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type),
+      "Only JPG, PNG, or SVG allowed"
+    )
+    .optional()
+    .nullable(),
   bubbleColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
@@ -117,10 +119,14 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
     }
 
   useEffect(() => {
-    const bubbleColor = form.watch("bubbleColor")
-    const newTextColor = getContrastTextColor(bubbleColor)
+    const headerColor = form.watch("headerColor")
+    const newTextColor = getContrastTextColor(headerColor)
     form.setValue("textColor", newTextColor, { shouldDirty: true })
-  }, [form.watch("bubbleColor")])
+
+    // TODO: remove this console log
+    // eslint-disable-next-line no-console
+    console.log("form", form.getValues())
+  }, [form.watch("headerColor")])
 
   return (
     <TabsContent key="style" value="style">
@@ -228,7 +234,7 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-6">
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="profilePicture"
                       render={({ field }) => (
@@ -247,6 +253,35 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                                 onChange={field.onChange}
                                 accept="image/jpeg,image/png,image/svg+xml"
                                 multiple={false}
+                                icon={<IconUpload className="h-4 w-4" />}
+                                variant="outline"
+                                label="Upload"
+                                display="icon-text"
+                              />
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    /> */}
+
+                    <FormField
+                      control={form.control}
+                      name="profilePicture"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Profile picture</FormLabel>
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col space-y-1">
+                              <FormDescription>
+                                Supports JPG, PNG, and SVG
+                              </FormDescription>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <CircularCrop
+                                value={field.value}
+                                onChange={field.onChange}
+                                accept="image/jpeg,image/png,image/svg+xml"
                                 icon={<IconUpload className="h-4 w-4" />}
                                 variant="outline"
                                 label="Upload"
@@ -288,45 +323,6 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                         </FormItem>
                       )}
                     />
-
-                    {/* INFO: this is a hidden input field since it is calculated automatically */}
-                    <FormField
-                      control={form.control}
-                      name="textColor"
-                      render={({ field }) => <input type="hidden" {...field} />}
-                    />
-                    {/* <FormField
-                      control={form.control}
-                      name="textColor"
-                      render={({ field }) => (
-                        <FormItem hidden>
-                          <div className="flex items-center justify-between space-y-0">
-                            <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat bubble text color</FormLabel>
-                              <FormMessage />
-                            </div>
-                            <FormControl>
-                              <div className="flex items-center space-x-2">
-                                <ColorPicker
-                                  color={field.value}
-                                  onChange={field.onChange}
-                                />
-                              </div>
-                            </FormControl>
-                          </div>
-                        </FormItem>
-                      )}
-                    /> */}
-
-                    <div
-                      className="mt-3 flex h-10 w-32 items-center justify-center rounded-md shadow-sm"
-                      style={{
-                        backgroundColor: form.watch("bubbleColor"),
-                        color: form.watch("textColor")
-                      }}
-                    >
-                      Preview Text
-                    </div>
 
                     <FormField
                       control={form.control}
@@ -478,6 +474,48 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                         </FormItem>
                       )}
                     />
+
+                    {/* INFO: this is a hidden input field since it is calculated automatically */}
+                    <FormField
+                      control={form.control}
+                      name="textColor"
+                      render={({ field }) => (
+                        <FormItem hidden>
+                          <div className="flex items-center justify-between space-y-0">
+                            <div className="flex flex-col space-y-1">
+                              <FormLabel>Chat bubble text color</FormLabel>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <div className="flex items-center space-x-2">
+                                <ColorPicker
+                                  color={field.value}
+                                  onChange={field.onChange}
+                                />
+                              </div>
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* INFO: kept this version of text color field for testing purposes */}
+                    {/* <FormField
+                        control={form.control}
+                        name="textColor"
+                        render={({ field }) => <input type="hidden" {...field} />}
+                      /> */}
+
+                    {/* INFO: This is a for previewing the hidden text color calculation */}
+                    {/* <div
+                      className="mt-3 flex h-10 w-32 items-center justify-center rounded-md shadow-sm"
+                      style={{
+                        backgroundColor: form.watch("bubbleColor"),
+                        color: form.watch("textColor")
+                      }}
+                    >
+                      Preview Text
+                    </div> */}
                   </CardContent>
                 </Card>
               </form>

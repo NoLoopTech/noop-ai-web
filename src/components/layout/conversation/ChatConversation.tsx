@@ -12,9 +12,7 @@ import { format } from "date-fns"
 import Markdown from "react-markdown"
 import { PaginatedResult } from "@/types/paginatedData"
 import { useParams } from "next/navigation"
-import { useApiQuery, useApiMutation } from "@/query"
-import { useQueryClient } from "@tanstack/react-query"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { useApiQuery } from "@/query"
 import ChatScoreBadge from "@/components/ChatScoreBadge"
 import { getScoreVariant } from "@/utils"
 import ImproveAnswerDrawer from "./ImproveAnswerDrawer"
@@ -71,20 +69,6 @@ export default function ChatConversation({
 
   const groupDates = useMemo(() => Object.keys(grouped).sort(), [grouped])
 
-  const queryClient = useQueryClient()
-  const projectId = useProjectCode()
-  const generateSummaryMutation = useApiMutation(
-    "/conversations/generateChatSummary",
-    "post",
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["chat-sessions", projectId]
-        })
-      }
-    }
-  )
-
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
@@ -94,12 +78,6 @@ export default function ChatConversation({
       }
     }
   }, [grouped])
-
-  useEffect(() => {
-    if (threadId && !isInitialLoading && initialThreadMessages?.data?.length) {
-      generateSummaryMutation.mutate({ threadId })
-    }
-  }, [threadId, isInitialLoading, initialThreadMessages])
 
   const handleImproveAnswerClick = (message: ChatMessage) => () => {
     if (selectedConversation?.messages) {

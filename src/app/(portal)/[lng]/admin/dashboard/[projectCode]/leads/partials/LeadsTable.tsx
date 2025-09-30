@@ -27,9 +27,8 @@ import { DataTablePagination } from "@/components/layout/Table/DataTablePaginati
 import { DataTableToolbar } from "./LeadsTableToolbar"
 import { Lead } from "../data/schema"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery, useApiMutation } from "@/query"
+import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
-import { useToast } from "@/lib/hooks/useToast"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { useSession } from "next-auth/react"
@@ -67,31 +66,11 @@ export function LeadsTable({ columns }: Props) {
   const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
 
   const projectId = useProjectCode()
-  const { toast } = useToast()
+  // const { toast } = useToast()
 
   const { data: session, status } = useSession()
   const token = session?.apiToken
   const firedRef = useRef(false)
-
-  // Lead score calculation mutation
-  const scoreMutation = useApiMutation(
-    projectId ? `/leads/initiateScoreCalculation/${projectId}` : "",
-    "post",
-    {
-      onSuccess: () => {},
-      onError: error => {
-        if (status !== "authenticated" || !token) return
-        const errorMessage =
-          (error as { message?: string })?.message ||
-          "Failed to calculate lead scores. Please try again."
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        })
-      }
-    }
-  )
 
   useEffect(() => {
     if (!projectId) return
@@ -99,7 +78,6 @@ export function LeadsTable({ columns }: Props) {
     if (firedRef.current) return
 
     firedRef.current = true
-    scoreMutation.mutate(undefined)
   }, [projectId, status, token])
 
   const filterParams = useMemo(() => {

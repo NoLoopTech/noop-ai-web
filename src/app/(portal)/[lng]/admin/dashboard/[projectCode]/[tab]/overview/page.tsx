@@ -1,16 +1,24 @@
 "use client"
 
+import { lazy, Suspense } from "react"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import Stats from "./partials/Stats"
-import UsageGraph from "./partials/UsageGraph"
-import BotRatings from "./partials/BotRatings"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { DashboardRange } from "@/models/dashboard"
-import GeoBreakdownMap from "./partials/GeoBreakdownMap"
-import LeadsAndTicketsGraph from "./partials/LeadsAndTicketsGraph"
 import ComingSoon from "./partials/ComingSoon"
 import { IconUserCheck } from "@tabler/icons-react"
+import LazyInView from "@/components/LazyInView"
 
+const UsageGraph = lazy(() => import("./partials/UsageGraph"))
+const BotRatings = lazy(() => import("./partials/BotRatings"))
+const GeoBreakdownMap = lazy(() => import("./partials/GeoBreakdownMap"))
+const LeadsAndTicketsGraph = lazy(
+  () => import("./partials/LeadsAndTicketsGraph")
+)
+
+const LoadingCard = ({ className = "h-96" }: { className?: string }) => (
+  <div className={`shine w-full rounded-md ${className}`} />
+)
 export default function Overview() {
   const { dateRange, setDateRange } = useDashboardFilters()
 
@@ -33,15 +41,27 @@ export default function Overview() {
           />
         </div>
         <div className="col-span-3">
-          <BotRatings />
+          {/* <BotRatings /> */}
+          <Suspense fallback={<div className="shine h-96 w-full rounded-md" />}>
+            <BotRatings />
+          </Suspense>
         </div>
 
-        <div className="col-span-3 md:col-span-6">
+        <LazyInView
+          className="col-span-3 md:col-span-6"
+          fallback={<div className="shine h-96 w-full rounded-md" />}
+          placeholder={<div className="bg-muted h-96 rounded-lg" />}
+        >
           <UsageGraph />
-        </div>
-        <div className="col-span-3 md:col-span-6 lg:col-span-6">
+        </LazyInView>
+
+        <LazyInView
+          className="col-span-3 md:col-span-6 lg:col-span-6"
+          fallback={<LoadingCard className="h-96" />}
+          placeholder={<div className="bg-muted h-96 rounded-lg" />}
+        >
           <LeadsAndTicketsGraph />
-        </div>
+        </LazyInView>
         <div className="col-span-12 grid grid-cols-12 gap-5">
           <div className="col-span-3 grid grid-cols-3 grid-rows-2 gap-5 md:col-span-3 lg:col-span-3">
             <div className="col-span-3 md:col-span-6 lg:col-span-3">
@@ -58,9 +78,15 @@ export default function Overview() {
               <ComingSoon title="Escalations to Human" icon={IconUserCheck} />
             </div>
           </div>
-          <div className="col-span-3 md:col-span-6 lg:col-span-9">
+          <LazyInView
+            className="col-span-3 md:col-span-6 lg:col-span-9"
+            fallback={<LoadingCard className="h-96" />}
+            placeholder={<div className="bg-muted h-96 rounded-lg" />}
+            threshold={0.2}
+            rootMargin="50px"
+          >
             <GeoBreakdownMap />
-          </div>
+          </LazyInView>
         </div>
       </div>
     </>

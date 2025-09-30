@@ -1,5 +1,21 @@
+"use client"
+
+import { lazy, Suspense } from "react"
 import { columns } from "./partials/TicketsColumns"
-import { TicketsTable } from "./partials/TicketsTable"
+
+const TicketsTable = lazy(() =>
+  import("./partials/TicketsTable").then(module => ({
+    default: module.TicketsTable
+  }))
+)
+
+const TableSkeleton = () => (
+  <div className="space-y-4">
+    <div className="shine h-10 w-full rounded-lg" />
+    <div className="shine h-96 w-full rounded-lg" />
+    <div className="shine h-10 w-full rounded-lg" />
+  </div>
+)
 
 export default function TicketsPage() {
   return (
@@ -10,7 +26,9 @@ export default function TicketsPage() {
         </div>
       </div>
       <div className="flex-1">
-        <TicketsTable columns={columns} />
+        <Suspense fallback={<TableSkeleton />}>
+          <TicketsTable columns={columns} />
+        </Suspense>
       </div>
     </>
   )

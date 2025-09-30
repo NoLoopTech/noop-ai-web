@@ -66,7 +66,6 @@ export function LeadsTable({ columns }: Props) {
   const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
 
   const projectId = useProjectCode()
-  // const { toast } = useToast()
 
   const { data: session, status } = useSession()
   const token = session?.apiToken

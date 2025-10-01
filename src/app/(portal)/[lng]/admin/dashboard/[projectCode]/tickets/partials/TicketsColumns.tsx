@@ -12,7 +12,7 @@ import {
   ticketStatus,
   ticketTypes
 } from "@/models/ticket/options"
-import { TicketsTableRowActions } from "./TicketsTableRowActions"
+import TicketsTableRowActions from "./TicketsTableRowActions"
 import { TicketsRowInfoAction } from "./TicketsRowInfoAction"
 import CountryFlag from "react-country-flag"
 import {

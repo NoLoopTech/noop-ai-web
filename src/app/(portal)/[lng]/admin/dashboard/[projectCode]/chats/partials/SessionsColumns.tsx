@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Session } from "../data/schema"
-import { DataTableRowActions } from "./SessionsTableRowActions"
+import DataTableRowActions from "./SessionsTableRowActions"
 import { DataTableColumnHeader } from "@/components/layout/Table/DataTableColumnHeader"
 import { cn } from "@/lib/utils"
 import { SessionsViewActions } from "./SessionsViewActions"

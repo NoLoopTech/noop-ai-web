@@ -42,6 +42,9 @@ interface Props {
   // data: Session[]
 }
 
+// Stable array for skeleton loading - prevents recreation on every render
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
 export function SessionsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -209,7 +212,12 @@ export function SessionsTable({ columns }: Props) {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30
+      staleTime: 1000 * 30,
+      // Background refetching for real-time chat data
+      refetchInterval: 1000 * 60, // Refresh every 1 minute (most aggressive)
+      refetchIntervalInBackground: false, // Only when tab is active
+      refetchOnWindowFocus: true, // Always refresh when user returns
+      refetchOnReconnect: true // Refresh when internet reconnects
     }
   )
 
@@ -336,7 +344,7 @@ export function SessionsTable({ columns }: Props) {
                 </TableRow>
               ))
             ) : isChatsLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
+              SKELETON_ROWS.map(i => (
                 <TableRow key={`skeleton-row-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>

@@ -40,6 +40,9 @@ interface Props {
   // data: Ticket[]
 }
 
+// Stable array for skeleton loading - prevents recreation on every render
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
 export function TicketsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -65,8 +68,8 @@ export function TicketsTable({ columns }: Props) {
     dateRangeType: ""
   })
 
-  // Debounce the search term for server-side filtering
-  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+  // Debounce the search term for server-side filtering (optimized for faster response)
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 200)
 
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}
@@ -129,7 +132,12 @@ export function TicketsTable({ columns }: Props) {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30
+      staleTime: 1000 * 30,
+      // Background refetching for real-time support data
+      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
+      refetchIntervalInBackground: false, // Only when tab is active
+      refetchOnWindowFocus: true, // Refresh when user returns to tab
+      refetchOnReconnect: true // Refresh when internet reconnects
     }
   )
 
@@ -271,7 +279,7 @@ export function TicketsTable({ columns }: Props) {
                 </TableRow>
               ))
             ) : isTicketsLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
+              SKELETON_ROWS.map(i => (
                 <TableRow key={`skeleton-row-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>

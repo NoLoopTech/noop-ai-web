@@ -40,6 +40,9 @@ interface Props {
   columns: ColumnDef<Lead>[]
 }
 
+// Stable array for skeleton loading - prevents recreation on every render
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
 export function LeadsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -62,8 +65,8 @@ export function LeadsTable({ columns }: Props) {
     dateRangeType: ""
   })
 
-  // Debounce the search term for server-side filtering
-  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+  // Debounce the search term for server-side filtering (optimized for faster response)
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 200)
 
   const projectId = useProjectCode()
 
@@ -141,7 +144,12 @@ export function LeadsTable({ columns }: Props) {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30
+      staleTime: 1000 * 30,
+      // Background refetching for sales data
+      refetchInterval: 1000 * 60 * 3, // Refresh every 3 minutes (less aggressive)
+      refetchIntervalInBackground: false, // Only when tab is active
+      refetchOnWindowFocus: false, // Don't refetch on tab focus (less critical)
+      refetchOnReconnect: true // Refresh when internet reconnects
     }
   )
 
@@ -268,7 +276,7 @@ export function LeadsTable({ columns }: Props) {
                 </TableRow>
               ))
             ) : isLeadsLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
+              SKELETON_ROWS.map(i => (
                 <TableRow key={`skeleton-row-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>

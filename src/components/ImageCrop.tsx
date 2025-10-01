@@ -53,7 +53,8 @@ const getCroppedPngImage = async (
   imageSrc: HTMLImageElement,
   scaleFactor: number,
   pixelCrop: PixelCrop,
-  maxImageSize: number
+  maxImageSize: number,
+  outputSize?: number
 ): Promise<string> => {
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d")
@@ -65,9 +66,21 @@ const getCroppedPngImage = async (
   const scaleX = imageSrc.naturalWidth / imageSrc.width
   const scaleY = imageSrc.naturalHeight / imageSrc.height
 
-  ctx.imageSmoothingEnabled = false
-  canvas.width = pixelCrop.width
-  canvas.height = pixelCrop.height
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = "high"
+
+  const canvasWidth = outputSize || pixelCrop.width
+  const canvasHeight = outputSize || pixelCrop.height
+
+  // INFO: Add this debug log back in if needed
+  // console.log("Final canvas dimensions:", {
+  //   canvasWidth,
+  //   canvasHeight,
+  //   outputSize
+  // })
+
+  canvas.width = canvasWidth
+  canvas.height = canvasHeight
 
   ctx.drawImage(
     imageSrc,
@@ -77,8 +90,8 @@ const getCroppedPngImage = async (
     pixelCrop.height * scaleY,
     0,
     0,
-    canvas.width,
-    canvas.height
+    canvasWidth,
+    canvasHeight
   )
 
   const croppedImageUrl = canvas.toDataURL("image/png")
@@ -90,7 +103,8 @@ const getCroppedPngImage = async (
       imageSrc,
       scaleFactor * 0.9,
       pixelCrop,
-      maxImageSize
+      maxImageSize,
+      outputSize
     )
   }
 
@@ -100,6 +114,7 @@ const getCroppedPngImage = async (
 type ImageCropContextType = {
   file: File
   maxImageSize: number
+  outputSize?: number
   imgSrc: string
   crop: PercentCrop | undefined
   completedCrop: PixelCrop | null
@@ -129,6 +144,7 @@ const useImageCrop = () => {
 export type ImageCropProps = {
   file: File
   maxImageSize?: number
+  outputSize?: number
   onCrop?: (croppedImage: string) => void
   children: ReactNode
   onChange?: ReactCropProps["onChange"]
@@ -138,6 +154,7 @@ export type ImageCropProps = {
 export const ImageCrop = ({
   file,
   maxImageSize = 1024 * 1024 * 5,
+  outputSize,
   onCrop,
   children,
   onChange,
@@ -190,7 +207,8 @@ export const ImageCrop = ({
       imgRef.current,
       1,
       completedCrop,
-      maxImageSize
+      maxImageSize,
+      outputSize
     )
 
     onCrop?.(croppedImage)
@@ -206,6 +224,7 @@ export const ImageCrop = ({
   const contextValue: ImageCropContextType = {
     file,
     maxImageSize,
+    outputSize,
     imgSrc,
     crop,
     completedCrop,
@@ -252,7 +271,7 @@ export const ImageCropContent = ({
 
   return (
     <ReactCrop
-      className={cn("max-h-[15000px] max-w-full", className)}
+      className={cn("max-h-[277px] max-w-full", className)}
       crop={crop}
       onChange={handleChange}
       onComplete={handleComplete}

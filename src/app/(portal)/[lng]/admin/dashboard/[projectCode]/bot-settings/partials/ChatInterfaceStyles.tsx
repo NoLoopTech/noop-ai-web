@@ -39,28 +39,35 @@ interface ChatInterfaceStylesProps {
     animate: { opacity: number; x: number }
     exit: { opacity: number; x: number }
   }
+  setBrandStyling: (styling: {
+    backgroundColor: string
+    color: string
+    brandLogo: string | null
+  }) => void
+  setChatButtonStyling: (styling: {
+    backgroundColor: string
+    borderColor: string
+    chatButtonIcon: string | null
+  }) => void
 }
 
-// Utility function to determine text color (black or white) based on background color
+// INFO: Utility function to determine text color (black or white) based on background color
 function getContrastTextColor(hex: string): string {
-  // Remove hash if present
+  // INFO: Remove hash if present
   hex = hex.replace(/^#/, "")
   // Parse r, g, b
   const r = parseInt(hex.substring(0, 2), 16)
   const g = parseInt(hex.substring(2, 4), 16)
   const b = parseInt(hex.substring(4, 6), 16)
-  // Calculate luminance
+  // INFO: Calculate luminance
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  // Return black for light backgrounds, white for dark backgrounds
+  // INFO: Return black for light backgrounds, white for dark backgrounds
   return luminance > 0.5 ? "#000000" : "#FFFFFF"
 }
 
 const formSchema = z.object({
   themes: z.enum(["Dark", "Light"]).default("Dark"),
-  welcomeScreenAppearance: z
-    .enum(["Half Background", "Full Background"])
-    .default("Full Background"),
-  profilePicture: z
+  chatButtonIcon: z
     .instanceof(File, { message: "Please select a valid image file" })
     .refine(
       file => ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type),
@@ -68,38 +75,69 @@ const formSchema = z.object({
     )
     .optional()
     .nullable(),
-  bubbleColor: z
+  brandLogo: z
+    .instanceof(File, { message: "Please select a valid image file" })
+    .refine(
+      file => ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type),
+      "Only JPG, PNG, or SVG allowed"
+    )
+    .optional()
+    .nullable(),
+  brandBgColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
+    .default("#1E50EF"),
+  brandTextColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
+    .default("#FFFFFF"),
+  chatButtonColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
     .default("#aabbcc"),
-  headerColor: z
+  userBubbleColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
+    .default("#1E50EF"),
+  chatButtonBorderColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
+    .default("#1E50EF"),
+  welcomeScreenAppearance: z
+    .enum(["Half Background", "Full Background"])
+    .default("Full Background"),
+  welcomeButtonBgColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
     .default("#aabbcc"),
-  color: z
+  welcomeButtonTextColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#aabbcc"),
-  alignsChatBubbleButton: z.enum(["Left", "Right"]).default("Right"),
-  textColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default(getContrastTextColor("#aabbcc"))
+    .default("#1E50EF"),
+  alignChatBubbleButton: z.enum(["Left", "Right"]).default("Right")
 })
 type ContentForm = z.infer<typeof formSchema>
 
-const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
+const ChatInterfaceStyles = ({
+  tabVariants,
+  setBrandStyling,
+  setChatButtonStyling
+}: ChatInterfaceStylesProps) => {
   const form = useForm<ContentForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      themes: "Dark",
+      themes: "Light",
+      chatButtonIcon: undefined,
+      chatButtonBorderColor: "#1E50EF",
+      chatButtonColor: "#aabbcc",
+      brandLogo: undefined,
+      brandBgColor: "#1E50EF",
+      brandTextColor: "#1E50EF",
       welcomeScreenAppearance: "Full Background",
-      profilePicture: undefined,
-      bubbleColor: "#aabbcc",
-      headerColor: "#aabbcc",
-      color: "#aabbcc",
-      alignsChatBubbleButton: "Right",
-      textColor: getContrastTextColor("#aabbcc")
+      welcomeButtonBgColor: "#aabbcc",
+      welcomeButtonTextColor: "#1E50EF",
+      userBubbleColor: "#1E50EF",
+      alignChatBubbleButton: "Right"
     }
   })
 
@@ -119,14 +157,89 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
     }
 
   useEffect(() => {
-    const headerColor = form.watch("headerColor")
-    const newTextColor = getContrastTextColor(headerColor)
-    form.setValue("textColor", newTextColor, { shouldDirty: true })
+    const welcomeButtonBgColor = form.watch("welcomeButtonBgColor")
+    const newTextColor = getContrastTextColor(welcomeButtonBgColor)
+    form.setValue("welcomeButtonTextColor", newTextColor, { shouldDirty: true })
 
     // TODO: remove this console log
     // eslint-disable-next-line no-console
     console.log("form", form.getValues())
-  }, [form.watch("headerColor")])
+  }, [form.watch("welcomeButtonBgColor")])
+
+  useEffect(() => {
+    const brandBgColor = form.watch("brandBgColor")
+    const newTextColor = getContrastTextColor(brandBgColor)
+    form.setValue("brandTextColor", newTextColor, { shouldDirty: true })
+  }, [form.watch("brandBgColor")])
+
+  // useEffect(() => {
+  //   const brandBgColor = form.watch("brandBgColor")
+  //   const brandTextColor = form.watch("brandTextColor")
+  //   setBrandStyling({ backgroundColor: brandBgColor, color: brandTextColor })
+  // }, [form.watch("brandBgColor"), form.watch("brandTextColor")])
+
+  function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  useEffect(() => {
+    const brandBgColor = form.watch("brandBgColor")
+    const brandTextColor = form.watch("brandTextColor")
+    const brandLogoFile = form.watch("brandLogo")
+
+    if (brandLogoFile instanceof File) {
+      fileToDataUrl(brandLogoFile).then(dataUrl => {
+        setBrandStyling({
+          backgroundColor: brandBgColor,
+          color: brandTextColor,
+          brandLogo: dataUrl
+        })
+      })
+    } else {
+      setBrandStyling({
+        backgroundColor: brandBgColor,
+        color: brandTextColor,
+        brandLogo: null
+      })
+    }
+  }, [
+    form.watch("brandBgColor"),
+    form.watch("brandTextColor"),
+    form.watch("brandLogo"),
+    setBrandStyling
+  ])
+
+  useEffect(() => {
+    const chatButtonBgColor = form.watch("chatButtonColor")
+    const chatButtonBorderColor = form.watch("chatButtonBorderColor")
+    const chatButtonIconUrl = form.watch("chatButtonIcon")
+
+    if (chatButtonIconUrl instanceof File) {
+      fileToDataUrl(chatButtonIconUrl).then(dataUrl => {
+        setChatButtonStyling({
+          backgroundColor: chatButtonBgColor,
+          borderColor: chatButtonBorderColor,
+          chatButtonIcon: dataUrl
+        })
+      })
+    } else {
+      setChatButtonStyling({
+        backgroundColor: chatButtonBgColor,
+        borderColor: chatButtonBorderColor,
+        chatButtonIcon: null
+      })
+    }
+  }, [
+    form.watch("chatButtonColor"),
+    form.watch("chatButtonBorderColor"),
+    form.watch("chatButtonIcon"),
+    setChatButtonStyling
+  ])
 
   return (
     <TabsContent key="style" value="style">
@@ -139,137 +252,27 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
         transition={{ duration: 0.3 }}
         className="space-y-4"
       >
-        <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-215px)]">
+        <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
               <form
-                id="chat-interface-content"
+                id="chat-interface-style"
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="flex flex-col gap-4"
               >
                 <Card>
                   <CardHeader className="px-5 pt-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex flex-col space-y-1">
-                          <CardTitle className="text-xl font-semibold">
-                            Chat Appearance
-                          </CardTitle>
-                        </div>
-                      </div>
-                    </div>
+                    <CardTitle className="text-xl font-semibold">
+                      Brand Styling
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-5 px-5 pt-0 pb-6">
+                  <CardContent className="space-y-5 px-5 pt-0 pb-5">
                     <FormField
                       control={form.control}
-                      name="themes"
-                      render={({ field }) => (
-                        <FormItem className="col-span-6">
-                          <FormLabel>Themes</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              value={field.value}
-                              className="mt-1 flex h-full w-full items-center justify-start space-x-5"
-                            >
-                              <FormItem className="flex items-center">
-                                <FormControl>
-                                  <FormLabel htmlFor="light">
-                                    <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 p-4 pr-0 pb-0">
-                                        <LightIcon />
-                                      </CardContent>
-                                      <CardFooter className="flex items-center justify-between border-t py-5">
-                                        <p>Light</p>
-                                        <RadioGroupItem
-                                          value="Light"
-                                          id="light"
-                                          aria-label="Light"
-                                        />
-                                      </CardFooter>
-                                    </Card>
-                                  </FormLabel>
-                                </FormControl>
-                              </FormItem>
-
-                              <FormItem className="flex items-center">
-                                <FormControl>
-                                  <FormLabel htmlFor="dark">
-                                    <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-800 p-4 pr-0 pb-0">
-                                        <DarkIcon />
-                                      </CardContent>
-                                      <CardFooter className="flex items-center justify-between border-t py-5">
-                                        <p>Dark</p>
-                                        <RadioGroupItem
-                                          value="Dark"
-                                          id="dark"
-                                          aria-label="Dark"
-                                        />
-                                      </CardFooter>
-                                    </Card>
-                                  </FormLabel>
-                                </FormControl>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="px-5 pt-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex flex-col space-y-1">
-                          <CardTitle className="text-xl font-semibold">
-                            Chat Bubble Appearance
-                          </CardTitle>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-5 px-5 pt-0 pb-6">
-                    {/* <FormField
-                      control={form.control}
-                      name="profilePicture"
+                      name="brandLogo"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Profile picture</FormLabel>
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1">
-                              <FormDescription>
-                                Supports JPG, PNG, and SVG up to 1MB
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                            <FormControl>
-                              <FileInput
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
-                                multiple={false}
-                                icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                display="icon-text"
-                              />
-                            </FormControl>
-                          </div>
-                        </FormItem>
-                      )}
-                    /> */}
-
-                    <FormField
-                      control={form.control}
-                      name="profilePicture"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Profile picture</FormLabel>
+                          <FormLabel>Brand Logo</FormLabel>
                           <div className="flex items-center justify-between">
                             <div className="flex flex-col space-y-1">
                               <FormDescription>
@@ -286,6 +289,8 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                                 variant="outline"
                                 label="Upload"
                                 display="icon-text"
+                                outputSize={500}
+                                cropShape="square"
                               />
                             </FormControl>
                           </div>
@@ -295,12 +300,12 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
 
                     <FormField
                       control={form.control}
-                      name="bubbleColor"
+                      name="brandBgColor"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat bubble button color</FormLabel>
+                              <FormLabel>Brand color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -326,10 +331,216 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
 
                     <FormField
                       control={form.control}
-                      name="alignsChatBubbleButton"
+                      name="brandTextColor"
+                      render={({ field }) => (
+                        <FormItem hidden>
+                          <div className="flex items-center justify-between space-y-0">
+                            <div className="flex flex-col space-y-1">
+                              <FormLabel>Brand text color</FormLabel>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <div className="flex items-center space-x-2">
+                                <ColorPicker
+                                  color={field.value}
+                                  onChange={field.onChange}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={resetColor(field, "#1E50EF")}
+                                  className="shadow-sm"
+                                >
+                                  <IconRefresh className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="px-5 pt-5">
+                    <CardTitle className="text-xl font-semibold">
+                      Chat Appearance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-5 px-5 pt-0 pb-6">
+                    <FormField
+                      control={form.control}
+                      name="themes"
                       render={({ field }) => (
                         <FormItem className="col-span-6">
-                          <FormLabel>Aligns chat bubble button</FormLabel>
+                          <FormLabel>Themes</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              value={field.value}
+                              className="mt-1 flex h-full w-full items-center justify-start space-x-5"
+                            >
+                              <FormItem className="flex items-center">
+                                <FormControl>
+                                  <FormLabel htmlFor="light">
+                                    <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 p-0 pt-2.5 pl-5">
+                                        <LightIcon />
+                                      </CardContent>
+                                      <CardFooter className="flex items-center justify-between border-t py-5">
+                                        <p>Light</p>
+                                        <RadioGroupItem
+                                          value="Light"
+                                          id="light"
+                                          aria-label="Light"
+                                        />
+                                      </CardFooter>
+                                    </Card>
+                                  </FormLabel>
+                                </FormControl>
+                              </FormItem>
+
+                              <FormItem className="flex items-center">
+                                <FormControl>
+                                  <FormLabel htmlFor="dark">
+                                    <Card className="_hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary _cursor-pointer cursor-not-allowed rounded-xl duration-300 ease-in-out transform-fill">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-800 p-0 pt-2.5 pl-5">
+                                        <DarkIcon />
+                                      </CardContent>
+                                      <CardFooter className="flex items-center justify-between border-t py-5">
+                                        <p>Dark</p>
+                                        <RadioGroupItem
+                                          value="Dark"
+                                          id="dark"
+                                          aria-label="Dark"
+                                          disabled
+                                        />
+                                      </CardFooter>
+                                    </Card>
+                                  </FormLabel>
+                                </FormControl>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="px-5 pt-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex flex-col space-y-1">
+                          <CardTitle className="text-xl font-semibold">
+                            Chat Button Appearance
+                          </CardTitle>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-5 px-5 pt-0 pb-6">
+                    <FormField
+                      control={form.control}
+                      name="chatButtonIcon"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chat button icon</FormLabel>
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col space-y-1">
+                              <FormDescription>
+                                Supports JPG, PNG, and SVG
+                              </FormDescription>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <CircularCrop
+                                value={field.value}
+                                onChange={field.onChange}
+                                accept="image/jpeg,image/png,image/svg+xml"
+                                icon={<IconUpload className="h-4 w-4" />}
+                                variant="outline"
+                                label="Upload"
+                                display="icon-text"
+                              />
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="chatButtonColor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center justify-between space-y-0">
+                            <div className="flex flex-col space-y-1">
+                              <FormLabel>Chat button color</FormLabel>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <div className="flex items-center space-x-2">
+                                <ColorPicker
+                                  color={field.value}
+                                  onChange={field.onChange}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={resetColor(field, "#1E50EF")}
+                                  className="shadow-sm"
+                                >
+                                  <IconRefresh className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="chatButtonBorderColor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center justify-between space-y-0">
+                            <div className="flex flex-col space-y-1">
+                              <FormLabel>Chat button border color</FormLabel>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <div className="flex items-center space-x-2">
+                                <ColorPicker
+                                  color={field.value}
+                                  onChange={field.onChange}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={resetColor(field, "#1E50EF")}
+                                  className="shadow-sm"
+                                >
+                                  <IconRefresh className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="alignChatBubbleButton"
+                      render={({ field }) => (
+                        <FormItem className="col-span-6">
+                          <FormLabel>Aligns chat button</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
@@ -387,7 +598,7 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-5 px-5 pt-0 pb-6">
+                  <CardContent className="space-y-5 px-5 pt-0 pb-1">
                     <FormField
                       control={form.control}
                       name="welcomeScreenAppearance"
@@ -404,7 +615,7 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                                 <FormControl>
                                   <FormLabel htmlFor="bg-half">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-3 pt-4 pb-0">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-6 pt-4 pb-0">
                                         <HalfBgIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -448,11 +659,11 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
 
                     <FormField
                       control={form.control}
-                      name="headerColor"
+                      name="welcomeButtonBgColor"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center justify-between">
-                            <FormLabel>Screen header color</FormLabel>
+                            <FormLabel>Submit button color</FormLabel>
                             <FormControl>
                               <div className="flex items-center space-x-2">
                                 <ColorPicker
@@ -478,7 +689,7 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                     {/* INFO: this is a hidden input field since it is calculated automatically */}
                     <FormField
                       control={form.control}
-                      name="textColor"
+                      name="welcomeButtonTextColor"
                       render={({ field }) => (
                         <FormItem hidden>
                           <div className="flex items-center justify-between space-y-0">
@@ -520,17 +731,19 @@ const ChatInterfaceStyles = ({ tabVariants }: ChatInterfaceStylesProps) => {
                 </Card>
               </form>
             </Form>
-            <Button
-              type="submit"
-              variant="default"
-              disabled={!form.formState.isValid}
-              className="w-max self-end disabled:opacity-50"
-              form="chat-interface-content"
-            >
-              Save
-            </Button>
           </div>
         </ScrollArea>
+        <div className="flex w-full items-center justify-end px-3">
+          <Button
+            type="submit"
+            variant="default"
+            disabled={!form.formState.isValid}
+            className="w-max disabled:opacity-50"
+            form="chat-interface-style"
+          >
+            Save
+          </Button>
+        </div>
       </motion.div>
     </TabsContent>
   )

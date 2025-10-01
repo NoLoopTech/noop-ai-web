@@ -32,7 +32,7 @@ import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import { motion } from "motion/react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-// import { MarkdownEditor } from "@/components/RichTextEditor"
+import RichTextEditor from "@/components/RichTextEditor"
 
 interface ChatInterfaceContentProps {
   tabVariants: {
@@ -46,7 +46,7 @@ const formSchema = z.object({
   botName: z.string().min(1, "Bot Name is required."),
   initialMessage: z.string().min(1, "Initial message is required."),
   messagePlaceholder: z.string().min(1, "Message placeholder is required."),
-  // richtext: z.string().min(1, "Initial messages are required."),
+  dismissibleNotice: z.string().min(1, "Dismissible notice is required."),
   suggestedMessagesEnabled: z.boolean().default(false),
   suggestedMessages: z.array(
     z.object({
@@ -76,7 +76,7 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
       botName: "",
       initialMessage: "",
       messagePlaceholder: "",
-      // richtext: "",
+      dismissibleNotice: "",
       suggestedMessagesEnabled: false,
       suggestedMessages: [],
       collectUserFeedbackEnabled: false,
@@ -134,7 +134,7 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
         transition={{ duration: 0.3 }}
         className="space-y-4"
       >
-        <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-215px)]">
+        <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
               <form
@@ -300,53 +300,38 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                       </div>
                     )}
 
-                    {/* <FormField
-                            control={form.control}
-                            name="richtext"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>
-                                  Initial messages
-                                  <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
-                                </FormLabel>
-                                <FormControl>
-                                  <MarkdownEditor
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Hi! What can I help you with?"
-                                    rows={4}
-                                    className="mt-1 resize-none text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          /> */}
+                    <FormField
+                      control={form.control}
+                      name="dismissibleNotice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Dismissible notice
+                            <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
+                          </FormLabel>
+                          <FormControl>
+                            <div className="mt-1 flex flex-col space-y-1 rounded-xl bg-zinc-100 pb-2 dark:bg-zinc-700/25">
+                              <RichTextEditor
+                                value={field.value}
+                                onChange={field.onChange}
+                                className="bg-background resize-none"
+                              />
+                              <div className="flex items-center space-x-2 px-2 py-1 text-sm text-zinc-500">
+                                <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
+                                <p>
+                                  You can use this to add a dismissable notice.
+                                  It will be dismissed after the user sends a
+                                  message.
+                                </p>
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                    {/* <Controller
-                            control={form.control}
-                            name="richtext"
-                            render={({ field, fieldState }) => (
-                              <FormItem>
-                                <FormLabel>
-                                  Initial messages
-                                  <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
-                                </FormLabel>
-                                <FormControl>
-                                  <RichTextEditor
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Hi! What can I help you with?"
-                                    rows={4}
-                                    className="mt-1"
-                                  />
-                                </FormControl>
-                                <FormMessage>
-                                  {fieldState.error?.message}
-                                </FormMessage>
-                              </FormItem>
-                            )}
-                          /> */}
+                    {/* <MDXEditor markdown="<p>Hello World</p>" /> */}
 
                     <FormField
                       control={form.control}
@@ -562,17 +547,19 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                 </Card>
               </form>
             </Form>
-            <Button
-              type="submit"
-              variant="default"
-              disabled={!form.formState.isValid}
-              className="w-max self-end disabled:opacity-50"
-              form="chat-interface-content"
-            >
-              Save
-            </Button>
           </div>
         </ScrollArea>
+        <div className="flex w-full items-center justify-end px-3">
+          <Button
+            type="submit"
+            variant="default"
+            disabled={!form.formState.isValid}
+            className="w-max disabled:opacity-50"
+            form="chat-interface-content"
+          >
+            Save
+          </Button>
+        </div>
       </motion.div>
     </TabsContent>
   )

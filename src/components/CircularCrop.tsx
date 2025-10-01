@@ -36,6 +36,8 @@ interface CircularCropProps {
   label?: string
   display?: "icon" | "text" | "icon-text"
   filename?: string
+  outputSize?: number
+  cropShape?: "circle" | "square"
 }
 
 const CircularCrop = ({
@@ -45,7 +47,9 @@ const CircularCrop = ({
   icon = <IconUpload className="h-4 w-4" />,
   variant = "outline",
   label = "Upload",
-  display = "icon-text"
+  display = "icon-text",
+  outputSize = 500,
+  cropShape = "circle"
 }: CircularCropProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(value || null)
   const [croppedImage, setCroppedImage] = useState<string | null>(null)
@@ -191,11 +195,13 @@ const CircularCrop = ({
   if (croppedImage) {
     return (
       <div className="flex items-center space-x-4">
-        <Card className="flex items-center justify-center rounded-full p-0">
+        <Card
+          className={`flex items-center justify-center p-0 ${cropShape === "circle" ? "rounded-full" : "rounded-xl"}`}
+        >
           <CardContent className="p-1">
             <Image
-              alt="Cropped profile picture"
-              className="overflow-hidden rounded-full"
+              alt="Cropped picture"
+              className={`overflow-hidden ${cropShape === "circle" ? "rounded-full" : "rounded-lg"}`}
               height={72}
               src={croppedImage}
               unoptimized
@@ -232,11 +238,12 @@ const CircularCrop = ({
     <div className="space-y-4">
       <ImageCrop
         aspect={1}
-        circularCrop
+        circularCrop={cropShape === "circle" ? true : false}
         file={selectedFile}
         onChange={handleCropChange}
         onComplete={onCropComplete}
         onCrop={handleCropComplete}
+        outputSize={outputSize}
       >
         <ImageCropContent className="max-w-md" />
         <div className="flex items-center gap-2">

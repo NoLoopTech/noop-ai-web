@@ -1,44 +1,40 @@
 "use client"
 
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AnimatePresence } from "motion/react"
-import ChatInterfaceContent from "./ChatInterfaceContent"
-import ChatInterfaceStyles from "./ChatInterfaceStyles"
 import { useState } from "react"
+import ChatPreview from "./ChatPreview"
+import InterfaceSettings from "./InterfaceSettings"
 
 const ChatInterface = () => {
-  const [tab, setTab] = useState("content")
-
-  const tabVariants = {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
-  }
+  const [brandStyling, setBrandStyling] = useState({
+    backgroundColor: "#1E50EF",
+    color: "#FFFFFF",
+    brandLogo: null as string | null
+  })
+  const [chatButtonStyling, setChatButtonStyling] = useState({
+    backgroundColor: "#FAAA18",
+    borderColor: "#FAAA18",
+    chatButtonIcon: null as string | null
+  })
 
   return (
-    <Tabs
-      orientation="vertical"
-      value={tab}
-      onValueChange={setTab}
-      className="space-y-4"
-    >
-      <TabsList>
-        <TabsTrigger value="content">Content</TabsTrigger>
-        <TabsTrigger value="style">Style</TabsTrigger>
-      </TabsList>
+    <>
+      {/* Chat Interface */}
+      <div className="bg-background flex-1 space-y-4 p-4">
+        <h2 className="text-xl font-semibold">Chat Interface</h2>
+        <InterfaceSettings
+          setBrandStyling={setBrandStyling}
+          setChatButtonStyling={setChatButtonStyling}
+        />
+      </div>
 
-      <Separator />
-
-      <AnimatePresence mode="sync" initial={false}>
-        {tab === "content" && (
-          <ChatInterfaceContent key="content" tabVariants={tabVariants} />
-        )}
-        {tab === "style" && (
-          <ChatInterfaceStyles key="style" tabVariants={tabVariants} />
-        )}
-      </AnimatePresence>
-    </Tabs>
+      {/* Bot preview */}
+      <div className="border-muted/50 relative w-[510px] space-y-4 overflow-hidden border-l bg-zinc-600 bg-[url(/assets/images/bot-settings-preview-bg.png)] bg-cover bg-center px-20 py-4">
+        <ChatPreview
+          brandStyling={brandStyling}
+          chatButtonStyling={chatButtonStyling}
+        />
+      </div>
+    </>
   )
 }
 

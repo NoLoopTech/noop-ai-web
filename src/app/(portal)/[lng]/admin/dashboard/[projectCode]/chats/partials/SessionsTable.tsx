@@ -159,32 +159,35 @@ export function SessionsTable({ columns }: Props) {
   // TODO: Use this scoreMutation to trigger score calculation
 
   // Optimized query key - flatten all filter values to prevent object reference issues
-  const optimizedQueryKey = useMemo(() => [
-    "chat-sessions",
-    projectId,
-    currentPage,
-    rowsPerPage,
-    // Flatten all filter values for stable cache keys
-    filters.username || '',
-    filters.intent || '',
-    filters.duration || '',
-    filters.startDate || '',
-    filters.endDate || '',
-    // Join arrays to create stable string representations
-    serverFilters.country.join(","),
-    serverFilters.aiScore.join(",")
-  ], [
-    projectId,
-    currentPage,
-    rowsPerPage,
-    filters.username,
-    filters.intent,
-    filters.duration,
-    filters.startDate,
-    filters.endDate,
-    serverFilters.country,
-    serverFilters.aiScore
-  ])
+  const optimizedQueryKey = useMemo(
+    () => [
+      "chat-sessions",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      // Flatten all filter values for stable cache keys
+      filters.username || "",
+      filters.intent || "",
+      filters.duration || "",
+      filters.startDate || "",
+      filters.endDate || "",
+      // Join arrays to create stable string representations
+      serverFilters.country.join(","),
+      serverFilters.aiScore.join(",")
+    ],
+    [
+      projectId,
+      currentPage,
+      rowsPerPage,
+      filters.username,
+      filters.intent,
+      filters.duration,
+      filters.startDate,
+      filters.endDate,
+      serverFilters.country,
+      serverFilters.aiScore
+    ]
+  )
 
   const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
     PaginatedResult<ChatSessionResponse>

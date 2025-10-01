@@ -116,18 +116,21 @@ export function LeadsTable({ columns }: Props) {
   }, [projectId, currentPage, rowsPerPage, filterParams])
 
   // Optimized query key - flatten filterParams to prevent object reference issues
-  const optimizedQueryKey = useMemo(() => [
-    "project-leads",
-    projectId,
-    currentPage,
-    rowsPerPage,
-    // Flatten filterParams for stable cache keys
-    filterParams.searchTerm || '',
-    filterParams.startDate || '',
-    filterParams.endDate || '',
-    filterParams.score || '',
-    filterParams.status || ''
-  ], [projectId, currentPage, rowsPerPage, filterParams])
+  const optimizedQueryKey = useMemo(
+    () => [
+      "project-leads",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      // Flatten filterParams for stable cache keys
+      filterParams.searchTerm || "",
+      filterParams.startDate || "",
+      filterParams.endDate || "",
+      filterParams.score || "",
+      filterParams.status || ""
+    ],
+    [projectId, currentPage, rowsPerPage, filterParams]
+  )
 
   const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
     PaginatedResult<Lead>
@@ -142,20 +145,21 @@ export function LeadsTable({ columns }: Props) {
     }
   )
 
-  const normalizeScore = useCallback((
-    score: string | null | undefined
-  ): "hot" | "warm" | "cold" => {
-    if (!score) return "cold"
+  const normalizeScore = useCallback(
+    (score: string | null | undefined): "hot" | "warm" | "cold" => {
+      if (!score) return "cold"
 
-    const cleaned = score
-      .replace(/ *lead/i, "")
-      .trim()
-      .toLowerCase()
-    if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
-      return cleaned as "hot" | "warm" | "cold"
-    }
-    return "cold"
-  }, [])
+      const cleaned = score
+        .replace(/ *lead/i, "")
+        .trim()
+        .toLowerCase()
+      if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
+        return cleaned as "hot" | "warm" | "cold"
+      }
+      return "cold"
+    },
+    []
+  )
 
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []

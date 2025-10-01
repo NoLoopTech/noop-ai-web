@@ -101,10 +101,26 @@ export function TicketsTable({ columns }: Props) {
     return `/tickets?${params.toString()}`
   }, [projectId, currentPage, rowsPerPage, filterParams])
 
+  // Optimized query key - flatten filterParams to prevent object reference issues
+  const optimizedQueryKey = useMemo(() => [
+    "project-tickets",
+    projectId,
+    currentPage,
+    rowsPerPage,
+    // Flatten filterParams for stable cache keys
+    filterParams.searchTerm || '',
+    filterParams.startDate || '',
+    filterParams.endDate || '',
+    filterParams.priority || '',
+    filterParams.status || '',
+    filterParams.method || '',
+    filterParams.type || ''
+  ], [projectId, currentPage, rowsPerPage, filterParams])
+
   const { data: paginatedData, isLoading: isTicketsLoading } = useApiQuery<
     PaginatedResult<Ticket>
   >(
-    ["project-tickets", projectId, currentPage, rowsPerPage, filterParams],
+    optimizedQueryKey,
     queryString,
     () => ({
       method: "get"

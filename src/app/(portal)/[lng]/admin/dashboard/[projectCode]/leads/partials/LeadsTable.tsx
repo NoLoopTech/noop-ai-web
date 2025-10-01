@@ -115,10 +115,24 @@ export function LeadsTable({ columns }: Props) {
     return `/leads?${params.toString()}`
   }, [projectId, currentPage, rowsPerPage, filterParams])
 
+  // Optimized query key - flatten filterParams to prevent object reference issues
+  const optimizedQueryKey = useMemo(() => [
+    "project-leads",
+    projectId,
+    currentPage,
+    rowsPerPage,
+    // Flatten filterParams for stable cache keys
+    filterParams.searchTerm || '',
+    filterParams.startDate || '',
+    filterParams.endDate || '',
+    filterParams.score || '',
+    filterParams.status || ''
+  ], [projectId, currentPage, rowsPerPage, filterParams])
+
   const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
     PaginatedResult<Lead>
   >(
-    ["project-leads", projectId, currentPage, rowsPerPage, filterParams],
+    optimizedQueryKey,
     queryString,
     () => ({
       method: "get"

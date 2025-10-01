@@ -26,7 +26,7 @@ import { ticketStatus } from "@/models/ticket/options"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/lib/hooks/useToast"
-import { useEffect } from "react"
+import { useEffect, useCallback, memo } from "react"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 
 interface Props {
@@ -34,7 +34,7 @@ interface Props {
   setTableLoading?: (loading: boolean) => void
 }
 
-export function TicketsTableRowActions({ row, setTableLoading }: Props) {
+function TicketsTableRowActions({ row, setTableLoading }: Props) {
   const ticket = row.original
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
@@ -50,12 +50,12 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
     }
   })
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = useCallback((newStatus: string) => {
     updateStatusMutation.mutate({
       ticketId: ticket.id,
       status: newStatus
     })
-  }
+  }, [updateStatusMutation, ticket.id])
 
   const { toast } = useToast()
   const deleteTicketMutation = useApiMutation(`/tickets/ticket`, "delete", {
@@ -80,12 +80,12 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
     }
   })
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     deleteTicketMutation.mutate({
       ticketId: ticket.id,
       projectId
     })
-  }
+  }, [deleteTicketMutation, ticket.id, projectId])
 
   useEffect(() => {
     if (setTableLoading) {
@@ -175,3 +175,5 @@ export function TicketsTableRowActions({ row, setTableLoading }: Props) {
     </>
   )
 }
+
+export default memo(TicketsTableRowActions)

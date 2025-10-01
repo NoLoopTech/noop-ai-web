@@ -48,7 +48,10 @@ export default function ChatList(): JSX.Element {
     `/conversations?projectId=${projectId ?? 0}&sortBy=createdAt&sortDir=DESC`, // TODO: Implement load more functionality
     () => ({
       method: "get"
-    })
+    }),
+    {
+      staleTime: 1000 * 30
+    }
   )
 
   const conversationList = useMemo(() => {

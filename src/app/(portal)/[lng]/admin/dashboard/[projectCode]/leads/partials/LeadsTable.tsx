@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -33,7 +33,7 @@ import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { useSession } from "next-auth/react"
 import { IconLoader2 } from "@tabler/icons-react"
-import { LeadsTableRowActions } from "./LeadsTableRowActions"
+import LeadsTableRowActions from "./LeadsTableRowActions"
 import { cleanStrings } from "@/utils"
 
 interface Props {
@@ -122,12 +122,15 @@ export function LeadsTable({ columns }: Props) {
     queryString,
     () => ({
       method: "get"
-    })
+    }),
+    {
+      staleTime: 1000 * 30
+    }
   )
 
-  function normalizeScore(
+  const normalizeScore = useCallback((
     score: string | null | undefined
-  ): "hot" | "warm" | "cold" {
+  ): "hot" | "warm" | "cold" => {
     if (!score) return "cold"
 
     const cleaned = score
@@ -138,7 +141,7 @@ export function LeadsTable({ columns }: Props) {
       return cleaned as "hot" | "warm" | "cold"
     }
     return "cold"
-  }
+  }, [])
 
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []

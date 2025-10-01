@@ -26,14 +26,14 @@ import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { LeadStatusEnum } from "@/models/lead"
 import { useToast } from "@/lib/hooks/useToast"
-import { useEffect } from "react"
+import { useEffect, useCallback, memo } from "react"
 
 interface Props {
   row: Row<Lead>
   setTableLoading?: (loading: boolean) => void
 }
 
-export function LeadsTableRowActions({ row, setTableLoading }: Props) {
+function LeadsTableRowActions({ row, setTableLoading }: Props) {
   const lead = row.original
   const queryClient = useQueryClient()
   const projectId = useProjectCode()
@@ -44,12 +44,12 @@ export function LeadsTableRowActions({ row, setTableLoading }: Props) {
     }
   })
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = useCallback((newStatus: string) => {
     updateStatusMutation.mutate({
       leadId: lead.id,
       status: newStatus as LeadStatusEnum
     })
-  }
+  }, [updateStatusMutation, lead.id])
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
 
@@ -74,12 +74,12 @@ export function LeadsTableRowActions({ row, setTableLoading }: Props) {
     }
   })
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     deleteLeadMutation.mutate({
       leadId: lead.id,
       projectId
     })
-  }
+  }, [deleteLeadMutation, lead.id, projectId])
 
   useEffect(() => {
     if (setTableLoading) {
@@ -169,3 +169,5 @@ export function LeadsTableRowActions({ row, setTableLoading }: Props) {
     </>
   )
 }
+
+export default memo(LeadsTableRowActions)

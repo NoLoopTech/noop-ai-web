@@ -32,7 +32,7 @@ import { Ticket } from "@/models/ticket/schema"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { IconLoader2 } from "@tabler/icons-react"
-import { TicketsTableRowActions } from "./TicketsTableRowActions"
+import TicketsTableRowActions from "./TicketsTableRowActions"
 import { useSession } from "next-auth/react"
 
 interface Props {
@@ -108,7 +108,10 @@ export function TicketsTable({ columns }: Props) {
     queryString,
     () => ({
       method: "get"
-    })
+    }),
+    {
+      staleTime: 1000 * 30
+    }
   )
 
   const tickets = useMemo((): Ticket[] => {

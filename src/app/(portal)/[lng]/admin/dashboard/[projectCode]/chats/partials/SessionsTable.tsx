@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -34,7 +34,7 @@ import { AiScore, Session } from "../data/schema"
 import { format } from "date-fns"
 import { useToast } from "@/lib/hooks/useToast"
 import { useSession } from "next-auth/react"
-import { DataTableRowActions } from "./SessionsTableRowActions"
+import DataTableRowActions from "./SessionsTableRowActions"
 import { IconLoader2 } from "@tabler/icons-react"
 
 interface Props {
@@ -188,16 +188,19 @@ export function SessionsTable({ columns }: Props) {
       (filters.endDate ? `&endDate=${filters.endDate}` : ""),
     () => ({
       method: "get"
-    })
+    }),
+    {
+      staleTime: 1000 * 30
+    }
   )
 
-  const secondsToMinutes = (seconds: number): string => {
+  const secondsToMinutes = useCallback((seconds: number): string => {
     if (seconds <= 60) {
       return "< 1min"
     }
     const minutes = Math.floor(seconds / 60)
     return `${minutes} min${minutes > 1 ? "s" : ""}`
-  }
+  }, [])
 
   const chatSessions = useMemo(() => {
     if (!paginatedData?.data) return []

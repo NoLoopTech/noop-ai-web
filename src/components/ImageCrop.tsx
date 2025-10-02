@@ -38,13 +38,13 @@ const centerAspectCrop = (
       ? makeAspectCrop(
           {
             unit: "%",
-            width: 90
+            width: 100
           },
           aspect,
           mediaWidth,
           mediaHeight
         )
-      : { x: 0, y: 0, width: 90, height: 90, unit: "%" },
+      : { x: 0, y: 0, width: 100, height: 100, unit: "%" },
     mediaWidth,
     mediaHeight
   )
@@ -54,7 +54,7 @@ const getCroppedPngImage = async (
   scaleFactor: number,
   pixelCrop: PixelCrop,
   maxImageSize: number,
-  outputSize?: number
+  outputSize: { width: number; height: number }
 ): Promise<string> => {
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d")
@@ -69,15 +69,16 @@ const getCroppedPngImage = async (
   ctx.imageSmoothingEnabled = true
   ctx.imageSmoothingQuality = "high"
 
-  const canvasWidth = outputSize || pixelCrop.width
-  const canvasHeight = outputSize || pixelCrop.height
+  const canvasWidth = outputSize.width || pixelCrop.width
+  const canvasHeight = outputSize.height || pixelCrop.height
 
-  // INFO: Add this debug log back in if needed
-  // console.log("Final canvas dimensions:", {
-  //   canvasWidth,
-  //   canvasHeight,
-  //   outputSize
-  // })
+  // INFO: Add this debug log back in if needed to troubleshoot image cropped size issues
+  // eslint-disable-next-line no-console
+  console.log("Final canvas dimensions:", {
+    canvasWidth,
+    canvasHeight,
+    outputSize
+  })
 
   canvas.width = canvasWidth
   canvas.height = canvasHeight
@@ -114,7 +115,7 @@ const getCroppedPngImage = async (
 type ImageCropContextType = {
   file: File
   maxImageSize: number
-  outputSize?: number
+  outputSize: { width: number; height: number }
   imgSrc: string
   crop: PercentCrop | undefined
   completedCrop: PixelCrop | null
@@ -144,7 +145,7 @@ const useImageCrop = () => {
 export type ImageCropProps = {
   file: File
   maxImageSize?: number
-  outputSize?: number
+  outputSize: { width: number; height: number }
   onCrop?: (croppedImage: string) => void
   children: ReactNode
   onChange?: ReactCropProps["onChange"]
@@ -153,7 +154,7 @@ export type ImageCropProps = {
 
 export const ImageCrop = ({
   file,
-  maxImageSize = 1024 * 1024 * 5,
+  maxImageSize = 1024 * 1024 * 50,
   outputSize,
   onCrop,
   children,
@@ -319,7 +320,7 @@ export const ImageCropApply = ({
   }
 
   return (
-    <Button onClick={handleClick} size="icon" variant="ghost" {...props}>
+    <Button onClick={handleClick} size="icon" variant="outline" {...props}>
       {children ?? <CropIcon className="size-4" />}
     </Button>
   )
@@ -351,7 +352,7 @@ export const ImageCropReset = ({
   }
 
   return (
-    <Button onClick={handleClick} size="icon" variant="ghost" {...props}>
+    <Button onClick={handleClick} size="icon" variant="outline" {...props}>
       {children ?? <RotateCcwIcon className="size-4" />}
     </Button>
   )

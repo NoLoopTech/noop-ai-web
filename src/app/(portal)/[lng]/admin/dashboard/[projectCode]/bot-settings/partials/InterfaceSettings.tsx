@@ -6,24 +6,13 @@ import { AnimatePresence } from "motion/react"
 import ChatInterfaceContent from "./ChatInterfaceContent"
 import ChatInterfaceStyles from "./ChatInterfaceStyles"
 import { useState } from "react"
-
-interface InterfaceSettingsProps {
-  setBrandStyling: (styling: {
-    backgroundColor: string
-    color: string
-    brandLogo: string | null
-  }) => void
-  setChatButtonStyling: (styling: {
-    backgroundColor: string
-    borderColor: string
-    chatButtonIcon: string | null
-  }) => void
-}
+import { InterfaceSettingsTypes } from "@/types/botSettings"
 
 const InterfaceSettings = ({
   setBrandStyling,
-  setChatButtonStyling
-}: InterfaceSettingsProps) => {
+  setChatButtonStyling,
+  setWelcomeScreenStyling
+}: InterfaceSettingsTypes) => {
   const [tab, setTab] = useState("content")
 
   const tabVariants = {
@@ -56,6 +45,7 @@ const InterfaceSettings = ({
             tabVariants={tabVariants}
             setBrandStyling={setBrandStyling}
             setChatButtonStyling={setChatButtonStyling}
+            setWelcomeScreenStyling={setWelcomeScreenStyling}
           />
         )}
       </AnimatePresence>

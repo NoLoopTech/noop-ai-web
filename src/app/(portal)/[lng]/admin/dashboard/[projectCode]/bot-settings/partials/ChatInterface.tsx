@@ -3,17 +3,31 @@
 import { useState } from "react"
 import ChatPreview from "./ChatPreview"
 import InterfaceSettings from "./InterfaceSettings"
+import { ChatStylePreviewType } from "@/types/botSettings"
 
 const ChatInterface = () => {
-  const [brandStyling, setBrandStyling] = useState({
+  const [brandStyling, setBrandStyling] = useState<
+    ChatStylePreviewType["brandStyling"]
+  >({
     backgroundColor: "#1E50EF",
     color: "#FFFFFF",
-    brandLogo: null as string | null
+    brandLogo: null
   })
-  const [chatButtonStyling, setChatButtonStyling] = useState({
-    backgroundColor: "#FAAA18",
-    borderColor: "#FAAA18",
-    chatButtonIcon: null as string | null
+  const [chatButtonStyling, setChatButtonStyling] = useState<
+    ChatStylePreviewType["chatButtonStyling"]
+  >({
+    backgroundColor: "#F4F4F5",
+    borderColor: "#F4F4F5",
+    chatButtonTextColor: "#71717b",
+    chatButtonIcon: null,
+    chatButtonPosition: "right"
+  })
+  const [welcomeScreenStyling, setWelcomeScreenStyling] = useState<
+    ChatStylePreviewType["welcomeScreenStyling"]
+  >({
+    welcomeScreenAppearance: "half_background",
+    welcomeButtonBgColor: "#1E50EF",
+    welcomeButtonTextColor: "#1E50EF"
   })
 
   return (
@@ -24,6 +38,7 @@ const ChatInterface = () => {
         <InterfaceSettings
           setBrandStyling={setBrandStyling}
           setChatButtonStyling={setChatButtonStyling}
+          setWelcomeScreenStyling={setWelcomeScreenStyling}
         />
       </div>
 
@@ -32,6 +47,7 @@ const ChatInterface = () => {
         <ChatPreview
           brandStyling={brandStyling}
           chatButtonStyling={chatButtonStyling}
+          welcomeScreenStyling={welcomeScreenStyling}
         />
       </div>
     </>

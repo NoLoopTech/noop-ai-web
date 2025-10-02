@@ -36,8 +36,7 @@ interface CircularCropProps {
   label?: string
   display?: "icon" | "text" | "icon-text"
   filename?: string
-  outputSize?: number
-  cropShape?: "circle" | "square"
+  cropShape?: "circle" | "square" | "rectangle" | "logoCrop"
 }
 
 const CircularCrop = ({
@@ -48,7 +47,6 @@ const CircularCrop = ({
   variant = "outline",
   label = "Upload",
   display = "icon-text",
-  outputSize = 500,
   cropShape = "circle"
 }: CircularCropProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(value || null)
@@ -171,6 +169,47 @@ const CircularCrop = ({
     }
   }
 
+  const getCropShapeVariants = (
+    cropShape: string
+  ): {
+    aspect: number
+    previewWidth: number
+    outputSize: { width: number; height: number }
+  } => {
+    switch (cropShape) {
+      case "square":
+        return {
+          aspect: 1,
+          previewWidth: 80,
+          outputSize: { width: 500, height: 500 }
+        }
+      case "circle":
+        return {
+          aspect: 1,
+          previewWidth: 80,
+          outputSize: { width: 500, height: 500 }
+        }
+      case "rectangle":
+        return {
+          aspect: 16 / 9,
+          previewWidth: 128,
+          outputSize: { width: 500, height: 281 }
+        }
+      case "logoCrop":
+        return {
+          aspect: 16 / 11,
+          previewWidth: 110,
+          outputSize: { width: 500, height: 344 }
+        }
+      default:
+        return {
+          aspect: 1,
+          previewWidth: 80,
+          outputSize: { width: 500, height: 500 }
+        }
+    }
+  }
+
   const handleReset = (): void => {
     setSelectedFile(null)
     setCroppedImage(null)
@@ -198,17 +237,17 @@ const CircularCrop = ({
         <Card
           className={`flex items-center justify-center p-0 ${cropShape === "circle" ? "rounded-full" : "rounded-xl"}`}
         >
-          <CardContent className="p-1">
+          <CardContent className="flex items-center justify-center p-1">
             <Image
               alt="Cropped picture"
               className={`overflow-hidden ${cropShape === "circle" ? "rounded-full" : "rounded-lg"}`}
-              height={72}
+              height={10}
               src={croppedImage}
-              unoptimized
-              width={72}
+              width={getCropShapeVariants(cropShape).previewWidth}
             />
           </CardContent>
         </Card>
+
         <div className="flex flex-col items-start space-y-1">
           <Button
             onClick={handleReset}
@@ -219,6 +258,7 @@ const CircularCrop = ({
             <XIcon className="mr-2 h-4 w-4" />
             Remove
           </Button>
+
           {selectedFile && (
             <div className="text-muted-foreground flex flex-col items-start space-y-1 text-sm">
               <p>{selectedFile.name}</p>
@@ -237,13 +277,13 @@ const CircularCrop = ({
   return (
     <div className="space-y-4">
       <ImageCrop
-        aspect={1}
-        circularCrop={cropShape === "circle" ? true : false}
+        aspect={getCropShapeVariants(cropShape).aspect}
+        circularCrop={cropShape === "circle"}
         file={selectedFile}
         onChange={handleCropChange}
         onComplete={onCropComplete}
         onCrop={handleCropComplete}
-        outputSize={outputSize}
+        outputSize={getCropShapeVariants(cropShape).outputSize}
       >
         <ImageCropContent className="max-w-md" />
         <div className="flex items-center gap-2">

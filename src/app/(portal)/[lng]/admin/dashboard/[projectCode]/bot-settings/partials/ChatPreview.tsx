@@ -1,6 +1,7 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ChatStylePreviewType } from "@/types/botSettings"
 import {
   IconArrowsDiagonal,
   IconArrowUp,
@@ -17,20 +18,11 @@ import { motion, AnimatePresence, MotionConfig } from "motion/react"
 import Image from "next/image"
 import { useState } from "react"
 
-interface ChatPreviewProps {
-  brandStyling: {
-    backgroundColor: string
-    color: string
-    brandLogo: string | null
-  }
-  chatButtonStyling: {
-    backgroundColor: string
-    borderColor: string
-    chatButtonIcon: string | null
-  }
-}
-
-const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
+const ChatPreview = ({
+  brandStyling,
+  chatButtonStyling,
+  welcomeScreenStyling
+}: ChatStylePreviewType) => {
   const [tab, setTab] = useState("chat")
 
   const tabVariants = {
@@ -49,11 +41,27 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
   }
 
   const buttonStyle = {
-    backgroundColor: chatButtonStyling.backgroundColor ?? "#FFF",
-    border: `1px solid ${chatButtonStyling.borderColor ?? "#FAAA18"}`
+    backgroundColor: chatButtonStyling.backgroundColor ?? "#F4F4F5",
+    border: `1px solid ${chatButtonStyling.borderColor ?? "#F4F4F5"}`,
+    alignSelf:
+      chatButtonStyling.chatButtonPosition === "left"
+        ? "flex-start"
+        : "flex-end"
   }
 
+  const welcomeScreenButtonStyling = {
+    backgroundColor: welcomeScreenStyling.welcomeButtonBgColor ?? "#1E50EF",
+    color: welcomeScreenStyling.welcomeButtonTextColor ?? "#FFFFFF"
+  }
+
+  const welcomeScreenAppearance = welcomeScreenStyling.welcomeScreenAppearance
   const chatButtonIcon = chatButtonStyling.chatButtonIcon
+  const brandLogo = brandStyling.brandLogo
+
+  const buttonPosition = {
+    left: chatButtonStyling.chatButtonPosition === "right" ? "100%" : 0,
+    right: chatButtonStyling.chatButtonPosition === "left" ? "100%" : 0
+  }
 
   return (
     <MotionConfig
@@ -62,7 +70,7 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
       <Tabs orientation="vertical" value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="bubble">Bubble</TabsTrigger>
+          <TabsTrigger value="chatbutton">Chat Button</TabsTrigger>
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
         </TabsList>
 
@@ -79,11 +87,23 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                   className="relative flex h-[510px] flex-col rounded-xl bg-white"
                 >
                   <div
-                    className="flex h-12 items-center justify-between rounded-t-xl px-5 text-white"
+                    className="flex h-12 items-center justify-between rounded-t-xl px-5"
                     style={brandColor}
                   >
                     <div className="flex items-center space-x-1.5">
-                      <IconDiamond className="h-7 w-7" />
+                      {brandLogo ? (
+                        <Image
+                          src={brandLogo}
+                          alt="Brand Logo"
+                          width={30}
+                          height={26}
+                        />
+                      ) : (
+                        <IconDiamond
+                          className="h-7 w-7"
+                          style={{ color: brandColor.color }}
+                        />
+                      )}
                       <p className="text-xl font-extrabold">NOOPY</p>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -104,10 +124,7 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                     </div>
 
                     <div className="self-end">
-                      <p
-                        className="rounded-3xl px-3 py-2 text-white"
-                        style={brandColor}
-                      >
+                      <p className="rounded-3xl px-3 py-2" style={brandColor}>
                         What can you do?
                       </p>
                     </div>
@@ -171,9 +188,12 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                 </motion.div>
               </AnimatePresence>
 
-              <div
-                className="flex h-14 w-14 items-center justify-center self-end rounded-full"
+              <motion.div
+                className="flex h-14 w-14 items-center justify-center rounded-full"
                 style={buttonStyle}
+                animate={buttonPosition}
+                layout
+                transition={{ duration: 0.5, ease: "easeInOut" }}
               >
                 {chatButtonStyling.chatButtonIcon ? (
                   <Image
@@ -184,15 +204,21 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                     className="rounded-full"
                   />
                 ) : (
-                  <IconDiamond className="h-8 w-8 text-white" />
+                  <IconDiamond
+                    className="h-8 w-8"
+                    style={{ color: chatButtonStyling.chatButtonTextColor }}
+                  />
                 )}
-              </div>
+              </motion.div>
             </div>
           </TabsContent>
         )}
 
-        {tab === "bubble" && (
-          <TabsContent value="bubble" className="m-0 mt-3 h-full w-full p-0">
+        {tab === "chatbutton" && (
+          <TabsContent
+            value="chatbutton"
+            className="m-0 mt-3 h-full w-full p-0"
+          >
             <div className="flex h-[580px] w-full flex-col justify-end space-y-3">
               <AnimatePresence mode="sync">
                 <motion.div
@@ -211,41 +237,95 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                   exit="exit"
                   className="relative flex flex-col space-y-3 rounded-xl"
                 >
+                  {/* First bubble */}
                   <motion.div
+                    key={chatButtonStyling.chatButtonPosition + "-bubble1"}
                     initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
+                    animate={{
+                      y: 0,
+                      opacity: 1,
+                      alignSelf:
+                        chatButtonStyling.chatButtonPosition === "left"
+                          ? "flex-start"
+                          : "flex-end"
+                    }}
                     exit={{ y: 20, opacity: 0 }}
                     transition={{
-                      delay: 0.3,
-                      ease: "easeInOut",
-                      type: "tween"
+                      y: { delay: 0.3, ease: "easeInOut", type: "tween" },
+                      opacity: { delay: 0.3, ease: "easeInOut", type: "tween" },
+                      alignSelf: {
+                        delay: 1,
+                        duration: 0.5,
+                        ease: "easeInOut"
+                      }
                     }}
-                    className="w-4/6 self-end rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
+                    className="w-4/6 rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
+                    style={{
+                      alignSelf:
+                        chatButtonStyling.chatButtonPosition === "left"
+                          ? "flex-start"
+                          : "flex-end"
+                    }}
                   >
-                    <p className="text-right text-sm font-normal">
+                    <p
+                      className={`${
+                        chatButtonStyling.chatButtonPosition === "right"
+                          ? "text-right"
+                          : "text-left"
+                      } text-sm font-normal`}
+                    >
                       coming soon
                     </p>
                   </motion.div>
 
+                  {/* Second bubble */}
                   <motion.div
+                    key={chatButtonStyling.chatButtonPosition + "-bubble2"}
                     initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
+                    animate={{
+                      y: 0,
+                      opacity: 1,
+                      alignSelf:
+                        chatButtonStyling.chatButtonPosition === "left"
+                          ? "flex-start"
+                          : "flex-end"
+                    }}
                     exit={{ y: 20, opacity: 0 }}
                     transition={{
-                      delay: 0.1,
-                      ease: "easeInOut",
-                      type: "tween"
+                      y: { delay: 0.1, ease: "easeInOut", type: "tween" },
+                      opacity: { delay: 0.1, ease: "easeInOut", type: "tween" },
+                      alignSelf: {
+                        delay: 0.8,
+                        duration: 0.5,
+                        ease: "easeInOut"
+                      }
                     }}
-                    className="w-11/12 self-end rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
+                    className="w-11/12 rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
+                    style={{
+                      alignSelf:
+                        chatButtonStyling.chatButtonPosition === "left"
+                          ? "flex-start"
+                          : "flex-end"
+                    }}
                   >
-                    <p className="text-right text-sm font-normal">
+                    <p
+                      className={`${
+                        chatButtonStyling.chatButtonPosition === "right"
+                          ? "text-right"
+                          : "text-left"
+                      } text-sm font-normal`}
+                    >
                       coming soon
                     </p>
                   </motion.div>
                 </motion.div>
-                <div
-                  className="flex h-14 w-14 items-center justify-center self-end rounded-full"
+
+                <motion.div
+                  className="flex h-14 w-14 items-center justify-center rounded-full"
                   style={buttonStyle}
+                  animate={buttonPosition}
+                  layout
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
                   {chatButtonStyling.chatButtonIcon ? (
                     <Image
@@ -256,9 +336,12 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                       className="rounded-full"
                     />
                   ) : (
-                    <IconDiamond className="h-8 w-8 text-white" />
+                    <IconDiamond
+                      className="h-8 w-8"
+                      style={{ color: chatButtonStyling.chatButtonTextColor }}
+                    />
                   )}
-                </div>
+                </motion.div>
               </AnimatePresence>
             </div>
           </TabsContent>
@@ -295,34 +378,58 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                     </div>
                   </div>
 
-                  <div className="flex h-full flex-col justify-between rounded-b-xl bg-white px-4 py-4">
+                  <div
+                    className="flex h-full flex-col justify-between rounded-b-xl px-4 py-4"
+                    style={
+                      welcomeScreenAppearance === "full_background"
+                        ? brandColor
+                        : { backgroundColor: "#FFF", color: "#18181b" }
+                    }
+                  >
                     <div className="flex flex-col space-y-4">
-                      <p className="mb-1 text-xs font-medium text-zinc-900">
-                        Username
-                      </p>
+                      <p className="mb-1 text-xs font-medium">Username</p>
                       <div className="rounded-md border border-zinc-300 bg-white p-3">
                         <p className="text-xs font-normal text-zinc-500">
                           John Doe
                         </p>
                       </div>
 
-                      <p className="mb-1 text-xs font-medium text-zinc-900">
-                        Email
-                      </p>
+                      <p className="mb-1 text-xs font-medium">Email</p>
                       <div className="rounded-md border border-zinc-300 bg-white p-3">
                         <p className="text-xs font-normal text-zinc-500">
                           john@example.com
                         </p>
                       </div>
 
-                      <div className="rounded-sm p-3" style={brandColor}>
-                        <p className="text-center text-xs font-normal text-white">
+                      <div
+                        className={`rounded-sm p-3 ${
+                          welcomeScreenButtonStyling.backgroundColor ===
+                            "#1E50EF" &&
+                          welcomeScreenAppearance === "full_background"
+                            ? `border ${brandColor.color === "#FFFFFF" ? "border-zinc-300" : "border-zinc-600"}`
+                            : ""
+                        }`}
+                        style={
+                          welcomeScreenButtonStyling.backgroundColor ===
+                          "#1E50EF"
+                            ? brandColor
+                            : welcomeScreenButtonStyling
+                        }
+                      >
+                        <p className="text-center text-xs font-normal">
                           Start New Chat
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-left text-[9.5px] font-normal text-zinc-500">
+                    <p
+                      className="text-left text-[9.5px] font-normal"
+                      style={
+                        welcomeScreenAppearance === "full_background"
+                          ? brandColor
+                          : { color: "#71717b" }
+                      }
+                    >
                       By chatting with us, you agree to the monitoring and
                       recording of this chat to deliver our services and
                       processing of your personal data in accordance with our
@@ -336,9 +443,12 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                 </motion.div>
               </AnimatePresence>
 
-              <div
-                className="flex h-14 w-14 items-center justify-center self-end rounded-full"
+              <motion.div
+                className="flex h-14 w-14 items-center justify-center rounded-full"
                 style={buttonStyle}
+                animate={buttonPosition}
+                layout
+                transition={{ duration: 0.5, ease: "easeInOut" }}
               >
                 {chatButtonStyling.chatButtonIcon ? (
                   <Image
@@ -349,9 +459,12 @@ const ChatPreview = ({ brandStyling, chatButtonStyling }: ChatPreviewProps) => {
                     className="rounded-full"
                   />
                 ) : (
-                  <IconDiamond className="h-8 w-8 text-white" />
+                  <IconDiamond
+                    className="h-8 w-8"
+                    style={{ color: chatButtonStyling.chatButtonTextColor }}
+                  />
                 )}
-              </div>
+              </motion.div>
             </div>
           </TabsContent>
         )}

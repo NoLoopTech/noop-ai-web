@@ -32,23 +32,14 @@ import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
 import { useEffect } from "react"
 import CircularCrop from "@/components/CircularCrop"
+import { InterfaceSettingsTypes } from "@/types/botSettings"
 
-interface ChatInterfaceStylesProps {
+interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
   tabVariants: {
     initial: { opacity: number; x: number }
     animate: { opacity: number; x: number }
     exit: { opacity: number; x: number }
   }
-  setBrandStyling: (styling: {
-    backgroundColor: string
-    color: string
-    brandLogo: string | null
-  }) => void
-  setChatButtonStyling: (styling: {
-    backgroundColor: string
-    borderColor: string
-    chatButtonIcon: string | null
-  }) => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -66,7 +57,7 @@ function getContrastTextColor(hex: string): string {
 }
 
 const formSchema = z.object({
-  themes: z.enum(["Dark", "Light"]).default("Dark"),
+  themes: z.enum(["dark", "light"]).default("dark"),
   chatButtonIcon: z
     .instanceof(File, { message: "Please select a valid image file" })
     .refine(
@@ -91,53 +82,54 @@ const formSchema = z.object({
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
     .default("#FFFFFF"),
-  chatButtonColor: z
+  chatButtonBgColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#aabbcc"),
-  userBubbleColor: z
+    .default("#F4F4F5"),
+  chatButtonTextColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#1E50EF"),
+    .default("#71717b"),
   chatButtonBorderColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#1E50EF"),
+    .default("#F4F4F5"),
+  chatButtonPosition: z.enum(["right", "left"]).default("right"),
   welcomeScreenAppearance: z
-    .enum(["Half Background", "Full Background"])
-    .default("Full Background"),
+    .enum(["half_background", "full_background"])
+    .default("half_background"),
   welcomeButtonBgColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#aabbcc"),
+    .default("#1E50EF"),
   welcomeButtonTextColor: z
     .string()
     .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#1E50EF"),
-  alignChatBubbleButton: z.enum(["Left", "Right"]).default("Right")
+    .default("#1E50EF")
 })
 type ContentForm = z.infer<typeof formSchema>
 
 const ChatInterfaceStyles = ({
   tabVariants,
   setBrandStyling,
-  setChatButtonStyling
+  setChatButtonStyling,
+  setWelcomeScreenStyling
 }: ChatInterfaceStylesProps) => {
   const form = useForm<ContentForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      themes: "Light",
+      themes: "light",
       chatButtonIcon: undefined,
-      chatButtonBorderColor: "#1E50EF",
-      chatButtonColor: "#aabbcc",
+      chatButtonBorderColor: "#F4F4F5",
+      chatButtonBgColor: "#F4F4F5",
+      chatButtonTextColor: "#71717b",
+      chatButtonPosition: "right",
       brandLogo: undefined,
       brandBgColor: "#1E50EF",
       brandTextColor: "#1E50EF",
-      welcomeScreenAppearance: "Full Background",
-      welcomeButtonBgColor: "#aabbcc",
-      welcomeButtonTextColor: "#1E50EF",
-      userBubbleColor: "#1E50EF",
-      alignChatBubbleButton: "Right"
+      welcomeScreenAppearance: "half_background",
+      welcomeButtonBgColor: "#1E50EF",
+      welcomeButtonTextColor: "#1E50EF"
     }
   })
 
@@ -171,6 +163,12 @@ const ChatInterfaceStyles = ({
     const newTextColor = getContrastTextColor(brandBgColor)
     form.setValue("brandTextColor", newTextColor, { shouldDirty: true })
   }, [form.watch("brandBgColor")])
+
+  useEffect(() => {
+    const chatButtonBgColor = form.watch("chatButtonBgColor")
+    const newTextColor = getContrastTextColor(chatButtonBgColor)
+    form.setValue("chatButtonTextColor", newTextColor, { shouldDirty: true })
+  }, [form.watch("chatButtonBgColor")])
 
   // useEffect(() => {
   //   const brandBgColor = form.watch("brandBgColor")
@@ -215,30 +213,55 @@ const ChatInterfaceStyles = ({
   ])
 
   useEffect(() => {
-    const chatButtonBgColor = form.watch("chatButtonColor")
+    const chatButtonBgColor = form.watch("chatButtonBgColor")
     const chatButtonBorderColor = form.watch("chatButtonBorderColor")
     const chatButtonIconUrl = form.watch("chatButtonIcon")
+    const chatButtonPosition = form.watch("chatButtonPosition")
+    const chatButtonTextColor = form.watch("chatButtonTextColor")
 
     if (chatButtonIconUrl instanceof File) {
       fileToDataUrl(chatButtonIconUrl).then(dataUrl => {
         setChatButtonStyling({
           backgroundColor: chatButtonBgColor,
           borderColor: chatButtonBorderColor,
-          chatButtonIcon: dataUrl
+          chatButtonIcon: dataUrl,
+          chatButtonTextColor: chatButtonTextColor,
+          chatButtonPosition: chatButtonPosition
         })
       })
     } else {
       setChatButtonStyling({
         backgroundColor: chatButtonBgColor,
         borderColor: chatButtonBorderColor,
-        chatButtonIcon: null
+        chatButtonIcon: null,
+        chatButtonTextColor: chatButtonTextColor,
+        chatButtonPosition: chatButtonPosition
       })
     }
   }, [
-    form.watch("chatButtonColor"),
+    form.watch("chatButtonBgColor"),
     form.watch("chatButtonBorderColor"),
     form.watch("chatButtonIcon"),
+    form.watch("chatButtonPosition"),
+    form.watch("chatButtonTextColor"),
     setChatButtonStyling
+  ])
+
+  useEffect(() => {
+    const welcomeScreenBgColor = form.watch("welcomeScreenAppearance")
+    const welcomeScreenTextColor = form.watch("welcomeButtonBgColor")
+    const welcomeScreenButtonTextColor = form.watch("welcomeButtonTextColor")
+
+    setWelcomeScreenStyling({
+      welcomeScreenAppearance: welcomeScreenBgColor,
+      welcomeButtonBgColor: welcomeScreenTextColor,
+      welcomeButtonTextColor: welcomeScreenButtonTextColor
+    })
+  }, [
+    form.watch("welcomeScreenAppearance"),
+    form.watch("welcomeButtonBgColor"),
+    form.watch("welcomeButtonTextColor"),
+    setWelcomeScreenStyling
   ])
 
   return (
@@ -289,8 +312,7 @@ const ChatInterfaceStyles = ({
                                 variant="outline"
                                 label="Upload"
                                 display="icon-text"
-                                outputSize={500}
-                                cropShape="square"
+                                cropShape="logoCrop"
                               />
                             </FormControl>
                           </div>
@@ -392,7 +414,7 @@ const ChatInterfaceStyles = ({
                                       <CardFooter className="flex items-center justify-between border-t py-5">
                                         <p>Light</p>
                                         <RadioGroupItem
-                                          value="Light"
+                                          value="light"
                                           id="light"
                                           aria-label="Light"
                                         />
@@ -465,6 +487,7 @@ const ChatInterfaceStyles = ({
                                 icon={<IconUpload className="h-4 w-4" />}
                                 variant="outline"
                                 label="Upload"
+                                cropShape="circle"
                                 display="icon-text"
                               />
                             </FormControl>
@@ -475,7 +498,7 @@ const ChatInterfaceStyles = ({
 
                     <FormField
                       control={form.control}
-                      name="chatButtonColor"
+                      name="chatButtonBgColor"
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center justify-between space-y-0">
@@ -492,11 +515,35 @@ const ChatInterfaceStyles = ({
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  onClick={resetColor(field, "#1E50EF")}
+                                  onClick={resetColor(field, "#F4F4F5")}
                                   className="shadow-sm"
                                 >
                                   <IconRefresh className="h-4 w-4" />
                                 </Button>
+                              </div>
+                            </FormControl>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* INFO: this is a hidden input field since it is calculated automatically */}
+                    <FormField
+                      control={form.control}
+                      name="chatButtonTextColor"
+                      render={({ field }) => (
+                        <FormItem hidden>
+                          <div className="flex items-center justify-between space-y-0">
+                            <div className="flex flex-col space-y-1">
+                              <FormLabel>Chat bubble text color</FormLabel>
+                              <FormMessage />
+                            </div>
+                            <FormControl>
+                              <div className="flex items-center space-x-2">
+                                <ColorPicker
+                                  color={field.value}
+                                  onChange={field.onChange}
+                                />
                               </div>
                             </FormControl>
                           </div>
@@ -523,7 +570,7 @@ const ChatInterfaceStyles = ({
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  onClick={resetColor(field, "#1E50EF")}
+                                  onClick={resetColor(field, "#F4F4F5")}
                                   className="shadow-sm"
                                 >
                                   <IconRefresh className="h-4 w-4" />
@@ -537,7 +584,7 @@ const ChatInterfaceStyles = ({
 
                     <FormField
                       control={form.control}
-                      name="alignChatBubbleButton"
+                      name="chatButtonPosition"
                       render={({ field }) => (
                         <FormItem className="col-span-6">
                           <FormLabel>Aligns chat button</FormLabel>
@@ -552,7 +599,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <div className="flex items-center space-x-3">
                                     <RadioGroupItem
-                                      value="Right"
+                                      value="right"
                                       id="right-align"
                                       aria-label="Right align"
                                     />
@@ -567,7 +614,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <div className="flex items-center space-x-3">
                                     <RadioGroupItem
-                                      value="Left"
+                                      value="left"
                                       id="left-align"
                                       aria-label="Left align"
                                     />
@@ -621,7 +668,7 @@ const ChatInterfaceStyles = ({
                                       <CardFooter className="flex items-center justify-between border-t py-5">
                                         <p>Half Background</p>
                                         <RadioGroupItem
-                                          value="Half Background"
+                                          value="half_background"
                                           id="bg-half"
                                           aria-label="Half Background"
                                         />
@@ -641,7 +688,7 @@ const ChatInterfaceStyles = ({
                                       <CardFooter className="flex items-center justify-between border-t py-5">
                                         <p>Full Background</p>
                                         <RadioGroupItem
-                                          value="Full Background"
+                                          value="full_background"
                                           id="bg-full"
                                           aria-label="Full Background"
                                         />
@@ -694,7 +741,9 @@ const ChatInterfaceStyles = ({
                         <FormItem hidden>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat bubble text color</FormLabel>
+                              <FormLabel>
+                                Welcome screen button text color
+                              </FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>

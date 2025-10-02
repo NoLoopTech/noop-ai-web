@@ -1,6 +1,6 @@
 "use client"
 
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useMemo } from "react"
 import { columns } from "./partials/TicketsColumns"
 
 const TicketsTable = lazy(() =>
@@ -18,6 +18,8 @@ const TableSkeleton = () => (
 )
 
 export default function TicketsPage() {
+  const memoizedColumns = useMemo(() => columns, [])
+
   return (
     <>
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -27,7 +29,7 @@ export default function TicketsPage() {
       </div>
       <div className="flex-1">
         <Suspense fallback={<TableSkeleton />}>
-          <TicketsTable columns={columns} />
+          <TicketsTable columns={memoizedColumns} />
         </Suspense>
       </div>
     </>

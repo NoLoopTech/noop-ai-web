@@ -1,6 +1,6 @@
 "use client"
 
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useMemo } from "react"
 import { columns } from "./partials/LeadsColumns"
 
 const LeadsTable = lazy(() =>
@@ -18,6 +18,8 @@ const TableSkeleton = () => (
 )
 
 export default function LeadsPage() {
+  const memoizedColumns = useMemo(() => columns, [])
+
   return (
     <>
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -27,7 +29,7 @@ export default function LeadsPage() {
       </div>
       <div className="flex-1">
         <Suspense fallback={<TableSkeleton />}>
-          <LeadsTable columns={columns} />
+          <LeadsTable columns={memoizedColumns} />
         </Suspense>
       </div>
     </>

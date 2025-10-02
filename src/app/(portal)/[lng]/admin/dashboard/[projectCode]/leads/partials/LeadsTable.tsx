@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { format } from "date-fns"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -146,7 +147,7 @@ export function LeadsTable({ columns }: Props) {
     {
       staleTime: 1000 * 30,
       // Background refetching for sales data
-      refetchInterval: 1000 * 60 * 3, // Refresh every 3 minutes (less aggressive)
+      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
       refetchIntervalInBackground: false, // Only when tab is active
       refetchOnWindowFocus: false, // Don't refetch on tab focus (less critical)
       refetchOnReconnect: true // Refresh when internet reconnects
@@ -176,7 +177,8 @@ export function LeadsTable({ columns }: Props) {
       ...lead,
       preference: cleanStrings(lead.preference?.toString()),
       score: normalizeScore(lead.score),
-      status: lead.status ?? "new"
+      status: lead.status ?? "new",
+      formattedDate: format(lead.createdAt, "MMM d, yyyy  h:mm a")
     }))
   }, [paginatedData])
 

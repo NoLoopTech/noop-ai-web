@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { format } from "date-fns"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -80,13 +81,10 @@ export function TicketsTable({ columns }: Props) {
 
     columnFilters.forEach(f => {
       if (!f.value) return
-      columnFilters.forEach(f => {
-        if (!f.value) return
-        if (f.id === "priority") params.priority = String(f.value)
-        if (f.id === "status") params.status = String(f.value)
-        if (f.id === "method") params.method = String(f.value)
-        if (f.id === "type") params.type = String(f.value)
-      })
+      if (f.id === "priority") params.priority = String(f.value)
+      if (f.id === "status") params.status = String(f.value)
+      if (f.id === "method") params.method = String(f.value)
+      if (f.id === "type") params.type = String(f.value)
     })
 
     return params
@@ -132,7 +130,7 @@ export function TicketsTable({ columns }: Props) {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30,
+      staleTime: 1000 * 30, // 30 seconds
       // Background refetching for real-time support data
       refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
       refetchIntervalInBackground: false, // Only when tab is active
@@ -148,7 +146,8 @@ export function TicketsTable({ columns }: Props) {
       status: ticket.status ?? "active",
       priority: ticket.priority ?? "medium",
       type: ticket.type ?? "information_request",
-      method: ticket.method ?? "manual"
+      method: ticket.method ?? "manual",
+      formattedDate: format(ticket.createdAt, "MMM d, yyyy  h:mm a")
     }))
   }, [paginatedData])
 

@@ -212,11 +212,10 @@ export function SessionsTable({ columns }: Props) {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30,
-      // Background refetching for real-time chat data
-      refetchInterval: 1000 * 60, // Refresh every 1 minute (most aggressive)
+      staleTime: 1000 * 30, // 30 seconds
+      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
       refetchIntervalInBackground: false, // Only when tab is active
-      refetchOnWindowFocus: true, // Always refresh when user returns
+      refetchOnWindowFocus: true, // Refresh when user returns
       refetchOnReconnect: true // Refresh when internet reconnects
     }
   )

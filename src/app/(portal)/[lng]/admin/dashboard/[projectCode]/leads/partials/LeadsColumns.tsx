@@ -1,6 +1,5 @@
 "use client"
 
-import { format } from "date-fns"
 import { ColumnDef } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -166,14 +165,12 @@ export const columns: ColumnDef<Lead>[] = [
     enableHiding: false
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "formattedDate",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date" />
     ),
     cell: ({ row }) => (
-      <div className="w-fit text-nowrap">
-        {format(row.getValue("createdAt"), "MMM d, yyyy  h:mm a")}
-      </div>
+      <div className="w-fit text-nowrap">{row.getValue("formattedDate")}</div>
     ),
     enableSorting: false,
     enableHiding: false

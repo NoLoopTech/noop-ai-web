@@ -36,9 +36,18 @@ export function ProjectSwitcher() {
 
   const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
     UserProject[]
-  >(["user-projects"], `user/me/projects`, () => ({
-    method: "get"
-  }))
+  >(
+    ["user-projects"],
+    `user/me/projects`,
+    () => ({
+      method: "get"
+    }),
+    {
+      staleTime: 1000 * 60 * 5, // 5 minutes - user projects rarely change
+      refetchOnWindowFocus: false, // Don't refetch on window focus
+      refetchOnReconnect: true // Refresh when internet reconnects
+    }
+  )
 
   const selectedProjectId = useProjectCode()
 

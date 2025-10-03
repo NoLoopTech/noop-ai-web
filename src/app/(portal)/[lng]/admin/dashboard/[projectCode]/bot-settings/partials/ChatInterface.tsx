@@ -3,7 +3,7 @@
 import { useState } from "react"
 import ChatPreview from "./ChatPreview"
 import InterfaceSettings from "./InterfaceSettings"
-import { ChatStylePreviewType } from "@/types/botSettings"
+import { ChatStylePreviewType, ContentForm } from "@/types/botSettings"
 
 const ChatInterface = () => {
   const [brandStyling, setBrandStyling] = useState<
@@ -30,6 +30,10 @@ const ChatInterface = () => {
     welcomeButtonTextColor: "#1E50EF"
   })
 
+  const [contentPreview, setContentPreview] = useState<ContentForm | undefined>(
+    undefined
+  )
+
   return (
     <>
       {/* Chat Interface */}
@@ -39,6 +43,7 @@ const ChatInterface = () => {
           setBrandStyling={setBrandStyling}
           setChatButtonStyling={setChatButtonStyling}
           setWelcomeScreenStyling={setWelcomeScreenStyling}
+          setContentPreview={setContentPreview}
         />
       </div>
 
@@ -48,6 +53,7 @@ const ChatInterface = () => {
           brandStyling={brandStyling}
           chatButtonStyling={chatButtonStyling}
           welcomeScreenStyling={welcomeScreenStyling}
+          contentPreview={contentPreview}
         />
       </div>
     </>

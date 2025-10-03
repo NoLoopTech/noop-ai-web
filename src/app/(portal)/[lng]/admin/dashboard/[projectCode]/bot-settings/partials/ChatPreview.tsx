@@ -1,7 +1,7 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChatStylePreviewType } from "@/types/botSettings"
+import { ChatStylePreviewType, ContentForm } from "@/types/botSettings"
 import {
   IconArrowsDiagonal,
   IconArrowUp,
@@ -18,11 +18,16 @@ import { motion, AnimatePresence, MotionConfig } from "motion/react"
 import Image from "next/image"
 import { useState } from "react"
 
+interface ChatPreviewProps extends ChatStylePreviewType {
+  contentPreview: ContentForm | undefined
+}
+
 const ChatPreview = ({
   brandStyling,
   chatButtonStyling,
-  welcomeScreenStyling
-}: ChatStylePreviewType) => {
+  welcomeScreenStyling,
+  contentPreview
+}: ChatPreviewProps) => {
   const [tab, setTab] = useState("chat")
 
   const tabVariants = {
@@ -62,6 +67,10 @@ const ChatPreview = ({
     left: chatButtonStyling.chatButtonPosition === "right" ? "100%" : 0,
     right: chatButtonStyling.chatButtonPosition === "left" ? "100%" : 0
   }
+
+  // TODO: Remove console log
+  // eslint-disable-next-line no-console
+  console.log("contentPreview:", contentPreview)
 
   return (
     <MotionConfig
@@ -104,7 +113,9 @@ const ChatPreview = ({
                           style={{ color: brandColor.color }}
                         />
                       )}
-                      <p className="text-xl font-extrabold">NOOPY</p>
+                      <p className="text-xl font-extrabold uppercase">
+                        {contentPreview?.botName ?? "NOOPY"}
+                      </p>
                     </div>
                     <div className="flex items-center space-x-3">
                       <IconArrowsDiagonal className="h-5 w-5" />
@@ -119,7 +130,8 @@ const ChatPreview = ({
                         Hi John! 👋
                       </p>
                       <p className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
-                        How can I help you today?
+                        {contentPreview?.initialMessage ??
+                          "Welcome to Noopy.ai! How can I assist you today?"}
                       </p>
                     </div>
 
@@ -166,7 +178,8 @@ const ChatPreview = ({
                   <div className="absolute inset-x-4 bottom-2 flex h-[90px] flex-col items-center space-y-2">
                     <div className="flex h-full w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
                       <p className="text-xs text-zinc-900">
-                        How do I register to noopy?
+                        {contentPreview?.messagePlaceholder ??
+                          "How do I register to noopy?"}
                       </p>
                       <div className="flex items-center justify-between">
                         <Smile className="h-3.5 w-3.5 text-zinc-500" />
@@ -237,87 +250,55 @@ const ChatPreview = ({
                   exit="exit"
                   className="relative flex flex-col space-y-3 rounded-xl"
                 >
-                  {/* First bubble */}
-                  <motion.div
-                    key={chatButtonStyling.chatButtonPosition + "-bubble1"}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{
-                      y: 0,
-                      opacity: 1,
-                      alignSelf:
-                        chatButtonStyling.chatButtonPosition === "left"
-                          ? "flex-start"
-                          : "flex-end"
-                    }}
-                    exit={{ y: 20, opacity: 0 }}
-                    transition={{
-                      y: { delay: 0.3, ease: "easeInOut", type: "tween" },
-                      opacity: { delay: 0.3, ease: "easeInOut", type: "tween" },
-                      alignSelf: {
-                        delay: 1,
-                        duration: 0.5,
-                        ease: "easeInOut"
-                      }
-                    }}
-                    className="w-4/6 rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
-                    style={{
-                      alignSelf:
-                        chatButtonStyling.chatButtonPosition === "left"
-                          ? "flex-start"
-                          : "flex-end"
-                    }}
-                  >
-                    <p
-                      className={`${
-                        chatButtonStyling.chatButtonPosition === "right"
-                          ? "text-right"
-                          : "text-left"
-                      } text-sm font-normal`}
-                    >
-                      coming soon
-                    </p>
-                  </motion.div>
-
-                  {/* Second bubble */}
-                  <motion.div
-                    key={chatButtonStyling.chatButtonPosition + "-bubble2"}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{
-                      y: 0,
-                      opacity: 1,
-                      alignSelf:
-                        chatButtonStyling.chatButtonPosition === "left"
-                          ? "flex-start"
-                          : "flex-end"
-                    }}
-                    exit={{ y: 20, opacity: 0 }}
-                    transition={{
-                      y: { delay: 0.1, ease: "easeInOut", type: "tween" },
-                      opacity: { delay: 0.1, ease: "easeInOut", type: "tween" },
-                      alignSelf: {
-                        delay: 0.8,
-                        duration: 0.5,
-                        ease: "easeInOut"
-                      }
-                    }}
-                    className="w-11/12 rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
-                    style={{
-                      alignSelf:
-                        chatButtonStyling.chatButtonPosition === "left"
-                          ? "flex-start"
-                          : "flex-end"
-                    }}
-                  >
-                    <p
-                      className={`${
-                        chatButtonStyling.chatButtonPosition === "right"
-                          ? "text-right"
-                          : "text-left"
-                      } text-sm font-normal`}
-                    >
-                      coming soon
-                    </p>
-                  </motion.div>
+                  {contentPreview?.quickPromptsEnabled &&
+                    contentPreview.quickPrompts.map((prompt, index) => (
+                      <motion.div
+                        key={
+                          chatButtonStyling.chatButtonPosition +
+                          `-prompt-${index}`
+                        }
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{
+                          y: 0,
+                          opacity: 1,
+                          alignSelf:
+                            chatButtonStyling.chatButtonPosition === "left"
+                              ? "flex-start"
+                              : "flex-end"
+                        }}
+                        exit={{ y: 20, opacity: 0 }}
+                        transition={{
+                          y: { delay: 0.3, ease: "easeInOut", type: "tween" },
+                          opacity: {
+                            delay: 0.3,
+                            ease: "easeInOut",
+                            type: "tween"
+                          },
+                          alignSelf: {
+                            delay: 1,
+                            duration: 0.5,
+                            ease: "easeInOut"
+                          }
+                        }}
+                        className="w-max rounded-lg bg-white px-3 py-2 text-zinc-800 shadow-lg"
+                        style={{
+                          alignSelf:
+                            chatButtonStyling.chatButtonPosition === "left"
+                              ? "flex-start"
+                              : "flex-end"
+                        }}
+                      >
+                        <p
+                          className={`${
+                            chatButtonStyling.chatButtonPosition === "right"
+                              ? "text-right"
+                              : "text-left"
+                          } text-sm font-normal`}
+                        >
+                          {prompt.text || `Quick Prompt ${index + 1}`}
+                        </p>
+                      </motion.div>
+                    ))}
                 </motion.div>
 
                 <motion.div
@@ -365,15 +346,19 @@ const ChatPreview = ({
                   >
                     <div className="flex items-center space-x-1.5 py-5">
                       <IconDiamond className="h-7 w-7" />
-                      <p className="text-2xl font-extrabold">NOOPY</p>
+                      <p className="text-2x uppercasel font-extrabold">
+                        {contentPreview?.botName ?? "NOOPY"}
+                      </p>
                     </div>
 
-                    <div className="flex flex-col space-y-0.5">
+                    <div className="flex flex-col space-y-0.5 capitalize">
                       <h2 className="text-2xl font-bold">
-                        Almost Ready to Chat!
+                        {contentPreview?.welcomeScreen.title ??
+                          "Almost Ready to Chat!"}
                       </h2>
-                      <p className="max-w-11/12 text-sm font-normal">
-                        Tell us who you are so Noopy can assist you better.
+                      <p className="max-w-11/12 text-sm font-normal capitalize">
+                        {contentPreview?.welcomeScreen.instructions ??
+                          "Tell us who you are so Noopy can assist you better."}
                       </p>
                     </div>
                   </div>

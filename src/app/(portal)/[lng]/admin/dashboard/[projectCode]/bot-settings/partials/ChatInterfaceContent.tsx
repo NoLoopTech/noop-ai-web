@@ -29,10 +29,11 @@ import {
   IconX
 } from "@tabler/icons-react"
 import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
 import { motion } from "motion/react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import RichTextEditor from "@/components/RichTextEditor"
+import { useEffect } from "react"
+import { ContentForm, ContentFormSchema } from "@/types/botSettings"
 
 interface ChatInterfaceContentProps {
   tabVariants: {
@@ -40,53 +41,30 @@ interface ChatInterfaceContentProps {
     animate: { opacity: number; x: number }
     exit: { opacity: number; x: number }
   }
+  setContentPreview: (data: ContentForm) => void
 }
 
-const formSchema = z.object({
-  botName: z.string().min(1, "Bot Name is required."),
-  initialMessage: z.string().min(1, "Initial message is required."),
-  messagePlaceholder: z.string().min(1, "Message placeholder is required."),
-  dismissibleNotice: z.string().min(1, "Dismissible notice is required."),
-  suggestedMessagesEnabled: z.boolean().default(false),
-  suggestedMessages: z.array(
-    z.object({
-      text: z.string()
-    })
-  ),
-  collectUserFeedbackEnabled: z.boolean().default(false),
-  regenerateMessagesEnabled: z.boolean().default(false),
-  quickPromptsEnabled: z.boolean().default(false),
-  quickPrompts: z.array(
-    z.object({
-      text: z.string()
-    })
-  ),
-  welcomeScreenEnabled: z.boolean().default(false),
-  welcomeScreen: z.object({
-    title: z.string(),
-    instructions: z.string()
-  })
-})
-type ContentForm = z.infer<typeof formSchema>
-
-const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
+const ChatInterfaceContent = ({
+  tabVariants,
+  setContentPreview
+}: ChatInterfaceContentProps) => {
   const form = useForm<ContentForm>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(ContentFormSchema),
     defaultValues: {
-      botName: "",
-      initialMessage: "",
-      messagePlaceholder: "",
-      dismissibleNotice: "",
+      botName: undefined,
+      initialMessage: undefined,
+      messagePlaceholder: undefined,
+      dismissibleNotice: undefined,
       suggestedMessagesEnabled: false,
-      suggestedMessages: [],
+      suggestedMessages: undefined,
       collectUserFeedbackEnabled: false,
       regenerateMessagesEnabled: false,
       quickPromptsEnabled: false,
-      quickPrompts: [],
+      quickPrompts: undefined,
       welcomeScreenEnabled: false,
       welcomeScreen: {
-        title: "",
-        instructions: ""
+        title: undefined,
+        instructions: undefined
       }
     }
   })
@@ -122,6 +100,13 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
     console.log("Form submitted with:", values)
     // TODO: handle form submission properly and remove console log
   }
+
+  useEffect(() => {
+    const subscription = form.watch(values => {
+      setContentPreview(values as ContentForm)
+    })
+    return () => subscription.unsubscribe()
+  }, [form, setContentPreview])
 
   return (
     <TabsContent key="content" value="content" className="space-y-4">
@@ -431,6 +416,7 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                                 <FormItem className="flex-1">
                                   <FormControl>
                                     <Input
+                                      maxLength={40}
                                       {...field}
                                       placeholder={`Quick prompt ${index + 1}`}
                                       className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"

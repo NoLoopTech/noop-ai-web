@@ -44,12 +44,15 @@ function LeadsTableRowActions({ row, setTableLoading }: Props) {
     }
   })
 
-  const handleStatusChange = useCallback((newStatus: string) => {
-    updateStatusMutation.mutate({
-      leadId: lead.id,
-      status: newStatus as LeadStatusEnum
-    })
-  }, [updateStatusMutation, lead.id])
+  const handleStatusChange = useCallback(
+    (newStatus: string) => {
+      updateStatusMutation.mutate({
+        leadId: lead.id,
+        status: newStatus as LeadStatusEnum
+      })
+    },
+    [updateStatusMutation, lead.id]
+  )
 
   const [open, setOpen] = useDialogState<"edit" | "detail">(null)
 

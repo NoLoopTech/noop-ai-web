@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { format } from "date-fns"
 import {
   ColumnDef,
@@ -43,6 +43,22 @@ interface Props {
 
 // Stable array for skeleton loading - prevents recreation on every render
 const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
+const normalizeScore = (
+  score: string | null | undefined
+): "hot" | "warm" | "cold" => {
+  if (!score) return "cold"
+
+  const cleaned = score
+    .replace(/ *lead/i, "")
+    .trim()
+    .toLowerCase()
+
+  if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
+    return cleaned as "hot" | "warm" | "cold"
+  }
+  return "cold"
+}
 
 export function LeadsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
@@ -152,22 +168,6 @@ export function LeadsTable({ columns }: Props) {
       refetchOnWindowFocus: false, // Don't refetch on tab focus (less critical)
       refetchOnReconnect: true // Refresh when internet reconnects
     }
-  )
-
-  const normalizeScore = useCallback(
-    (score: string | null | undefined): "hot" | "warm" | "cold" => {
-      if (!score) return "cold"
-
-      const cleaned = score
-        .replace(/ *lead/i, "")
-        .trim()
-        .toLowerCase()
-      if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
-        return cleaned as "hot" | "warm" | "cold"
-      }
-      return "cold"
-    },
-    []
   )
 
   const leads = useMemo((): Lead[] => {

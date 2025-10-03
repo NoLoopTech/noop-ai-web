@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -44,6 +44,14 @@ interface Props {
 
 // Stable array for skeleton loading - prevents recreation on every render
 const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
+const secondsToMinutes = (seconds: number): string => {
+  if (seconds <= 60) {
+    return "< 1min"
+  }
+  const minutes = Math.floor(seconds / 60)
+  return `${minutes} min${minutes > 1 ? "s" : ""}`
+}
 
 export function SessionsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
@@ -219,14 +227,6 @@ export function SessionsTable({ columns }: Props) {
       refetchOnReconnect: true // Refresh when internet reconnects
     }
   )
-
-  const secondsToMinutes = useCallback((seconds: number): string => {
-    if (seconds <= 60) {
-      return "< 1min"
-    }
-    const minutes = Math.floor(seconds / 60)
-    return `${minutes} min${minutes > 1 ? "s" : ""}`
-  }, [])
 
   const chatSessions = useMemo(() => {
     if (!paginatedData?.data) return []

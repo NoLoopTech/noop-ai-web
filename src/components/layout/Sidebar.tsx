@@ -89,18 +89,9 @@ export function Sidebar({
 
   const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
     UserProject[]
-  >(
-    ["user-projects"],
-    `user/me/projects`,
-    () => ({
-      method: "get"
-    }),
-    {
-      staleTime: 1000 * 60 * 5,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true
-    }
-  )
+  >(["user-projects"], `user/me/projects`, () => ({
+    method: "get"
+  }))
 
   const selectedProjectId = useMemo(() => {
     const projectIdFromParams = params.projectId as string

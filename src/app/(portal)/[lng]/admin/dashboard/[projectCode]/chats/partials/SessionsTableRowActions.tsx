@@ -18,7 +18,7 @@ import { useToast } from "@/lib/hooks/useToast"
 import { useQueryClient } from "@tanstack/react-query"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { Session } from "../data/schema"
-import { useEffect } from "react"
+import { useEffect, useCallback, memo } from "react"
 
 interface Props {
   row: Row<Session>
@@ -27,7 +27,7 @@ interface Props {
 
 // export function DataTableRowActions({ row }: Props) {
 // const session = sessionSchema.parse(row.original)
-export function DataTableRowActions({ row, setTableLoading }: Props) {
+function DataTableRowActions({ row, setTableLoading }: Props) {
   const [_open, setOpen] = useDialogState<"edit" | "detail">(null)
   const session = row.original
   const queryClient = useQueryClient()
@@ -57,12 +57,12 @@ export function DataTableRowActions({ row, setTableLoading }: Props) {
   })
 
   // If your mutation expects an object:
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     deleteChatMutation.mutate({
       threadId: session.threadId,
       projectId: projectId
     })
-  }
+  }, [deleteChatMutation, session.threadId, projectId])
   useEffect(() => {
     if (setTableLoading) {
       setTableLoading(deleteChatMutation.isPending)
@@ -123,3 +123,5 @@ export function DataTableRowActions({ row, setTableLoading }: Props) {
     </>
   )
 }
+
+export default memo(DataTableRowActions)

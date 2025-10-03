@@ -34,12 +34,23 @@ import { AiScore, Session } from "../data/schema"
 import { format } from "date-fns"
 import { useToast } from "@/lib/hooks/useToast"
 import { useSession } from "next-auth/react"
-import { DataTableRowActions } from "./SessionsTableRowActions"
+import DataTableRowActions from "./SessionsTableRowActions"
 import { IconLoader2 } from "@tabler/icons-react"
 
 interface Props {
   columns: ColumnDef<Session>[]
   // data: Session[]
+}
+
+// Stable array for skeleton loading - prevents recreation on every render
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
+const secondsToMinutes = (seconds: number): string => {
+  if (seconds <= 60) {
+    return "< 1min"
+  }
+  const minutes = Math.floor(seconds / 60)
+  return `${minutes} min${minutes > 1 ? "s" : ""}`
 }
 
 export function SessionsTable({ columns }: Props) {
@@ -158,22 +169,41 @@ export function SessionsTable({ columns }: Props) {
   }, [projectId, status, token])
   // TODO: Use this scoreMutation to trigger score calculation
 
-  const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
-    PaginatedResult<ChatSessionResponse>
-  >(
-    [
+  // Optimized query key - flatten all filter values to prevent object reference issues
+  const optimizedQueryKey = useMemo(
+    () => [
       "chat-sessions",
       projectId,
       currentPage,
       rowsPerPage,
-      filters.username,
+      // Flatten all filter values for stable cache keys
+      filters.username || "",
+      filters.intent || "",
+      filters.duration || "",
+      filters.startDate || "",
+      filters.endDate || "",
+      // Join arrays to create stable string representations
       serverFilters.country.join(","),
-      serverFilters.aiScore.join(","),
+      serverFilters.aiScore.join(",")
+    ],
+    [
+      projectId,
+      currentPage,
+      rowsPerPage,
+      filters.username,
       filters.intent,
       filters.duration,
       filters.startDate,
-      filters.endDate
-    ],
+      filters.endDate,
+      serverFilters.country,
+      serverFilters.aiScore
+    ]
+  )
+
+  const { data: paginatedData, isLoading: isChatsLoading } = useApiQuery<
+    PaginatedResult<ChatSessionResponse>
+  >(
+    optimizedQueryKey,
     `/conversations?projectId=${projectId ?? 4}&page=${currentPage}&limit=${rowsPerPage}&sortBy=createdAt&sortDir=DESC` +
       (filters.username ? `&username=${filters.username}` : "") +
       (serverFilters.country.length > 0
@@ -188,16 +218,15 @@ export function SessionsTable({ columns }: Props) {
       (filters.endDate ? `&endDate=${filters.endDate}` : ""),
     () => ({
       method: "get"
-    })
-  )
-
-  const secondsToMinutes = (seconds: number): string => {
-    if (seconds <= 60) {
-      return "< 1min"
+    }),
+    {
+      staleTime: 1000 * 30, // 30 seconds
+      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
+      refetchIntervalInBackground: false, // Only when tab is active
+      refetchOnWindowFocus: true, // Refresh when user returns
+      refetchOnReconnect: true // Refresh when internet reconnects
     }
-    const minutes = Math.floor(seconds / 60)
-    return `${minutes} min${minutes > 1 ? "s" : ""}`
-  }
+  )
 
   const chatSessions = useMemo(() => {
     if (!paginatedData?.data) return []
@@ -314,7 +343,7 @@ export function SessionsTable({ columns }: Props) {
                 </TableRow>
               ))
             ) : isChatsLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
+              SKELETON_ROWS.map(i => (
                 <TableRow key={`skeleton-row-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { format } from "date-fns"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -33,11 +34,30 @@ import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { useSession } from "next-auth/react"
 import { IconLoader2 } from "@tabler/icons-react"
-import { LeadsTableRowActions } from "./LeadsTableRowActions"
+import LeadsTableRowActions from "./LeadsTableRowActions"
 import { cleanStrings } from "@/utils"
 
 interface Props {
   columns: ColumnDef<Lead>[]
+}
+
+// Stable array for skeleton loading - prevents recreation on every render
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
+
+const normalizeScore = (
+  score: string | null | undefined
+): "hot" | "warm" | "cold" => {
+  if (!score) return "cold"
+
+  const cleaned = score
+    .replace(/ *lead/i, "")
+    .trim()
+    .toLowerCase()
+
+  if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
+    return cleaned as "hot" | "warm" | "cold"
+  }
+  return "cold"
 }
 
 export function LeadsTable({ columns }: Props) {
@@ -62,8 +82,8 @@ export function LeadsTable({ columns }: Props) {
     dateRangeType: ""
   })
 
-  // Debounce the search term for server-side filtering
-  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+  // Debounce the search term for server-side filtering (optimized for faster response)
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 200)
 
   const projectId = useProjectCode()
 
@@ -115,30 +135,40 @@ export function LeadsTable({ columns }: Props) {
     return `/leads?${params.toString()}`
   }, [projectId, currentPage, rowsPerPage, filterParams])
 
+  // Optimized query key - flatten filterParams to prevent object reference issues
+  const optimizedQueryKey = useMemo(
+    () => [
+      "project-leads",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      // Flatten filterParams for stable cache keys
+      filterParams.searchTerm || "",
+      filterParams.startDate || "",
+      filterParams.endDate || "",
+      filterParams.score || "",
+      filterParams.status || ""
+    ],
+    [projectId, currentPage, rowsPerPage, filterParams]
+  )
+
   const { data: paginatedData, isLoading: isLeadsLoading } = useApiQuery<
     PaginatedResult<Lead>
   >(
-    ["project-leads", projectId, currentPage, rowsPerPage, filterParams],
+    optimizedQueryKey,
     queryString,
     () => ({
       method: "get"
-    })
-  )
-
-  function normalizeScore(
-    score: string | null | undefined
-  ): "hot" | "warm" | "cold" {
-    if (!score) return "cold"
-
-    const cleaned = score
-      .replace(/ *lead/i, "")
-      .trim()
-      .toLowerCase()
-    if (cleaned === "hot" || cleaned === "warm" || cleaned === "cold") {
-      return cleaned as "hot" | "warm" | "cold"
+    }),
+    {
+      staleTime: 1000 * 30,
+      // Background refetching for sales data
+      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
+      refetchIntervalInBackground: false, // Only when tab is active
+      refetchOnWindowFocus: false, // Don't refetch on tab focus (less critical)
+      refetchOnReconnect: true // Refresh when internet reconnects
     }
-    return "cold"
-  }
+  )
 
   const leads = useMemo((): Lead[] => {
     if (!paginatedData?.data) return []
@@ -147,7 +177,8 @@ export function LeadsTable({ columns }: Props) {
       ...lead,
       preference: cleanStrings(lead.preference?.toString()),
       score: normalizeScore(lead.score),
-      status: lead.status ?? "new"
+      status: lead.status ?? "new",
+      formattedDate: format(lead.createdAt, "MMM d, yyyy  h:mm a")
     }))
   }, [paginatedData])
 
@@ -247,7 +278,7 @@ export function LeadsTable({ columns }: Props) {
                 </TableRow>
               ))
             ) : isLeadsLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
+              SKELETON_ROWS.map(i => (
                 <TableRow key={`skeleton-row-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>

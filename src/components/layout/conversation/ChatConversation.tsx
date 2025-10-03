@@ -50,7 +50,10 @@ export default function ChatConversation({
       ["chat-thread", threadId],
       `/conversations/thread?threadId=${threadId}&sortBy=createdAt&sortDir=ASC`,
       () => ({ method: "get" }),
-      { enabled: !!threadId }
+      {
+        enabled: !!threadId,
+        staleTime: 1000 * 30
+      }
     )
 
   const selectedConversation = useMemo(() => {

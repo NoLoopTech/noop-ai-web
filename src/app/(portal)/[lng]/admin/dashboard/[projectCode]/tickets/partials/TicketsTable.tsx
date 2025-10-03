@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { format } from "date-fns"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -32,13 +33,16 @@ import { Ticket } from "@/models/ticket/schema"
 import { DateRangeType } from "@/models/filterOptions"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { IconLoader2 } from "@tabler/icons-react"
-import { TicketsTableRowActions } from "./TicketsTableRowActions"
+import TicketsTableRowActions from "./TicketsTableRowActions"
 import { useSession } from "next-auth/react"
 
 interface Props {
   columns: ColumnDef<Ticket>[]
   // data: Ticket[]
 }
+
+// Stable array for skeleton loading - prevents recreation on every render
+const SKELETON_ROWS = Array.from({ length: 10 }, (_, i) => i)
 
 export function TicketsTable({ columns }: Props) {
   const [rowSelection, setRowSelection] = useState({})
@@ -65,8 +69,8 @@ export function TicketsTable({ columns }: Props) {
     dateRangeType: ""
   })
 
-  // Debounce the search term for server-side filtering
-  const debouncedSearchTerm = useDebounce(filters.searchTerm, 500)
+  // Debounce the search term for server-side filtering (optimized for faster response)
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 200)
 
   const filterParams = useMemo(() => {
     const params: Record<string, string> = {}
@@ -77,13 +81,10 @@ export function TicketsTable({ columns }: Props) {
 
     columnFilters.forEach(f => {
       if (!f.value) return
-      columnFilters.forEach(f => {
-        if (!f.value) return
-        if (f.id === "priority") params.priority = String(f.value)
-        if (f.id === "status") params.status = String(f.value)
-        if (f.id === "method") params.method = String(f.value)
-        if (f.id === "type") params.type = String(f.value)
-      })
+      if (f.id === "priority") params.priority = String(f.value)
+      if (f.id === "status") params.status = String(f.value)
+      if (f.id === "method") params.method = String(f.value)
+      if (f.id === "type") params.type = String(f.value)
     })
 
     return params
@@ -101,14 +102,41 @@ export function TicketsTable({ columns }: Props) {
     return `/tickets?${params.toString()}`
   }, [projectId, currentPage, rowsPerPage, filterParams])
 
+  // Optimized query key - flatten filterParams to prevent object reference issues
+  const optimizedQueryKey = useMemo(
+    () => [
+      "project-tickets",
+      projectId,
+      currentPage,
+      rowsPerPage,
+      // Flatten filterParams for stable cache keys
+      filterParams.searchTerm || "",
+      filterParams.startDate || "",
+      filterParams.endDate || "",
+      filterParams.priority || "",
+      filterParams.status || "",
+      filterParams.method || "",
+      filterParams.type || ""
+    ],
+    [projectId, currentPage, rowsPerPage, filterParams]
+  )
+
   const { data: paginatedData, isLoading: isTicketsLoading } = useApiQuery<
     PaginatedResult<Ticket>
   >(
-    ["project-tickets", projectId, currentPage, rowsPerPage, filterParams],
+    optimizedQueryKey,
     queryString,
     () => ({
       method: "get"
-    })
+    }),
+    {
+      staleTime: 1000 * 30, // 30 seconds
+      // Background refetching for real-time support data
+      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
+      refetchIntervalInBackground: false, // Only when tab is active
+      refetchOnWindowFocus: true, // Refresh when user returns to tab
+      refetchOnReconnect: true // Refresh when internet reconnects
+    }
   )
 
   const tickets = useMemo((): Ticket[] => {
@@ -118,7 +146,8 @@ export function TicketsTable({ columns }: Props) {
       status: ticket.status ?? "active",
       priority: ticket.priority ?? "medium",
       type: ticket.type ?? "information_request",
-      method: ticket.method ?? "manual"
+      method: ticket.method ?? "manual",
+      formattedDate: format(ticket.createdAt, "MMM d, yyyy  h:mm a")
     }))
   }, [paginatedData])
 
@@ -249,7 +278,7 @@ export function TicketsTable({ columns }: Props) {
                 </TableRow>
               ))
             ) : isTicketsLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
+              SKELETON_ROWS.map(i => (
                 <TableRow key={`skeleton-row-${i}`}>
                   {columns.map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>

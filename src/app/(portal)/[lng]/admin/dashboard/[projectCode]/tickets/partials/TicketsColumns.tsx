@@ -1,6 +1,5 @@
 "use client"
 
-import { format } from "date-fns"
 import { ColumnDef } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -12,7 +11,7 @@ import {
   ticketStatus,
   ticketTypes
 } from "@/models/ticket/options"
-import { TicketsTableRowActions } from "./TicketsTableRowActions"
+import TicketsTableRowActions from "./TicketsTableRowActions"
 import { TicketsRowInfoAction } from "./TicketsRowInfoAction"
 import CountryFlag from "react-country-flag"
 import {
@@ -265,14 +264,12 @@ export const columns: ColumnDef<Ticket>[] = [
     meta: { label: "Method", className: "" }
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "formattedDate",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
     ),
     cell: ({ row }) => (
-      <div className="w-fit text-nowrap">
-        {format(row.getValue("createdAt"), "MMM d, yyyy  h:mm a")}
-      </div>
+      <div className="w-fit text-nowrap">{row.getValue("formattedDate")}</div>
     ),
     enableSorting: false,
     enableHiding: false

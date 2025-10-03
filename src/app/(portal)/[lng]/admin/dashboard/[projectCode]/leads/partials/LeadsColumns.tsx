@@ -1,12 +1,11 @@
 "use client"
 
-import { format } from "date-fns"
 import { ColumnDef } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/layout/Table/DataTableColumnHeader"
-import { LeadsTableRowActions } from "./LeadsTableRowActions"
+import LeadsTableRowActions from "./LeadsTableRowActions"
 import { Lead } from "../data/schema"
 import { leadPreference, leadScore, leadStatus } from "../data/data"
 import { LeadsRowInfoAction } from "./LeadsRowInfoAction"
@@ -166,14 +165,12 @@ export const columns: ColumnDef<Lead>[] = [
     enableHiding: false
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "formattedDate",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date" />
     ),
     cell: ({ row }) => (
-      <div className="w-fit text-nowrap">
-        {format(row.getValue("createdAt"), "MMM d, yyyy  h:mm a")}
-      </div>
+      <div className="w-fit text-nowrap">{row.getValue("formattedDate")}</div>
     ),
     enableSorting: false,
     enableHiding: false

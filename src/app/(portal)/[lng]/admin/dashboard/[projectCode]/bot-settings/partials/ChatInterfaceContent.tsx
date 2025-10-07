@@ -34,6 +34,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import RichTextEditor from "@/components/RichTextEditor"
 import { useEffect } from "react"
 import { ContentForm, ContentFormSchema } from "@/types/botSettings"
+import { useToast } from "@/lib/hooks/useToast"
 
 interface ChatInterfaceContentProps {
   tabVariants: {
@@ -42,29 +43,36 @@ interface ChatInterfaceContentProps {
     exit: { opacity: number; x: number }
   }
   setContentPreview: (data: ContentForm) => void
+  botSettingsContent?: ContentForm
 }
 
 const ChatInterfaceContent = ({
   tabVariants,
-  setContentPreview
+  setContentPreview,
+  botSettingsContent
 }: ChatInterfaceContentProps) => {
+  const { toast } = useToast()
+
   const form = useForm<ContentForm>({
     resolver: zodResolver(ContentFormSchema),
+    mode: "all",
+    reValidateMode: "onBlur",
     defaultValues: {
-      botName: undefined,
-      initialMessage: undefined,
-      messagePlaceholder: undefined,
-      dismissibleNotice: undefined,
-      suggestedMessagesEnabled: false,
-      suggestedMessages: undefined,
-      collectUserFeedbackEnabled: false,
-      regenerateMessagesEnabled: false,
-      quickPromptsEnabled: false,
-      quickPrompts: undefined,
-      welcomeScreenEnabled: false,
+      botName: botSettingsContent?.botName,
+      initialMessage: botSettingsContent?.initialMessage,
+      messagePlaceholder: botSettingsContent?.messagePlaceholder,
+      dismissibleNotice: botSettingsContent?.dismissibleNotice,
+      suggestedMessagesEnabled: botSettingsContent?.suggestedMessagesEnabled,
+      suggestedMessages: botSettingsContent?.suggestedMessages,
+      collectUserFeedbackEnabled:
+        botSettingsContent?.collectUserFeedbackEnabled,
+      regenerateMessagesEnabled: botSettingsContent?.regenerateMessagesEnabled,
+      quickPromptsEnabled: botSettingsContent?.quickPromptsEnabled,
+      quickPrompts: botSettingsContent?.quickPrompts,
+      welcomeScreenEnabled: botSettingsContent?.welcomeScreenEnabled,
       welcomeScreen: {
-        title: undefined,
-        instructions: undefined
+        title: botSettingsContent?.welcomeScreen?.title,
+        instructions: botSettingsContent?.welcomeScreen?.instructions
       }
     }
   })
@@ -96,9 +104,18 @@ const ChatInterfaceContent = ({
       values.suggestedMessages = []
     }
 
+    // TODO: handle form submission properly and remove console log
     // eslint-disable-next-line no-console
     console.log("Form submitted with:", values)
-    // TODO: handle form submission properly and remove console log
+  }
+
+  function onError() {
+    toast({
+      title: "Please fill in all required fields.",
+      duration: 4000,
+      variant: "destructive"
+    })
+    return
   }
 
   useEffect(() => {
@@ -107,6 +124,17 @@ const ChatInterfaceContent = ({
     })
     return () => subscription.unsubscribe()
   }, [form, setContentPreview])
+
+  function handleReset() {
+    form.clearErrors()
+    form.reset(undefined, { keepErrors: false, keepTouched: false })
+    setTimeout(() => form.clearErrors(), 0)
+    toast({
+      title: "Form reset to default values.",
+      variant: "warning",
+      duration: 4000
+    })
+  }
 
   return (
     <TabsContent key="content" value="content" className="space-y-4">
@@ -124,7 +152,8 @@ const ChatInterfaceContent = ({
             <Form {...form}>
               <form
                 id="chat-interface-content"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onSubmit, onError)}
+                onError={onError}
                 className="flex flex-col gap-4"
               >
                 <Card>
@@ -144,7 +173,13 @@ const ChatInterfaceContent = ({
                           </CardDescription>
                         </div>
 
-                        <Button variant="outline" size="icon" className="p-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="p-2"
+                          onClick={handleReset}
+                        >
                           <IconRefresh className="h-10 w-10" />
                         </Button>
                       </div>
@@ -160,6 +195,8 @@ const ChatInterfaceContent = ({
                           <FormControl>
                             <Input
                               {...field}
+                              maxLength={10}
+                              value={field.value || ""}
                               placeholder="Your bot name"
                               className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
@@ -231,7 +268,6 @@ const ChatInterfaceContent = ({
 
                     {suggestedMessagesEnabled && (
                       <div className="flex flex-col space-y-2 pb-2">
-                        {/* <FormLabel>Suggested Messages</FormLabel> */}
                         <p className="text-muted-foreground text-right text-xs font-medium">
                           {suggestedMessagesFields.length} of 3
                         </p>
@@ -297,7 +333,7 @@ const ChatInterfaceContent = ({
                           <FormControl>
                             <div className="mt-1 flex flex-col space-y-1 rounded-xl bg-zinc-100 pb-2 dark:bg-zinc-700/25">
                               <RichTextEditor
-                                value={field.value}
+                                value={field.value || ""}
                                 onChange={field.onChange}
                                 className="bg-background resize-none"
                               />
@@ -399,7 +435,6 @@ const ChatInterfaceContent = ({
 
                     {quickPromptsEnabled && (
                       <div className="flex flex-col space-y-2">
-                        {/* <FormLabel>Suggested Messages</FormLabel> */}
                         <p className="text-muted-foreground text-right text-xs font-medium">
                           {quickPromptsFields.length} of 3
                         </p>
@@ -411,13 +446,13 @@ const ChatInterfaceContent = ({
                             <FormField
                               control={form.control}
                               name={`quickPrompts.${index}.text`}
-                              disabled={!quickPromptsEnabled}
                               render={({ field }) => (
                                 <FormItem className="flex-1">
                                   <FormControl>
                                     <Input
                                       maxLength={40}
                                       {...field}
+                                      disabled={!quickPromptsEnabled}
                                       placeholder={`Quick prompt ${index + 1}`}
                                       className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                     />
@@ -535,17 +570,6 @@ const ChatInterfaceContent = ({
             </Form>
           </div>
         </ScrollArea>
-        <div className="flex w-full items-center justify-end px-3">
-          <Button
-            type="submit"
-            variant="default"
-            disabled={!form.formState.isValid}
-            className="w-max disabled:opacity-50"
-            form="chat-interface-content"
-          >
-            Save
-          </Button>
-        </div>
       </motion.div>
     </TabsContent>
   )

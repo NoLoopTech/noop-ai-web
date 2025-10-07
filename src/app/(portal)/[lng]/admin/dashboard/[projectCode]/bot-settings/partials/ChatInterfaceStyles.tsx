@@ -83,12 +83,6 @@ const ChatInterfaceStyles = ({
     }
   })
 
-  function onSubmit(values: StyleForm) {
-    // eslint-disable-next-line no-console
-    console.log("Form submitted with:", values)
-    // TODO: handle form submission properly and remove console log
-  }
-
   const resetColor =
     <T extends keyof StyleForm>(
       field: ControllerRenderProps<StyleForm, T>,
@@ -102,10 +96,6 @@ const ChatInterfaceStyles = ({
     const welcomeButtonBgColor = form.watch("welcomeButtonBgColor")
     const newTextColor = getContrastTextColor(welcomeButtonBgColor)
     form.setValue("welcomeButtonTextColor", newTextColor, { shouldDirty: true })
-
-    // TODO: remove this console log
-    // eslint-disable-next-line no-console
-    console.log("form", form.getValues())
   }, [form.watch("welcomeButtonBgColor")])
 
   useEffect(() => {
@@ -228,11 +218,7 @@ const ChatInterfaceStyles = ({
         <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
-              <form
-                id="chat-interface-style"
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col gap-4"
-              >
+              <form id="chat-interface-style" className="flex flex-col gap-4">
                 <Card>
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
@@ -732,17 +718,6 @@ const ChatInterfaceStyles = ({
             </Form>
           </div>
         </ScrollArea>
-        <div className="flex w-full items-center justify-end px-3">
-          <Button
-            type="submit"
-            variant="default"
-            disabled={!form.formState.isValid}
-            className="w-max disabled:opacity-50"
-            form="chat-interface-style"
-          >
-            Save
-          </Button>
-        </div>
       </motion.div>
     </TabsContent>
   )

@@ -44,7 +44,7 @@ export const ContentFormSchema = z.object({
   botName: z.string().min(1, "Bot Name is required."),
   initialMessage: z.string().min(1, "Initial message is required."),
   messagePlaceholder: z.string().min(1, "Message placeholder is required."),
-  dismissibleNotice: z.string().min(1, "Dismissible notice is required."),
+  dismissibleNotice: z.string().optional().nullable().default(null),
   suggestedMessagesEnabled: z.boolean().default(false),
   suggestedMessages: z.array(
     z.object({
@@ -119,3 +119,12 @@ export const StyleFormSchema = z.object({
     .default("#1E50EF")
 })
 export type StyleForm = z.infer<typeof StyleFormSchema>
+
+export interface botSettingsResponse {
+  botSettings: {
+    brandStyling: ChatStylePreviewType["brandStyling"]
+    chatButtonStyling: ChatStylePreviewType["chatButtonStyling"]
+    welcomeScreenStyling: ChatStylePreviewType["welcomeScreenStyling"]
+    contentPreview: ContentForm
+  }
+}

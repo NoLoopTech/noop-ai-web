@@ -68,10 +68,6 @@ const ChatPreview = ({
     right: chatButtonStyling.chatButtonPosition === "left" ? "100%" : 0
   }
 
-  // TODO: Remove console log
-  // eslint-disable-next-line no-console
-  console.log("contentPreview:", contentPreview)
-
   return (
     <MotionConfig
       transition={{ duration: 0.5, ease: "easeInOut", type: "tween" }}
@@ -114,7 +110,7 @@ const ChatPreview = ({
                         />
                       )}
                       <p className="text-xl font-extrabold uppercase">
-                        {contentPreview?.botName ?? "NOOPY"}
+                        {contentPreview?.botName?.trim() || "Noopy"}
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -130,8 +126,8 @@ const ChatPreview = ({
                         Hi John! 👋
                       </p>
                       <p className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
-                        {contentPreview?.initialMessage ??
-                          "Welcome to Noopy.ai! How can I assist you today?"}
+                        {contentPreview?.initialMessage?.trim() ||
+                          "How can I help you today?"}
                       </p>
                     </div>
 
@@ -143,7 +139,9 @@ const ChatPreview = ({
 
                     <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
                       <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                        Here’s a quick overview of what Noopy.ai can do for you:
+                        Here’s a quick overview of what{" "}
+                        {(contentPreview?.botName ?? "Noopy.ai") || "Noopy.ai"}{" "}
+                        can do for you:
                       </p>
                       <div className="flex flex-col space-y-1.5">
                         <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
@@ -159,8 +157,8 @@ const ChatPreview = ({
 
                         <div className="flex items-center justify-between px-3">
                           <div className="flex items-center text-[10px] text-zinc-400">
-                            <p className="border-r border-zinc-200 pr-1.5">
-                              Noopy
+                            <p className="border-r border-zinc-200 pr-1.5 capitalize">
+                              {contentPreview?.botName?.trim() || "Noopy"}
                             </p>
                             <p className="pl-1.5">Just Now</p>
                           </div>
@@ -178,8 +176,8 @@ const ChatPreview = ({
                   <div className="absolute inset-x-4 bottom-2 flex h-[90px] flex-col items-center space-y-2">
                     <div className="flex h-full w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
                       <p className="text-xs text-zinc-900">
-                        {contentPreview?.messagePlaceholder ??
-                          "How do I register to noopy?"}
+                        {contentPreview?.messagePlaceholder?.trim() ||
+                          `How do I register to ${contentPreview?.botName?.trim() || "noopy"}?`}
                       </p>
                       <div className="flex items-center justify-between">
                         <Smile className="h-3.5 w-3.5 text-zinc-500" />
@@ -230,7 +228,7 @@ const ChatPreview = ({
         {tab === "chatbutton" && (
           <TabsContent
             value="chatbutton"
-            className="m-0 mt-3 h-full w-full p-0"
+            className="m-0 mt-3 h-full w-full min-w-[350px] p-0"
           >
             <div className="flex h-[580px] w-full flex-col justify-end space-y-3">
               <AnimatePresence mode="sync">
@@ -346,18 +344,18 @@ const ChatPreview = ({
                   >
                     <div className="flex items-center space-x-1.5 py-5">
                       <IconDiamond className="h-7 w-7" />
-                      <p className="text-2x uppercasel font-extrabold">
-                        {contentPreview?.botName ?? "NOOPY"}
+                      <p className="text-2xl font-extrabold uppercase">
+                        {contentPreview?.botName?.trim() || "Noopy"}
                       </p>
                     </div>
 
                     <div className="flex flex-col space-y-0.5 capitalize">
                       <h2 className="text-2xl font-bold">
-                        {contentPreview?.welcomeScreen.title ??
+                        {contentPreview?.welcomeScreen.title?.trim() ||
                           "Almost Ready to Chat!"}
                       </h2>
                       <p className="max-w-11/12 text-sm font-normal capitalize">
-                        {contentPreview?.welcomeScreen.instructions ??
+                        {contentPreview?.welcomeScreen.instructions?.trim() ||
                           "Tell us who you are so Noopy can assist you better."}
                       </p>
                     </div>

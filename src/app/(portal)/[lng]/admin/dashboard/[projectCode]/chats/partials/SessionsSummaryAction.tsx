@@ -13,6 +13,7 @@ import {
   //   IconEyeDotted,
   //   IconMessage2Search
 } from "@tabler/icons-react"
+import { SessionStatusEnum } from "@/models/conversation"
 
 interface Props {
   row: Row<Session>
@@ -20,7 +21,7 @@ interface Props {
 
 export function SessionsSummaryAction({ row }: Props) {
   const session = row.original
-  const isInProgress = session.status === "in-progress"
+  const isInProgress = session.status === SessionStatusEnum.IN_PROGRESS
 
   return (
     <HoverCard openDelay={0} closeDelay={0}>

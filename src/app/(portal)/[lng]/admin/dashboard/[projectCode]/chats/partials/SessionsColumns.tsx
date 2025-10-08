@@ -17,6 +17,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 import { getCountryName } from "@/utils"
+import { SessionStatusEnum } from "@/models/conversation"
 
 export const columns: ColumnDef<Session>[] = [
   {
@@ -109,7 +110,7 @@ export const columns: ColumnDef<Session>[] = [
     ),
     cell: ({ row }) => {
       const { aiScore, status } = row.original
-      const isInProgress = status === "in-progress"
+      const isInProgress = status === SessionStatusEnum.IN_PROGRESS
       const badgeColor = aiScoreSchema.get(aiScore)
       return (
         <div className="flex space-x-2">

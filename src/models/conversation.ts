@@ -52,6 +52,11 @@ export enum ScoringOption {
   NORMAL = "normal"
 }
 
+export enum SessionStatusEnum {
+  IN_PROGRESS = "in-progress",
+  CLOSED = "closed"
+}
+
 export const SCORE_RANGES = {
   [ScoringOption.POSITIVE]: { min: 0.6, max: 1.0 },
   [ScoringOption.NORMAL]: { min: 0.4, max: 0.6 },

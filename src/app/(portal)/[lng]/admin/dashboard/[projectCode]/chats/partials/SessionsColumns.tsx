@@ -108,7 +108,8 @@ export const columns: ColumnDef<Session>[] = [
       <DataTableColumnHeader column={column} title="AI Score" />
     ),
     cell: ({ row }) => {
-      const { aiScore } = row.original
+      const { aiScore, status } = row.original
+      const isInProgress = status === "in-progress"
       const badgeColor = aiScoreSchema.get(aiScore)
       return (
         <div className="flex space-x-2">
@@ -116,10 +117,10 @@ export const columns: ColumnDef<Session>[] = [
             variant="ghost"
             className={cn(
               "px-2.5 py-0.5 text-xs font-semibold capitalize",
-              badgeColor
+              isInProgress ? "bg-muted text-muted-foreground" : badgeColor
             )}
           >
-            {row.getValue("aiScore")}
+            {isInProgress ? "Pending" : row.getValue("aiScore")}
           </Badge>
         </div>
       )

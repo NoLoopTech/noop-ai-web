@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -25,15 +25,13 @@ import {
 } from "@/components/ui/table"
 import { DataTablePagination } from "@/components/layout/Table/DataTablePagination"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useApiQuery, useApiMutation } from "@/query"
+import { useApiQuery } from "@/query"
 import { PaginatedResult } from "@/types/paginatedData"
 import { ChatSessionResponse } from "@/models/conversation"
 import { SessionsTableToolbar } from "./SessionsTableToolbar"
 import { DateRangeType } from "@/models/filterOptions"
 import { AiScore, Session } from "../data/schema"
 import { format } from "date-fns"
-import { useToast } from "@/lib/hooks/useToast"
-import { useSession } from "next-auth/react"
 import DataTableRowActions from "./SessionsTableRowActions"
 import { IconLoader2 } from "@tabler/icons-react"
 
@@ -130,44 +128,6 @@ export function SessionsTable({ columns }: Props) {
     }
   }, [columnFilters])
 
-  // Session score calculation mutation
-
-  const { toast } = useToast()
-
-  const { data: session, status } = useSession()
-  const token = session?.apiToken
-  const firedRef = useRef(false)
-
-  const scoreMutation = useApiMutation(
-    projectId
-      ? `/conversations/initiateSessionScoreCalculation/${projectId}`
-      : "",
-    "post",
-    {
-      onSuccess: () => {},
-      onError: error => {
-        if (status !== "authenticated" || !token) return
-        const errorMessage =
-          (error as { message?: string })?.message ||
-          "Failed to calculate session scores. Please try again."
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        })
-      }
-    }
-  )
-
-  useEffect(() => {
-    if (!projectId) return
-    if (status !== "authenticated" || !token) return
-    if (firedRef.current) return
-
-    firedRef.current = true
-    scoreMutation.mutate(undefined)
-  }, [projectId, status, token])
-  // TODO: Use this scoreMutation to trigger score calculation
 
   // Optimized query key - flatten all filter values to prevent object reference issues
   const optimizedQueryKey = useMemo(
@@ -240,7 +200,8 @@ export function SessionsTable({ columns }: Props) {
       userName: session.session.userName ?? "Guest User",
       email: session.session.email ?? "Not Provided",
       intent: session.session.intent ?? "Not Determined",
-      threadId: session.session.threadId
+      threadId: session.session.threadId,
+      status: session.session.status
     }))
   }, [paginatedData])
 

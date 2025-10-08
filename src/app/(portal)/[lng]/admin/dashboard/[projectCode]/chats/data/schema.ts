@@ -17,7 +17,8 @@ export const sessionSchema = z.object({
   chatSummary: z.string(),
   dateTime: z.string(),
   intent: z.string(),
-  threadId: z.string()
+  threadId: z.string(),
+  status: z.string().optional()
 })
 
 export type Session = z.infer<typeof sessionSchema>

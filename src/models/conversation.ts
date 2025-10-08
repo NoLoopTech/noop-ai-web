@@ -29,6 +29,7 @@ export interface ChatSessionResponse {
     timestamp: string
     country: string
     intent: string
+    status?: string
   }
   duration: number
   scoreCategory: string

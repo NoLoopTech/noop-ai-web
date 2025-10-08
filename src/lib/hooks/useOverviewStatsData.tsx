@@ -52,7 +52,14 @@ export function useOverviewStatsData(
     () => ({
       method: "get"
     }),
-    options
+    {
+      staleTime: 1000 * 60 * 2,
+      refetchInterval: 1000 * 60 * 5,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      ...options
+    }
   )
 
   return {

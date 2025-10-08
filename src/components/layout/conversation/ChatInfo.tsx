@@ -44,7 +44,12 @@ export default function ChatInfo(): JSX.Element {
     `/conversations/chat/${threadId}/details`,
     () => ({
       method: "get"
-    })
+    }),
+    {
+      staleTime: 1000 * 60 * 2,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true
+    }
   )
 
   function handleDrawerShown() {

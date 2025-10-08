@@ -50,7 +50,11 @@ export default function ChatList(): JSX.Element {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30
+      staleTime: 1000 * 30,
+      refetchInterval: 1000 * 60 * 2,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true
     }
   )
 

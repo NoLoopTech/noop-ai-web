@@ -29,10 +29,12 @@ import {
   IconX
 } from "@tabler/icons-react"
 import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
 import { motion } from "motion/react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import RichTextEditor from "@/components/RichTextEditor"
+import { useEffect } from "react"
+import { ContentForm, ContentFormSchema } from "@/types/botSettings"
+import { useToast } from "@/lib/hooks/useToast"
 
 interface ChatInterfaceContentProps {
   tabVariants: {
@@ -40,53 +42,37 @@ interface ChatInterfaceContentProps {
     animate: { opacity: number; x: number }
     exit: { opacity: number; x: number }
   }
+  setContentPreview: (data: ContentForm) => void
+  botSettingsContent?: ContentForm
 }
 
-const formSchema = z.object({
-  botName: z.string().min(1, "Bot Name is required."),
-  initialMessage: z.string().min(1, "Initial message is required."),
-  messagePlaceholder: z.string().min(1, "Message placeholder is required."),
-  dismissibleNotice: z.string().min(1, "Dismissible notice is required."),
-  suggestedMessagesEnabled: z.boolean().default(false),
-  suggestedMessages: z.array(
-    z.object({
-      text: z.string()
-    })
-  ),
-  collectUserFeedbackEnabled: z.boolean().default(false),
-  regenerateMessagesEnabled: z.boolean().default(false),
-  quickPromptsEnabled: z.boolean().default(false),
-  quickPrompts: z.array(
-    z.object({
-      text: z.string()
-    })
-  ),
-  welcomeScreenEnabled: z.boolean().default(false),
-  welcomeScreen: z.object({
-    title: z.string(),
-    instructions: z.string()
-  })
-})
-type ContentForm = z.infer<typeof formSchema>
+const ChatInterfaceContent = ({
+  tabVariants,
+  setContentPreview,
+  botSettingsContent
+}: ChatInterfaceContentProps) => {
+  const { toast } = useToast()
 
-const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
   const form = useForm<ContentForm>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(ContentFormSchema),
+    mode: "all",
+    reValidateMode: "onBlur",
     defaultValues: {
-      botName: "",
-      initialMessage: "",
-      messagePlaceholder: "",
-      dismissibleNotice: "",
-      suggestedMessagesEnabled: false,
-      suggestedMessages: [],
-      collectUserFeedbackEnabled: false,
-      regenerateMessagesEnabled: false,
-      quickPromptsEnabled: false,
-      quickPrompts: [],
-      welcomeScreenEnabled: false,
+      botName: botSettingsContent?.botName,
+      initialMessage: botSettingsContent?.initialMessage,
+      messagePlaceholder: botSettingsContent?.messagePlaceholder,
+      dismissibleNotice: botSettingsContent?.dismissibleNotice,
+      suggestedMessagesEnabled: botSettingsContent?.suggestedMessagesEnabled,
+      suggestedMessages: botSettingsContent?.suggestedMessages,
+      collectUserFeedbackEnabled:
+        botSettingsContent?.collectUserFeedbackEnabled,
+      regenerateMessagesEnabled: botSettingsContent?.regenerateMessagesEnabled,
+      quickPromptsEnabled: botSettingsContent?.quickPromptsEnabled,
+      quickPrompts: botSettingsContent?.quickPrompts,
+      welcomeScreenEnabled: botSettingsContent?.welcomeScreenEnabled,
       welcomeScreen: {
-        title: "",
-        instructions: ""
+        title: botSettingsContent?.welcomeScreen?.title,
+        instructions: botSettingsContent?.welcomeScreen?.instructions
       }
     }
   })
@@ -118,9 +104,36 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
       values.suggestedMessages = []
     }
 
+    // TODO: handle form submission properly and remove console log
     // eslint-disable-next-line no-console
     console.log("Form submitted with:", values)
-    // TODO: handle form submission properly and remove console log
+  }
+
+  function onError() {
+    toast({
+      title: "Please fill in all required fields.",
+      duration: 4000,
+      variant: "destructive"
+    })
+    return
+  }
+
+  useEffect(() => {
+    const subscription = form.watch(values => {
+      setContentPreview(values as ContentForm)
+    })
+    return () => subscription.unsubscribe()
+  }, [form, setContentPreview])
+
+  function handleReset() {
+    form.clearErrors()
+    form.reset(undefined, { keepErrors: false, keepTouched: false })
+    setTimeout(() => form.clearErrors(), 0)
+    toast({
+      title: "Form reset to default values.",
+      variant: "warning",
+      duration: 4000
+    })
   }
 
   return (
@@ -139,7 +152,8 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
             <Form {...form}>
               <form
                 id="chat-interface-content"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onSubmit, onError)}
+                onError={onError}
                 className="flex flex-col gap-4"
               >
                 <Card>
@@ -159,7 +173,13 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                           </CardDescription>
                         </div>
 
-                        <Button variant="outline" size="icon" className="p-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="p-2"
+                          onClick={handleReset}
+                        >
                           <IconRefresh className="h-10 w-10" />
                         </Button>
                       </div>
@@ -175,6 +195,8 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                           <FormControl>
                             <Input
                               {...field}
+                              maxLength={10}
+                              value={field.value || ""}
                               placeholder="Your bot name"
                               className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
@@ -246,7 +268,6 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
 
                     {suggestedMessagesEnabled && (
                       <div className="flex flex-col space-y-2 pb-2">
-                        {/* <FormLabel>Suggested Messages</FormLabel> */}
                         <p className="text-muted-foreground text-right text-xs font-medium">
                           {suggestedMessagesFields.length} of 3
                         </p>
@@ -312,7 +333,7 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                           <FormControl>
                             <div className="mt-1 flex flex-col space-y-1 rounded-xl bg-zinc-100 pb-2 dark:bg-zinc-700/25">
                               <RichTextEditor
-                                value={field.value}
+                                value={field.value || ""}
                                 onChange={field.onChange}
                                 className="bg-background resize-none"
                               />
@@ -414,7 +435,6 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
 
                     {quickPromptsEnabled && (
                       <div className="flex flex-col space-y-2">
-                        {/* <FormLabel>Suggested Messages</FormLabel> */}
                         <p className="text-muted-foreground text-right text-xs font-medium">
                           {quickPromptsFields.length} of 3
                         </p>
@@ -426,12 +446,13 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
                             <FormField
                               control={form.control}
                               name={`quickPrompts.${index}.text`}
-                              disabled={!quickPromptsEnabled}
                               render={({ field }) => (
                                 <FormItem className="flex-1">
                                   <FormControl>
                                     <Input
+                                      maxLength={40}
                                       {...field}
+                                      disabled={!quickPromptsEnabled}
                                       placeholder={`Quick prompt ${index + 1}`}
                                       className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                     />
@@ -549,17 +570,6 @@ const ChatInterfaceContent = ({ tabVariants }: ChatInterfaceContentProps) => {
             </Form>
           </div>
         </ScrollArea>
-        <div className="flex w-full items-center justify-end px-3">
-          <Button
-            type="submit"
-            variant="default"
-            disabled={!form.formState.isValid}
-            className="w-max disabled:opacity-50"
-            form="chat-interface-content"
-          >
-            Save
-          </Button>
-        </div>
       </motion.div>
     </TabsContent>
   )

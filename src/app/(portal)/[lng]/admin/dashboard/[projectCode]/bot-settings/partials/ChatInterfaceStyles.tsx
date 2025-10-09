@@ -43,6 +43,7 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
     animate: { opacity: number; x: number }
     exit: { opacity: number; x: number }
   }
+  stylingSettings?: StyleForm | undefined
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -63,23 +64,13 @@ const ChatInterfaceStyles = ({
   tabVariants,
   setBrandStyling,
   setChatButtonStyling,
-  setWelcomeScreenStyling
+  setWelcomeScreenStyling,
+  stylingSettings
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
     defaultValues: {
-      themes: "light",
-      chatButtonIcon: undefined,
-      chatButtonBorderColor: "#F4F4F5",
-      chatButtonBgColor: "#F4F4F5",
-      chatButtonTextColor: "#71717b",
-      chatButtonPosition: "right",
-      brandLogo: undefined,
-      brandBgColor: "#1E50EF",
-      brandTextColor: "#1E50EF",
-      welcomeScreenAppearance: "half_background",
-      welcomeButtonBgColor: "#1E50EF",
-      welcomeButtonTextColor: "#1E50EF"
+      ...stylingSettings
     }
   })
 
@@ -126,6 +117,7 @@ const ChatInterfaceStyles = ({
   }
 
   useEffect(() => {
+    const theme = form.watch("themes")
     const brandBgColor = form.watch("brandBgColor")
     const brandTextColor = form.watch("brandTextColor")
     const brandLogoFile = form.watch("brandLogo")
@@ -133,6 +125,7 @@ const ChatInterfaceStyles = ({
     if (brandLogoFile instanceof File) {
       fileToDataUrl(brandLogoFile).then(dataUrl => {
         setBrandStyling({
+          theme: theme ?? "light",
           backgroundColor: brandBgColor,
           color: brandTextColor,
           brandLogo: dataUrl
@@ -140,6 +133,7 @@ const ChatInterfaceStyles = ({
       })
     } else {
       setBrandStyling({
+        theme: theme ?? "light",
         backgroundColor: brandBgColor,
         color: brandTextColor,
         brandLogo: null
@@ -323,7 +317,10 @@ const ChatInterfaceStyles = ({
                 <Card>
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
-                      Chat Appearance
+                      Chat Appearance{" "}
+                      <span className="text-sm font-normal opacity-30">
+                        (Coming Soon)
+                      </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-6">

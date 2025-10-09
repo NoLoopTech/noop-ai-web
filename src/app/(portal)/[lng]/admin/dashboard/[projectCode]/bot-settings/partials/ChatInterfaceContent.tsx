@@ -43,13 +43,31 @@ interface ChatInterfaceContentProps {
     exit: { opacity: number; x: number }
   }
   setContentPreview: (data: ContentForm) => void
-  botSettingsContent?: ContentForm
+  contentSettings?: ContentForm | undefined
+}
+
+const defaultContentFormValues: ContentForm = {
+  botName: "",
+  initialMessage: "",
+  messagePlaceholder: "",
+  dismissibleNotice: "",
+  suggestedMessagesEnabled: false,
+  suggestedMessages: [],
+  collectUserFeedbackEnabled: false,
+  regenerateMessagesEnabled: false,
+  quickPromptsEnabled: false,
+  quickPrompts: [],
+  welcomeScreenEnabled: false,
+  welcomeScreen: {
+    title: "",
+    instructions: ""
+  }
 }
 
 const ChatInterfaceContent = ({
   tabVariants,
   setContentPreview,
-  botSettingsContent
+  contentSettings
 }: ChatInterfaceContentProps) => {
   const { toast } = useToast()
 
@@ -58,24 +76,19 @@ const ChatInterfaceContent = ({
     mode: "all",
     reValidateMode: "onBlur",
     defaultValues: {
-      botName: botSettingsContent?.botName,
-      initialMessage: botSettingsContent?.initialMessage,
-      messagePlaceholder: botSettingsContent?.messagePlaceholder,
-      dismissibleNotice: botSettingsContent?.dismissibleNotice,
-      suggestedMessagesEnabled: botSettingsContent?.suggestedMessagesEnabled,
-      suggestedMessages: botSettingsContent?.suggestedMessages,
-      collectUserFeedbackEnabled:
-        botSettingsContent?.collectUserFeedbackEnabled,
-      regenerateMessagesEnabled: botSettingsContent?.regenerateMessagesEnabled,
-      quickPromptsEnabled: botSettingsContent?.quickPromptsEnabled,
-      quickPrompts: botSettingsContent?.quickPrompts,
-      welcomeScreenEnabled: botSettingsContent?.welcomeScreenEnabled,
-      welcomeScreen: {
-        title: botSettingsContent?.welcomeScreen?.title,
-        instructions: botSettingsContent?.welcomeScreen?.instructions
-      }
+      ...defaultContentFormValues,
+      ...contentSettings
     }
   })
+
+  useEffect(() => {
+    if (contentSettings) {
+      form.reset({
+        ...defaultContentFormValues,
+        ...contentSettings
+      })
+    }
+  }, [contentSettings])
 
   const suggestedMessagesEnabled = form.watch("suggestedMessagesEnabled")
   const quickPromptsEnabled = form.watch("quickPromptsEnabled")
@@ -196,7 +209,7 @@ const ChatInterfaceContent = ({
                             <Input
                               {...field}
                               maxLength={10}
-                              value={field.value || ""}
+                              value={field.value}
                               placeholder="Your bot name"
                               className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
@@ -249,14 +262,19 @@ const ChatInterfaceContent = ({
                     <FormField
                       control={form.control}
                       name="suggestedMessagesEnabled"
+                      disabled
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex w-full items-center justify-between">
-                            <FormLabel>Enable Suggested Messages</FormLabel>
+                          <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
+                            <FormLabel>
+                              Enable Suggested Messages{" "}
+                              <span className="opacity-40">(Coming Soon)</span>
+                            </FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
+                                disabled
                                 className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
@@ -359,16 +377,18 @@ const ChatInterfaceContent = ({
                       name="collectUserFeedbackEnabled"
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex w-full items-center justify-between">
+                          <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
                             <FormLabel>
-                              Collect User Feedback
-                              <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
+                              Collect User Feedback{" "}
+                              <span className="opacity-40">(Coming Soon)</span>
+                              {/* <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" /> */}
                             </FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
+                                disabled
                                 onCheckedChange={field.onChange}
-                                className="text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                className="text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
                           </div>
@@ -382,16 +402,18 @@ const ChatInterfaceContent = ({
                       name="regenerateMessagesEnabled"
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex w-full items-center justify-between">
+                          <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
                             <FormLabel>
-                              Regenerate Messages
-                              <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
+                              Regenerate Messages{" "}
+                              <span className="opacity-40">(Coming Soon)</span>
+                              {/* <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" /> */}
                             </FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                className="text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                disabled
+                                className="text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
                           </div>

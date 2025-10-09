@@ -320,7 +320,13 @@ export const ImageCropApply = ({
   }
 
   return (
-    <Button onClick={handleClick} size="icon" variant="outline" {...props}>
+    <Button
+      onClick={handleClick}
+      type="button"
+      size="icon"
+      variant="outline"
+      {...props}
+    >
       {children ?? <CropIcon className="size-4" />}
     </Button>
   )
@@ -352,7 +358,13 @@ export const ImageCropReset = ({
   }
 
   return (
-    <Button onClick={handleClick} size="icon" variant="outline" {...props}>
+    <Button
+      onClick={handleClick}
+      type="button"
+      size="icon"
+      variant="outline"
+      {...props}
+    >
       {children ?? <RotateCcwIcon className="size-4" />}
     </Button>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import ChatPreview from "./ChatPreview"
 import InterfaceSettings from "./InterfaceSettings"
 import { ChatStylePreviewType, ContentForm } from "@/types/botSettings"
@@ -25,21 +25,49 @@ const ChatInterface = () => {
   const token = session?.apiToken
   const projectId = useProjectCode()
 
-  const { data: botSettingsApiResponse } = useApiQuery<botSettingsResponse>(
-    ["bot-settings"],
-    `/botsettings/${projectId}`,
-    () => ({
-      method: "get"
-    })
-  )
+  const { data: botSettingsApiResponse, isLoading: isBotSettingsLoading } =
+    useApiQuery<botSettingsResponse>(
+      ["bot-settings-data"],
+      `/botsettings/${projectId}`,
+      () => ({
+        method: "get"
+      })
+    )
 
-  // TODO: Remove console log on next PR
-  // eslint-disable-next-line no-console
-  console.log("botSettingsApiResponsefghfghfgh", botSettingsApiResponse)
+  const stylingSettings = useMemo(() => {
+    if (!botSettingsApiResponse) return
+
+    const brand = botSettingsApiResponse.botSettings.brandStyling
+    const chat = botSettingsApiResponse.botSettings.chatButtonStyling
+    const welcome = botSettingsApiResponse.botSettings.welcomeScreenStyling
+
+    return {
+      themes: brand?.theme ?? "light",
+      brandBgColor: brand?.backgroundColor ?? "#1E50EF",
+      brandTextColor: brand?.color ?? "#FFFFFF",
+      brandLogo: null,
+      chatButtonBgColor: chat?.backgroundColor ?? "#F4F4F5",
+      chatButtonTextColor: chat?.chatButtonTextColor ?? "#71717b",
+      chatButtonBorderColor: chat?.borderColor ?? "#F4F4F5",
+      chatButtonPosition: chat?.chatButtonPosition ?? "right",
+      chatButtonIcon: null,
+      welcomeScreenAppearance:
+        welcome?.welcomeScreenAppearance ?? "half_background",
+      welcomeButtonBgColor: welcome?.welcomeButtonBgColor ?? "#1E50EF",
+      welcomeButtonTextColor: welcome?.welcomeButtonTextColor ?? "#1E50EF"
+    }
+  }, [botSettingsApiResponse])
+
+  const contentSettings = useMemo(() => {
+    if (!botSettingsApiResponse) return
+
+    return botSettingsApiResponse?.botSettings.contentPreview
+  }, [botSettingsApiResponse])
 
   const [brandStyling, setBrandStyling] = useState<
     ChatStylePreviewType["brandStyling"]
   >({
+    theme: "light",
     backgroundColor: "#1E50EF",
     color: "#FFFFFF",
     brandLogo: null
@@ -63,28 +91,57 @@ const ChatInterface = () => {
 
   const [contentPreview, setContentPreview] = useState<ContentForm | undefined>(
     {
-      botName: "",
-      initialMessage: "How can I help you today?",
-      messagePlaceholder: "How do I register to noopy?",
-      dismissibleNotice: null,
-      suggestedMessagesEnabled: false,
-      suggestedMessages: [],
-      collectUserFeedbackEnabled: false,
-      regenerateMessagesEnabled: false,
-      quickPromptsEnabled: false,
-      quickPrompts: [
+      botName: contentSettings?.botName || "Noopy",
+      initialMessage:
+        contentSettings?.initialMessage || "How can I help you today?",
+      messagePlaceholder:
+        contentSettings?.messagePlaceholder || "How do I register to noopy?",
+      dismissibleNotice: contentSettings?.dismissibleNotice || null,
+      suggestedMessagesEnabled:
+        contentSettings?.suggestedMessagesEnabled || false,
+      suggestedMessages: contentSettings?.suggestedMessages || [],
+      collectUserFeedbackEnabled:
+        contentSettings?.collectUserFeedbackEnabled || false,
+      regenerateMessagesEnabled:
+        contentSettings?.regenerateMessagesEnabled || false,
+      quickPromptsEnabled: contentSettings?.quickPromptsEnabled || false,
+      quickPrompts: contentSettings?.quickPrompts || [
         { text: "👋 Hi! I am Noopy AI, ask me anything about Noopy!" },
         {
           text: "By the way, you can create an agent like me for your website!"
         }
       ],
-      welcomeScreenEnabled: false,
-      welcomeScreen: {
+      welcomeScreenEnabled: contentSettings?.welcomeScreenEnabled || false,
+      welcomeScreen: contentSettings?.welcomeScreen || {
         title: "Almost Ready to Chat!",
         instructions: "Tell us who you are so Noopy can assist you better."
       }
     }
   )
+
+  useEffect(() => {
+    if (!stylingSettings) return
+    setBrandStyling({
+      theme: stylingSettings.themes ?? "light",
+      backgroundColor: stylingSettings.brandBgColor ?? "#1E50EF",
+      color: stylingSettings.brandTextColor ?? "#FFFFFF",
+      brandLogo: null
+    })
+    setChatButtonStyling({
+      backgroundColor: stylingSettings.chatButtonBgColor ?? "#F4F4F5",
+      borderColor: stylingSettings.chatButtonBorderColor ?? "#F4F4F5",
+      chatButtonTextColor: stylingSettings.chatButtonTextColor ?? "#71717b",
+      chatButtonIcon: null,
+      chatButtonPosition: stylingSettings.chatButtonPosition ?? "right"
+    })
+    setWelcomeScreenStyling({
+      welcomeScreenAppearance:
+        stylingSettings.welcomeScreenAppearance ?? "half_background",
+      welcomeButtonBgColor: stylingSettings.welcomeButtonBgColor ?? "#1E50EF",
+      welcomeButtonTextColor:
+        stylingSettings.welcomeButtonTextColor ?? "#1E50EF"
+    })
+  }, [stylingSettings])
 
   const saveBotInterfaceSettings = useApiMutation(
     projectId ? `/botsettings/save/${projectId}` : "",
@@ -136,19 +193,24 @@ const ChatInterface = () => {
           setChatButtonStyling={setChatButtonStyling}
           setWelcomeScreenStyling={setWelcomeScreenStyling}
           setContentPreview={setContentPreview}
+          contentSettings={contentSettings}
+          stylingSettings={stylingSettings}
+          isBotSettingsLoading={isBotSettingsLoading}
         />
 
-        <div className="flex w-full items-center justify-end px-3">
-          <Button
-            type="submit"
-            variant="default"
-            onClick={handleSave}
-            className="w-max disabled:opacity-50"
-            form="chat-interface-content"
-          >
-            Save
-          </Button>
-        </div>
+        {!isBotSettingsLoading && (
+          <div className="flex w-full items-center justify-end px-3">
+            <Button
+              type="submit"
+              variant="default"
+              onClick={handleSave}
+              className="w-max disabled:opacity-50"
+              form="chat-interface-content"
+            >
+              Save
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Bot preview */}
@@ -158,6 +220,7 @@ const ChatInterface = () => {
           chatButtonStyling={chatButtonStyling}
           welcomeScreenStyling={welcomeScreenStyling}
           contentPreview={contentPreview}
+          isBotSettingsLoading={isBotSettingsLoading}
         />
       </div>
     </>

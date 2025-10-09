@@ -2,6 +2,7 @@ import { z } from "zod"
 
 export interface ChatStylePreviewType {
   brandStyling: {
+    theme: "dark" | "light"
     backgroundColor: string
     color: string
     brandLogo: string | null
@@ -22,6 +23,7 @@ export interface ChatStylePreviewType {
 
 export interface InterfaceSettingsTypes {
   setBrandStyling: (styling: {
+    theme: "dark" | "light"
     backgroundColor: string
     color: string
     brandLogo: string | null

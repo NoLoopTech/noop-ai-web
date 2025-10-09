@@ -8,6 +8,7 @@ import {
   IconCopy,
   IconDiamond,
   IconDotsVertical,
+  IconPalette,
   IconRefresh,
   IconThumbDown,
   IconThumbUp,
@@ -20,13 +21,15 @@ import { useState } from "react"
 
 interface ChatPreviewProps extends ChatStylePreviewType {
   contentPreview: ContentForm | undefined
+  isBotSettingsLoading: boolean
 }
 
 const ChatPreview = ({
   brandStyling,
   chatButtonStyling,
   welcomeScreenStyling,
-  contentPreview
+  contentPreview,
+  isBotSettingsLoading
 }: ChatPreviewProps) => {
   const [tab, setTab] = useState("chat")
 
@@ -75,8 +78,12 @@ const ChatPreview = ({
       <Tabs orientation="vertical" value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="chatbutton">Chat Button</TabsTrigger>
-          <TabsTrigger value="welcome">Welcome</TabsTrigger>
+          <TabsTrigger disabled={isBotSettingsLoading} value="chatbutton">
+            Chat Button
+          </TabsTrigger>
+          <TabsTrigger disabled={isBotSettingsLoading} value="welcome">
+            Welcome
+          </TabsTrigger>
         </TabsList>
 
         {tab === "chat" && (
@@ -89,138 +96,155 @@ const ChatPreview = ({
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className="relative flex h-[510px] flex-col rounded-xl bg-white"
+                  className={`relative flex h-[510px] ${isBotSettingsLoading ? "min-h-[560px] min-w-[330px]" : ""} flex-col rounded-xl bg-white`}
                 >
-                  <div
-                    className="flex h-12 items-center justify-between rounded-t-xl px-5"
-                    style={brandColor}
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      {brandLogo ? (
-                        <Image
-                          src={brandLogo}
-                          alt="Brand Logo"
-                          width={30}
-                          height={26}
-                        />
-                      ) : (
-                        <IconDiamond
-                          className="h-7 w-7"
-                          style={{ color: brandColor.color }}
-                        />
-                      )}
-                      <p className="text-xl font-extrabold uppercase">
-                        {contentPreview?.botName?.trim() || "Noopy"}
-                      </p>
+                  {isBotSettingsLoading ? (
+                    <div className="flex h-[300px] items-center justify-center text-gray-500">
+                      <IconPalette className="h-24 w-24 animate-pulse stroke-[0.5] duration-[1500ms]" />
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <IconArrowsDiagonal className="h-5 w-5" />
-                      <IconX className="h-5 w-5" />
-                      <IconDotsVertical className="h-5 w-5" />
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div
+                        className="flex h-12 items-center justify-between rounded-t-xl px-5"
+                        style={brandColor}
+                      >
+                        <div className="flex items-center space-x-1.5">
+                          {brandLogo ? (
+                            <Image
+                              src={brandLogo}
+                              alt="Brand Logo"
+                              width={30}
+                              height={26}
+                            />
+                          ) : (
+                            <IconDiamond
+                              className="h-7 w-7"
+                              style={{ color: brandColor.color }}
+                            />
+                          )}
+                          <p className="text-xl font-extrabold uppercase">
+                            {contentPreview?.botName?.trim() || "Noopy"}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <IconArrowsDiagonal className="h-5 w-5" />
+                          <IconX className="h-5 w-5" />
+                          <IconDotsVertical className="h-5 w-5" />
+                        </div>
+                      </div>
 
-                  <div className="flex flex-col space-y-3 px-4 py-3 text-xs">
-                    <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
-                      <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                        Hi John! 👋
-                      </p>
-                      <p className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
-                        {contentPreview?.initialMessage?.trim() ||
-                          "How can I help you today?"}
-                      </p>
-                    </div>
-
-                    <div className="self-end">
-                      <p className="rounded-3xl px-3 py-2" style={brandColor}>
-                        What can you do?
-                      </p>
-                    </div>
-
-                    <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
-                      <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                        Here’s a quick overview of what{" "}
-                        {(contentPreview?.botName ?? "Noopy.ai") || "Noopy.ai"}{" "}
-                        can do for you:
-                      </p>
-                      <div className="flex flex-col space-y-1.5">
-                        <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
-                          <ul className="list-inside list-disc space-y-1 text-xs font-semibold">
-                            <li>Automate Customer Support</li>
-                            <li>Improve Efficiency</li>
-                            <li>Personalized Interactions</li>
-                            <li>Easy Setup</li>
-                            <li>Scalable Solution</li>
-                            <li>Real-Time Analytics</li>
-                          </ul>
+                      <div className="flex flex-col space-y-3 px-4 py-3 text-xs">
+                        <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
+                          <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
+                            Hi John! 👋
+                          </p>
+                          <p className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
+                            {contentPreview?.initialMessage?.trim() ||
+                              "How can I help you today?"}
+                          </p>
                         </div>
 
-                        <div className="flex items-center justify-between px-3">
-                          <div className="flex items-center text-[10px] text-zinc-400">
-                            <p className="border-r border-zinc-200 pr-1.5 capitalize">
-                              {contentPreview?.botName?.trim() || "Noopy"}
-                            </p>
-                            <p className="pl-1.5">Just Now</p>
-                          </div>
-                          <div className="flex items-center space-x-1.5 text-zinc-600">
-                            <IconCopy className="h-3.5 w-3.5" />
-                            <IconThumbUp className="h-3.5 w-3.5" />
-                            <IconThumbDown className="h-3.5 w-3.5" />
-                            <IconRefresh className="h-3.5 w-3.5" />
+                        <div className="self-end">
+                          <p
+                            className="rounded-3xl px-3 py-2"
+                            style={brandColor}
+                          >
+                            What can you do?
+                          </p>
+                        </div>
+
+                        <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
+                          <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
+                            Here’s a quick overview of what{" "}
+                            {(contentPreview?.botName ?? "Noopy.ai") ||
+                              "Noopy.ai"}{" "}
+                            can do for you:
+                          </p>
+                          <div className="flex flex-col space-y-1.5">
+                            <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
+                              <ul className="list-inside list-disc space-y-1 text-xs font-semibold">
+                                <li>Automate Customer Support</li>
+                                <li>Improve Efficiency</li>
+                                <li>Personalized Interactions</li>
+                                <li>Easy Setup</li>
+                                <li>Scalable Solution</li>
+                                <li>Real-Time Analytics</li>
+                              </ul>
+                            </div>
+
+                            <div className="flex items-center justify-between px-3">
+                              <div className="flex items-center text-[10px] text-zinc-400">
+                                <p className="border-r border-zinc-200 pr-1.5 capitalize">
+                                  {contentPreview?.botName?.trim() || "Noopy"}
+                                </p>
+                                <p className="pl-1.5">Just Now</p>
+                              </div>
+                              <div className="flex items-center space-x-1.5 text-zinc-600">
+                                <IconCopy className="h-3.5 w-3.5" />
+                                <IconThumbUp className="h-3.5 w-3.5" />
+                                <IconThumbDown className="h-3.5 w-3.5" />
+                                <IconRefresh className="h-3.5 w-3.5" />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="absolute inset-x-4 bottom-2 flex h-[90px] flex-col items-center space-y-2">
-                    <div className="flex h-full w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
-                      <p className="text-xs text-zinc-900">
-                        {contentPreview?.messagePlaceholder?.trim() ||
-                          `How do I register to ${contentPreview?.botName?.trim() || "noopy"}?`}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <Smile className="h-3.5 w-3.5 text-zinc-500" />
-                        <div className="rounded-full p-1" style={brandColor}>
-                          <IconArrowUp className="h-3.5 w-3.5 text-zinc-50" />
+                      <div className="absolute inset-x-4 bottom-2 flex h-[90px] flex-col items-center space-y-2">
+                        <div className="flex h-full w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
+                          <p className="text-xs text-zinc-900">
+                            {contentPreview?.messagePlaceholder?.trim() ||
+                              `How do I register to ${contentPreview?.botName?.trim() || "noopy"}?`}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Smile className="h-3.5 w-3.5 text-zinc-500" />
+                            <div
+                              className="rounded-full p-1"
+                              style={brandColor}
+                            >
+                              <IconArrowUp className="h-3.5 w-3.5 text-zinc-50" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1 text-[10px] font-medium text-zinc-500">
+                          <p>Powered by </p>
+                          <Image
+                            src="/assets/noopy-blue-full.png"
+                            alt="Noopy.ai Logo"
+                            width={60}
+                            height={10}
+                          />
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-1 text-[10px] font-medium text-zinc-500">
-                      <p>Powered by </p>
-                      <Image
-                        src="/assets/noopy-blue-full.png"
-                        alt="Noopy.ai Logo"
-                        width={60}
-                        height={10}
-                      />
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </motion.div>
               </AnimatePresence>
 
-              <motion.div
-                className="flex h-14 w-14 items-center justify-center rounded-full"
-                style={buttonStyle}
-                animate={buttonPosition}
-                layout
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-              >
-                {chatButtonStyling.chatButtonIcon ? (
-                  <Image
-                    src={chatButtonIcon as string}
-                    alt="Brand Logo"
-                    width={56}
-                    height={56}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <IconDiamond
-                    className="h-8 w-8"
-                    style={{ color: chatButtonStyling.chatButtonTextColor }}
-                  />
-                )}
-              </motion.div>
+              {!isBotSettingsLoading && (
+                <motion.div
+                  className="flex h-14 w-14 items-center justify-center rounded-full"
+                  style={buttonStyle}
+                  animate={buttonPosition}
+                  layout
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                >
+                  {chatButtonStyling.chatButtonIcon ? (
+                    <Image
+                      src={chatButtonIcon as string}
+                      alt="Brand Logo"
+                      width={56}
+                      height={56}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <IconDiamond
+                      className="h-8 w-8"
+                      style={{ color: chatButtonStyling.chatButtonTextColor }}
+                    />
+                  )}
+                </motion.div>
+              )}
             </div>
           </TabsContent>
         )}

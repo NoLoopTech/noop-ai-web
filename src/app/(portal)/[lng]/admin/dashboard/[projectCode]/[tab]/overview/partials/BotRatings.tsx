@@ -1,8 +1,7 @@
 "use client"
 
-import { Line, LineChart } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartConfig, ChartContainer } from "@/components/ui/chart"
+import { StarRating } from "@/components/ui/star-rating"
 import { Activity } from "lucide-react"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
@@ -10,13 +9,6 @@ import { useOverviewStatsData } from "@/lib/hooks/useOverviewStatsData"
 import { useMemo } from "react"
 
 export default function BotRatings() {
-  const chartConfig = {
-    score: {
-      label: "Score",
-      color: "var(--primary)"
-    }
-  } satisfies ChartConfig
-
   const { dateRange: range } = useDashboardFilters()
   const projectId = useProjectCode() ?? 0
 
@@ -53,27 +45,9 @@ export default function BotRatings() {
         {isLoading ? (
           <div className="shine mt-3 h-20 w-full rounded-md" />
         ) : (
-          <ChartContainer config={chartConfig} className="h-24 w-full">
-            <LineChart
-              data={botRatingsStat?.chartData}
-              margin={{
-                top: 5,
-                right: 10,
-                left: 10,
-                bottom: 10
-              }}
-            >
-              <Line
-                type="monotone"
-                strokeWidth={2}
-                dataKey="score"
-                stroke="var(--foreground)"
-                activeDot={{
-                  r: 6
-                }}
-              />
-            </LineChart>
-          </ChartContainer>
+          <div className="mt-4">
+            <StarRating rating={botRatingsStat?.stars ?? 0} size={24} />
+          </div>
         )}
       </CardContent>
     </Card>

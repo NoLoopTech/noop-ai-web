@@ -20,7 +20,6 @@ import {
 import { TabsContent } from "@/components/ui/tabs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ControllerRenderProps, useForm } from "react-hook-form"
-import { z } from "zod"
 import { motion } from "motion/react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -32,7 +31,11 @@ import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
 import { useEffect } from "react"
 import CircularCrop from "@/components/CircularCrop"
-import { InterfaceSettingsTypes } from "@/types/botSettings"
+import {
+  InterfaceSettingsTypes,
+  StyleForm,
+  StyleFormSchema
+} from "@/types/botSettings"
 
 interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
   tabVariants: {
@@ -56,67 +59,14 @@ function getContrastTextColor(hex: string): string {
   return luminance > 0.5 ? "#000000" : "#FFFFFF"
 }
 
-const formSchema = z.object({
-  themes: z.enum(["dark", "light"]).default("dark"),
-  chatButtonIcon: z
-    .instanceof(File, { message: "Please select a valid image file" })
-    .refine(
-      file => ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type),
-      "Only JPG, PNG, or SVG allowed"
-    )
-    .optional()
-    .nullable(),
-  brandLogo: z
-    .instanceof(File, { message: "Please select a valid image file" })
-    .refine(
-      file => ["image/jpeg", "image/png", "image/svg+xml"].includes(file.type),
-      "Only JPG, PNG, or SVG allowed"
-    )
-    .optional()
-    .nullable(),
-  brandBgColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#1E50EF"),
-  brandTextColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#FFFFFF"),
-  chatButtonBgColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#F4F4F5"),
-  chatButtonTextColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#71717b"),
-  chatButtonBorderColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#F4F4F5"),
-  chatButtonPosition: z.enum(["right", "left"]).default("right"),
-  welcomeScreenAppearance: z
-    .enum(["half_background", "full_background"])
-    .default("half_background"),
-  welcomeButtonBgColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#1E50EF"),
-  welcomeButtonTextColor: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, "Invalid hex color")
-    .default("#1E50EF")
-})
-type ContentForm = z.infer<typeof formSchema>
-
 const ChatInterfaceStyles = ({
   tabVariants,
   setBrandStyling,
   setChatButtonStyling,
   setWelcomeScreenStyling
 }: ChatInterfaceStylesProps) => {
-  const form = useForm<ContentForm>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<StyleForm>({
+    resolver: zodResolver(StyleFormSchema),
     defaultValues: {
       themes: "light",
       chatButtonIcon: undefined,
@@ -133,29 +83,19 @@ const ChatInterfaceStyles = ({
     }
   })
 
-  function onSubmit(values: ContentForm) {
-    // eslint-disable-next-line no-console
-    console.log("Form submitted with:", values)
-    // TODO: handle form submission properly and remove console log
-  }
-
   const resetColor =
-    <T extends keyof ContentForm>(
-      field: ControllerRenderProps<ContentForm, T>,
+    <T extends keyof StyleForm>(
+      field: ControllerRenderProps<StyleForm, T>,
       defaultColor: string
     ) =>
     () => {
-      field.onChange(defaultColor as ContentForm[T])
+      field.onChange(defaultColor as StyleForm[T])
     }
 
   useEffect(() => {
     const welcomeButtonBgColor = form.watch("welcomeButtonBgColor")
     const newTextColor = getContrastTextColor(welcomeButtonBgColor)
     form.setValue("welcomeButtonTextColor", newTextColor, { shouldDirty: true })
-
-    // TODO: remove this console log
-    // eslint-disable-next-line no-console
-    console.log("form", form.getValues())
   }, [form.watch("welcomeButtonBgColor")])
 
   useEffect(() => {
@@ -278,11 +218,7 @@ const ChatInterfaceStyles = ({
         <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
-              <form
-                id="chat-interface-style"
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-col gap-4"
-              >
+              <form id="chat-interface-style" className="flex flex-col gap-4">
                 <Card>
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
@@ -782,17 +718,6 @@ const ChatInterfaceStyles = ({
             </Form>
           </div>
         </ScrollArea>
-        <div className="flex w-full items-center justify-end px-3">
-          <Button
-            type="submit"
-            variant="default"
-            disabled={!form.formState.isValid}
-            className="w-max disabled:opacity-50"
-            form="chat-interface-style"
-          >
-            Save
-          </Button>
-        </div>
       </motion.div>
     </TabsContent>
   )

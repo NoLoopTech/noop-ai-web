@@ -18,7 +18,7 @@ export const dateRangeOptions = [
 export interface OverviewStatData {
   label: string
   stats: number
-  thumbs?: number
+  stars?: number
   type: "up" | "down"
   percentage: number
   chartData: Array<{

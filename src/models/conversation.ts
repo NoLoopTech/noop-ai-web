@@ -29,6 +29,7 @@ export interface ChatSessionResponse {
     timestamp: string
     country: string
     intent: string
+    status?: string
   }
   duration: number
   scoreCategory: string
@@ -49,6 +50,11 @@ export enum ScoringOption {
   POSITIVE = "positive",
   NEGATIVE = "negative",
   NORMAL = "normal"
+}
+
+export enum SessionStatusEnum {
+  IN_PROGRESS = "in-progress",
+  CLOSED = "closed"
 }
 
 export const SCORE_RANGES = {

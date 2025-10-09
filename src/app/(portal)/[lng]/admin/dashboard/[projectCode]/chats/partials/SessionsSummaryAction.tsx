@@ -8,10 +8,12 @@ import {
 import { Session } from "../data/schema"
 import { Row } from "@tanstack/react-table"
 import {
-  IconFileDescription
+  IconFileDescription,
+  IconLoader2
   //   IconEyeDotted,
   //   IconMessage2Search
 } from "@tabler/icons-react"
+import { SessionStatusEnum } from "@/models/conversation"
 
 interface Props {
   row: Row<Session>
@@ -19,6 +21,8 @@ interface Props {
 
 export function SessionsSummaryAction({ row }: Props) {
   const session = row.original
+  const isInProgress = session.status === SessionStatusEnum.IN_PROGRESS
+
   return (
     <HoverCard openDelay={0} closeDelay={0}>
       <HoverCardTrigger>
@@ -26,9 +30,18 @@ export function SessionsSummaryAction({ row }: Props) {
       </HoverCardTrigger>
       <HoverCardContent>
         <div className="max-w-80">
-          <p className="text-sm font-normal">
-            {session.chatSummary || "No summary available"}
-          </p>
+          {isInProgress ? (
+            <div className="flex items-center gap-2">
+              <IconLoader2 className="text-muted-foreground h-4 w-4 animate-spin" />
+              <p className="text-muted-foreground text-sm font-normal">
+                Pending
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm font-normal">
+              {session.chatSummary || "No summary available"}
+            </p>
+          )}
         </div>
       </HoverCardContent>
     </HoverCard>

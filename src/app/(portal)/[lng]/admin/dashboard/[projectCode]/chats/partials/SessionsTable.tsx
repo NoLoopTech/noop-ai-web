@@ -128,7 +128,6 @@ export function SessionsTable({ columns }: Props) {
     }
   }, [columnFilters])
 
-
   // Optimized query key - flatten all filter values to prevent object reference issues
   const optimizedQueryKey = useMemo(
     () => [
@@ -180,11 +179,11 @@ export function SessionsTable({ columns }: Props) {
       method: "get"
     }),
     {
-      staleTime: 1000 * 30, // 30 seconds
-      refetchInterval: 1000 * 60 * 2, // Refresh every 2 minutes
-      refetchIntervalInBackground: false, // Only when tab is active
-      refetchOnWindowFocus: true, // Refresh when user returns
-      refetchOnReconnect: true // Refresh when internet reconnects
+      staleTime: 1000 * 30,
+      refetchInterval: 1000 * 30,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true
     }
   )
 

@@ -21,8 +21,8 @@ interface CropArea {
   height: number
 }
 
-interface CircularCropProps {
-  value?: File | null
+interface ImageCropperProps {
+  value?: File | string | null
   onChange?: (file: File | null) => void
   accept?: string
   icon?: React.ReactNode
@@ -37,9 +37,10 @@ interface CircularCropProps {
   display?: "icon" | "text" | "icon-text"
   filename?: string
   cropShape?: "circle" | "square" | "rectangle" | "logoCrop"
+  setCropComplete?: (completed: boolean) => void
 }
 
-const CircularCrop = ({
+const ImageCropper = ({
   value,
   onChange,
   accept = "image/jpeg,image/png,image/svg+xml",
@@ -47,17 +48,42 @@ const CircularCrop = ({
   variant = "outline",
   label = "Upload",
   display = "icon-text",
-  cropShape = "circle"
-}: CircularCropProps) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(value || null)
+  cropShape = "circle",
+  setCropComplete = () => {}
+}: ImageCropperProps) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [croppedImage, setCroppedImage] = useState<string | null>(null)
 
   const generateShortUUID = (): string => {
     return Math.random().toString(36).substring(2, 10)
   }
 
+  // useEffect(() => {
+  //   setSelectedFile(value || null)
+  // }, [value])
+
+  const urlToFile = async (
+    imageUrl: string,
+    filename: string
+  ): Promise<File> => {
+    const response = await fetch(imageUrl)
+    const blob = await response.blob()
+    const mime = blob.type || "image/jpeg"
+    return new File([blob], filename, { type: mime })
+  }
+
   useEffect(() => {
-    setSelectedFile(value || null)
+    if (typeof value === "string" && value.startsWith("http")) {
+      urlToFile(value, "azure-image.jpg").then(file => {
+        setSelectedFile(file)
+        setCroppedImage(null)
+        onChange?.(file)
+      })
+    } else if (value instanceof File) {
+      setSelectedFile(value)
+    } else {
+      setSelectedFile(null)
+    }
   }, [value])
 
   const handleFileInputChange = (file: File | null): void => {
@@ -121,6 +147,8 @@ const CircularCrop = ({
     const croppedFileResult = base64ToFile(croppedImageUrl, customFilename)
 
     onChange?.(croppedFileResult)
+
+    // setCropComplete(true)
   }
 
   const handleCropChange = (crop: CropArea): void => {
@@ -277,6 +305,7 @@ const CircularCrop = ({
   return (
     <div className="space-y-4">
       <ImageCrop
+        key={selectedFile ? selectedFile.name + selectedFile.size : "no-file"}
         aspect={getCropShapeVariants(cropShape).aspect}
         circularCrop={cropShape === "circle"}
         file={selectedFile}
@@ -287,7 +316,7 @@ const CircularCrop = ({
       >
         <ImageCropContent className="max-w-md" />
         <div className="flex items-center gap-2">
-          <ImageCropApply />
+          <ImageCropApply onClick={() => setCropComplete(true)} />
           <ImageCropReset />
           <Button
             onClick={handleReset}
@@ -304,4 +333,4 @@ const CircularCrop = ({
   )
 }
 
-export default CircularCrop
+export default ImageCropper

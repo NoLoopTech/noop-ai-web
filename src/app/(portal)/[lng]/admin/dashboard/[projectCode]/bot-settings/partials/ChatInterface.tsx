@@ -45,12 +45,12 @@ const ChatInterface = () => {
       themes: brand?.theme ?? "light",
       brandBgColor: brand?.backgroundColor ?? "#1E50EF",
       brandTextColor: brand?.color ?? "#FFFFFF",
-      brandLogo: null,
+      brandLogo: brand?.brandLogo ?? null,
       chatButtonBgColor: chat?.backgroundColor ?? "#F4F4F5",
       chatButtonTextColor: chat?.chatButtonTextColor ?? "#71717b",
       chatButtonBorderColor: chat?.borderColor ?? "#F4F4F5",
       chatButtonPosition: chat?.chatButtonPosition ?? "right",
-      chatButtonIcon: null,
+      chatButtonIcon: chat?.chatButtonIcon ?? null,
       welcomeScreenAppearance:
         welcome?.welcomeScreenAppearance ?? "half_background",
       welcomeButtonBgColor: welcome?.welcomeButtonBgColor ?? "#1E50EF",
@@ -119,19 +119,21 @@ const ChatInterface = () => {
     }
   )
 
+  const [isSaving, setIsSaving] = useState(false)
+
   useEffect(() => {
     if (!stylingSettings) return
     setBrandStyling({
       theme: stylingSettings.themes ?? "light",
       backgroundColor: stylingSettings.brandBgColor ?? "#1E50EF",
       color: stylingSettings.brandTextColor ?? "#FFFFFF",
-      brandLogo: null
+      brandLogo: stylingSettings.brandLogo ?? null
     })
     setChatButtonStyling({
       backgroundColor: stylingSettings.chatButtonBgColor ?? "#F4F4F5",
       borderColor: stylingSettings.chatButtonBorderColor ?? "#F4F4F5",
       chatButtonTextColor: stylingSettings.chatButtonTextColor ?? "#71717b",
-      chatButtonIcon: null,
+      chatButtonIcon: stylingSettings.chatButtonIcon ?? null,
       chatButtonPosition: stylingSettings.chatButtonPosition ?? "right"
     })
     setWelcomeScreenStyling({
@@ -196,18 +198,22 @@ const ChatInterface = () => {
           contentSettings={contentSettings}
           stylingSettings={stylingSettings}
           isBotSettingsLoading={isBotSettingsLoading}
+          setIsSaving={setIsSaving}
         />
 
         {!isBotSettingsLoading && (
-          <div className="flex w-full items-center justify-end px-3">
+          <div className="flex w-full items-center justify-end space-x-4 px-3">
+            <p className="shine-text text-xs">
+              {isSaving ? "Settings are being saved" : ""}
+            </p>
             <Button
-              type="submit"
+              type="button"
               variant="default"
               onClick={handleSave}
-              className="w-max disabled:opacity-50"
-              form="chat-interface-content"
+              disabled={isSaving}
+              className="max-w-max min-w-24 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Save
+              {isSaving ? "Saving" : "Save"}
             </Button>
           </div>
         )}

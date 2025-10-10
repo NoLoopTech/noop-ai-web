@@ -29,13 +29,22 @@ import FullBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-full.
 import HalfBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-half.svg"
 import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
-import { useEffect } from "react"
-import CircularCrop from "@/components/CircularCrop"
+import { useEffect, useMemo, useState } from "react"
+import ImageCropper from "@/components/ImageCropper"
 import {
   InterfaceSettingsTypes,
   StyleForm,
   StyleFormSchema
 } from "@/types/botSettings"
+import { useApiQuery } from "@/query"
+import { UserProject } from "@/models/project"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import axios from "axios"
+
+type StyleFormInitial = Omit<StyleForm, "brandLogo" | "chatButtonIcon"> & {
+  brandLogo?: File | string | null
+  chatButtonIcon?: File | string | null
+}
 
 interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
   tabVariants: {
@@ -43,7 +52,8 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
     animate: { opacity: number; x: number }
     exit: { opacity: number; x: number }
   }
-  stylingSettings?: StyleForm | undefined
+  stylingSettings?: StyleFormInitial | undefined
+  setIsSaving?: (saving: boolean) => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -65,14 +75,87 @@ const ChatInterfaceStyles = ({
   setBrandStyling,
   setChatButtonStyling,
   setWelcomeScreenStyling,
-  stylingSettings
+  stylingSettings,
+  setIsSaving
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
-    defaultValues: {
+    defaultValues: (stylingSettings as unknown as StyleForm) || {
       ...stylingSettings
     }
   })
+
+  const [brandLogoCropCompleted, setBrandLogoCropCompleted] = useState(false)
+  const [chatButtonCropCompleted, setChatButtonCropCompleted] = useState(false)
+
+  const currentProjectId = useProjectCode()
+
+  const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
+    UserProject[]
+  >(["user-projects"], `user/me/projects`, () => ({
+    method: "get"
+  }))
+
+  const memoizedProjects = useMemo(() => {
+    const projects = userProjects ?? []
+    return projects.map((project, index) => ({
+      id: project.id,
+      projectName: project.projectName ?? `Project ${index + 1}`
+    }))
+  }, [userProjects])
+
+  const currentProjectName =
+    memoizedProjects
+      .find(p => p.id === currentProjectId)
+      ?.projectName.replace(/\s/g, "-") ||
+    `project-${currentProjectId || "unknown"}`
+
+  const {
+    data: getBrandLogoUploadUrl,
+    isLoading: isGetBrandLogoUploadUrlLoading
+  } = useApiQuery<{
+    uploadUrl: string
+    publicUrl: string
+    blobName: string
+    expiresOn: string
+  }>(["get-brand-logo-upload-url"], "/botsettings/image/upload", () => ({
+    method: "post",
+    data: {
+      fileName: "brand-logo.png",
+      contentType: "image/png",
+      folder: currentProjectName
+    }
+  }))
+
+  const {
+    data: getChatButtonIconUploadUrl,
+    isLoading: isGetChatButtonIconUploadUrlLoading
+  } = useApiQuery<{
+    uploadUrl: string
+    publicUrl: string
+    blobName: string
+    expiresOn: string
+  }>(["get-chat-button-icon-upload-url"], "/botsettings/image/upload", () => ({
+    method: "post",
+    data: {
+      fileName: "chat-button-icon.png",
+      contentType: "image/png",
+      folder: currentProjectName
+    }
+  }))
+
+  useEffect(() => {
+    setIsSaving?.(
+      isGetBrandLogoUploadUrlLoading ||
+        isGetChatButtonIconUploadUrlLoading ||
+        isUserProjectsLoading
+    )
+  }, [
+    isGetBrandLogoUploadUrlLoading,
+    isGetChatButtonIconUploadUrlLoading,
+    isUserProjectsLoading,
+    setIsSaving
+  ])
 
   const resetColor =
     <T extends keyof StyleForm>(
@@ -116,13 +199,22 @@ const ChatInterfaceStyles = ({
     })
   }
 
+  async function uploadImageToAzure(uploadUrl: string, file: File) {
+    await axios.put(uploadUrl, file, {
+      headers: {
+        "x-ms-blob-type": "BlockBlob",
+        "Content-Type": file.type || "application/octet-stream"
+      }
+    })
+  }
+
   useEffect(() => {
     const theme = form.watch("themes")
     const brandBgColor = form.watch("brandBgColor")
     const brandTextColor = form.watch("brandTextColor")
     const brandLogoFile = form.watch("brandLogo")
 
-    if (brandLogoFile instanceof File) {
+    if (brandLogoFile instanceof File && brandLogoCropCompleted) {
       fileToDataUrl(brandLogoFile).then(dataUrl => {
         setBrandStyling({
           theme: theme ?? "light",
@@ -130,6 +222,21 @@ const ChatInterfaceStyles = ({
           color: brandTextColor,
           brandLogo: dataUrl
         })
+        if (brandLogoCropCompleted && getBrandLogoUploadUrl?.uploadUrl) {
+          uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
+            .then(() => {
+              setBrandStyling({
+                theme: theme ?? "light",
+                backgroundColor: brandBgColor,
+                color: brandTextColor,
+                brandLogo: getBrandLogoUploadUrl.publicUrl
+              })
+            })
+            .catch(err => {
+              // eslint-disable-next-line no-console
+              console.error("Azure upload failed:", err)
+            })
+        }
       })
     } else {
       setBrandStyling({
@@ -143,18 +250,20 @@ const ChatInterfaceStyles = ({
     form.watch("brandBgColor"),
     form.watch("brandTextColor"),
     form.watch("brandLogo"),
-    setBrandStyling
+    setBrandStyling,
+    brandLogoCropCompleted,
+    getBrandLogoUploadUrl
   ])
 
   useEffect(() => {
     const chatButtonBgColor = form.watch("chatButtonBgColor")
     const chatButtonBorderColor = form.watch("chatButtonBorderColor")
-    const chatButtonIconUrl = form.watch("chatButtonIcon")
+    const chatButtonIconFile = form.watch("chatButtonIcon")
     const chatButtonPosition = form.watch("chatButtonPosition")
     const chatButtonTextColor = form.watch("chatButtonTextColor")
 
-    if (chatButtonIconUrl instanceof File) {
-      fileToDataUrl(chatButtonIconUrl).then(dataUrl => {
+    if (chatButtonIconFile instanceof File && chatButtonCropCompleted) {
+      fileToDataUrl(chatButtonIconFile).then(dataUrl => {
         setChatButtonStyling({
           backgroundColor: chatButtonBgColor,
           borderColor: chatButtonBorderColor,
@@ -162,6 +271,25 @@ const ChatInterfaceStyles = ({
           chatButtonTextColor: chatButtonTextColor,
           chatButtonPosition: chatButtonPosition
         })
+        if (chatButtonCropCompleted && getChatButtonIconUploadUrl?.uploadUrl) {
+          uploadImageToAzure(
+            getChatButtonIconUploadUrl.uploadUrl,
+            chatButtonIconFile
+          )
+            .then(() => {
+              setChatButtonStyling({
+                backgroundColor: chatButtonBgColor,
+                borderColor: chatButtonBorderColor,
+                chatButtonIcon: getChatButtonIconUploadUrl.publicUrl,
+                chatButtonTextColor: chatButtonTextColor,
+                chatButtonPosition: chatButtonPosition
+              })
+            })
+            .catch(err => {
+              // eslint-disable-next-line no-console
+              console.error("Azure upload failed:", err)
+            })
+        }
       })
     } else {
       setChatButtonStyling({
@@ -178,7 +306,9 @@ const ChatInterfaceStyles = ({
     form.watch("chatButtonIcon"),
     form.watch("chatButtonPosition"),
     form.watch("chatButtonTextColor"),
-    setChatButtonStyling
+    setChatButtonStyling,
+    chatButtonCropCompleted,
+    getChatButtonIconUploadUrl
   ])
 
   useEffect(() => {
@@ -234,7 +364,7 @@ const ChatInterfaceStyles = ({
                               <FormMessage />
                             </div>
                             <FormControl>
-                              <CircularCrop
+                              <ImageCropper
                                 value={field.value}
                                 onChange={field.onChange}
                                 accept="image/jpeg,image/png,image/svg+xml"
@@ -243,6 +373,7 @@ const ChatInterfaceStyles = ({
                                 label="Upload"
                                 display="icon-text"
                                 cropShape="logoCrop"
+                                setCropComplete={setBrandLogoCropCompleted}
                               />
                             </FormControl>
                           </div>
@@ -268,6 +399,7 @@ const ChatInterfaceStyles = ({
                                 />
                                 <Button
                                   variant="outline"
+                                  type="button"
                                   size="icon"
                                   onClick={resetColor(field, "#1E50EF")}
                                   className="shadow-sm"
@@ -299,6 +431,7 @@ const ChatInterfaceStyles = ({
                                 />
                                 <Button
                                   variant="outline"
+                                  type="button"
                                   size="icon"
                                   onClick={resetColor(field, "#1E50EF")}
                                   className="shadow-sm"
@@ -413,7 +546,7 @@ const ChatInterfaceStyles = ({
                               <FormMessage />
                             </div>
                             <FormControl>
-                              <CircularCrop
+                              <ImageCropper
                                 value={field.value}
                                 onChange={field.onChange}
                                 accept="image/jpeg,image/png,image/svg+xml"
@@ -422,6 +555,7 @@ const ChatInterfaceStyles = ({
                                 label="Upload"
                                 cropShape="circle"
                                 display="icon-text"
+                                setCropComplete={setChatButtonCropCompleted}
                               />
                             </FormControl>
                           </div>
@@ -447,6 +581,7 @@ const ChatInterfaceStyles = ({
                                 />
                                 <Button
                                   variant="outline"
+                                  type="button"
                                   size="icon"
                                   onClick={resetColor(field, "#F4F4F5")}
                                   className="shadow-sm"
@@ -502,6 +637,7 @@ const ChatInterfaceStyles = ({
                                 />
                                 <Button
                                   variant="outline"
+                                  type="button"
                                   size="icon"
                                   onClick={resetColor(field, "#F4F4F5")}
                                   className="shadow-sm"
@@ -652,6 +788,7 @@ const ChatInterfaceStyles = ({
                                 />
                                 <Button
                                   variant="outline"
+                                  type="button"
                                   size="icon"
                                   onClick={resetColor(field, "#1E50EF")}
                                   className="shadow-sm"

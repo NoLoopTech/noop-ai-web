@@ -17,7 +17,7 @@ import {
 import { Smile } from "lucide-react"
 import { motion, AnimatePresence, MotionConfig } from "motion/react"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface ChatPreviewProps extends ChatStylePreviewType {
   contentPreview: ContentForm | undefined
@@ -32,6 +32,8 @@ const ChatPreview = ({
   isBotSettingsLoading
 }: ChatPreviewProps) => {
   const [tab, setTab] = useState("chat")
+  const [brandLogoVersion, setBrandLogoVersion] = useState(Date.now())
+  const [chatButtonIconVersion, setChatButtonIconVersion] = useState(Date.now())
 
   const tabVariants = {
     initial: { y: 20, opacity: 0 },
@@ -71,6 +73,16 @@ const ChatPreview = ({
     right: chatButtonStyling.chatButtonPosition === "left" ? "100%" : 0
   }
 
+  useEffect(() => {
+    if (brandLogo) {
+      setBrandLogoVersion(Date.now())
+    }
+
+    if (chatButtonIcon) {
+      setChatButtonIconVersion(Date.now())
+    }
+  }, [brandLogo, chatButtonIcon])
+
   return (
     <MotionConfig
       transition={{ duration: 0.5, ease: "easeInOut", type: "tween" }}
@@ -108,11 +120,15 @@ const ChatPreview = ({
                         className="flex h-12 items-center justify-between rounded-t-xl px-5"
                         style={brandColor}
                       >
-                        <div className="flex items-center space-x-1.5">
+                        <div className="flex items-center space-x-1.5 text-[6px]">
                           {brandLogo ? (
                             <Image
-                              src={brandLogo}
-                              alt="Brand Logo"
+                              src={
+                                brandLogo
+                                  ? `${brandLogo}?v=${brandLogoVersion}`
+                                  : ""
+                              }
+                              alt={"Brand Logo"}
                               width={30}
                               height={26}
                             />
@@ -231,11 +247,15 @@ const ChatPreview = ({
                 >
                   {chatButtonStyling.chatButtonIcon ? (
                     <Image
-                      src={chatButtonIcon as string}
+                      src={
+                        chatButtonIcon
+                          ? `${chatButtonIcon}?v=${chatButtonIconVersion}`
+                          : ""
+                      }
                       alt="Brand Logo"
                       width={56}
                       height={56}
-                      className="rounded-full"
+                      className="rounded-full text-[6px]"
                     />
                   ) : (
                     <IconDiamond

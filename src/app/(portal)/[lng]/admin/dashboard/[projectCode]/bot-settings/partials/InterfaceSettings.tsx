@@ -13,11 +13,17 @@ import {
 import ChatInterfaceContent from "./ChatInterfaceContent"
 import { IconSettings } from "@tabler/icons-react"
 
+type StyleFormInitial = Omit<StyleForm, "brandLogo" | "chatButtonIcon"> & {
+  brandLogo?: File | string | null
+  chatButtonIcon?: File | string | null
+}
+
 interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   setContentPreview: (data: ContentForm) => void
   contentSettings?: ContentForm | undefined
-  stylingSettings?: StyleForm | undefined
+  stylingSettings?: StyleFormInitial | undefined
   isBotSettingsLoading: boolean
+  setIsSaving?: (saving: boolean) => void
 }
 
 const InterfaceSettings = ({
@@ -27,11 +33,12 @@ const InterfaceSettings = ({
   setContentPreview,
   contentSettings,
   stylingSettings,
-  isBotSettingsLoading
+  isBotSettingsLoading,
+  setIsSaving
 }: InterfaceSettingsProps) => {
   const [tab, setTab] = useState("content")
   const [stylingFormUpdate, setStylingFormUpdate] = useState<
-    StyleForm | undefined
+    StyleFormInitial | undefined
   >()
 
   const tabVariants = {
@@ -82,7 +89,7 @@ const InterfaceSettings = ({
       {isBotSettingsLoading ? (
         <div className="relative flex h-80 w-full flex-col items-center justify-center space-y-5 py-4 text-gray-500 dark:text-gray-600">
           <IconSettings className="h-24 w-24 animate-spin stroke-[0.5] duration-[3500ms]" />
-          <p className="shine rounded-md px-4 py-2">
+          <p className="shine-text rounded-md px-4 py-2">
             Settings are being loaded...
           </p>
         </div>
@@ -104,6 +111,7 @@ const InterfaceSettings = ({
               setChatButtonStyling={setChatButtonStyling}
               setWelcomeScreenStyling={setWelcomeScreenStyling}
               stylingSettings={stylingFormUpdate}
+              setIsSaving={setIsSaving}
             />
           )}
         </AnimatePresence>

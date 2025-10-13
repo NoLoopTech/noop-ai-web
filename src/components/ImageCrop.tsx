@@ -168,7 +168,20 @@ export const ImageCrop = ({
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
   const [initialCrop, setInitialCrop] = useState<PercentCrop>()
 
+  // useEffect(() => {
+  //   const reader = new FileReader()
+  //   reader.addEventListener("load", () =>
+  //     setImgSrc(reader.result?.toString() || "")
+  //   )
+  //   reader.readAsDataURL(file)
+  // }, [file])
+
   useEffect(() => {
+    if (!file) {
+      setImgSrc("")
+      return
+    }
+
     const reader = new FileReader()
     reader.addEventListener("load", () =>
       setImgSrc(reader.result?.toString() || "")

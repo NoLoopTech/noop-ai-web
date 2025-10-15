@@ -2,7 +2,6 @@
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle
@@ -18,25 +17,8 @@ export default function SupportTicketTab() {
             <IconTicket size={32} className="text-muted-foreground" />
           </div>
           <CardTitle>Support & Ticket Analytics</CardTitle>
-          <CardDescription>
-            Coming soon - Track support tickets, response times, and resolution
-            rates
-          </CardDescription>
+          <CardDescription>Coming soon</CardDescription>
         </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-muted-foreground text-sm">
-            This tab will include:
-          </p>
-          <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
-            <li>
-              • Total Tickets, Active Tickets, In Progress Tickets, Avg. Ticket
-              Response Time
-            </li>
-            <li>• Ticket Category Breakdown</li>
-            <li>• Smart Alerts </li>
-            <li>• Smart Highlights</li>
-          </ul>
-        </CardContent>
       </Card>
     </div>
   )

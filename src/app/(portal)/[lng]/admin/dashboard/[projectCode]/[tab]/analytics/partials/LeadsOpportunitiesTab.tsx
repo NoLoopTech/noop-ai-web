@@ -2,7 +2,6 @@
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle
@@ -18,25 +17,8 @@ export default function LeadsOpportunitiesTab() {
             <IconUsers size={32} className="text-muted-foreground" />
           </div>
           <CardTitle>Leads & Opportunities Analytics</CardTitle>
-          <CardDescription>
-            Coming soon - Track lead generation, conversion rates, and sales
-            opportunities
-          </CardDescription>
+          <CardDescription>Coming soon</CardDescription>
         </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-muted-foreground text-sm">
-            This tab will include:
-          </p>
-          <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
-            <li>
-              • Lead generation metrics - Total Leads, Lead Converstion Rate,
-              Lead Generation Rate, Avg. Lead Response Time
-            </li>
-            <li>• Most Lead Generated Intents</li>
-            <li>• Lead Growth Overtime</li>
-            <li>• Smart Highlights</li>
-          </ul>
-        </CardContent>
       </Card>
     </div>
   )

@@ -30,9 +30,21 @@ interface NavGroupProps extends NavGroup {
 export function NavGroup({ title, items, prefix }: NavGroupProps) {
   const { setOpenMobile } = useSidebar()
   const pathname = usePathname()
+  const path = pathname ?? ""
+  const groupActive = items.some(item => checkIsActive(path, item, true))
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      <SidebarGroupLabel
+        data-active={groupActive}
+        className={
+          groupActive
+            ? "text-sidebar-accent-foreground font-semibold"
+            : undefined
+        }
+      >
+        {title}
+      </SidebarGroupLabel>
       <SidebarMenu>
         {items.map(item => {
           if (!item.items) {
@@ -40,7 +52,8 @@ export function NavGroup({ title, items, prefix }: NavGroupProps) {
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
-                  isActive={checkIsActive(pathname, item, true)}
+                  // isActive={checkIsActive(pathname, item, true)}
+                  isActive={checkIsActive(path, item, true)}
                   tooltip={item.title}
                 >
                   <Link
@@ -59,12 +72,16 @@ export function NavGroup({ title, items, prefix }: NavGroupProps) {
             <Collapsible
               key={item.title}
               asChild
-              defaultOpen={checkIsActive(pathname, item, true)}
+              // defaultOpen={checkIsActive(pathname, item, true)}
+              defaultOpen={checkIsActive(path, item, true)}
               className="group/collapsible"
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={checkIsActive(path, item, true)}
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -77,7 +94,8 @@ export function NavGroup({ title, items, prefix }: NavGroupProps) {
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           asChild
-                          isActive={checkIsActive(pathname, subItem)}
+                          // isActive={checkIsActive(pathname, subItem)}
+                          isActive={checkIsActive(path, subItem)}
                         >
                           <Link
                             href={prefix + subItem.url}
@@ -107,13 +125,41 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
   <Badge className="rounded-full px-1 py-0 text-xs">{children}</Badge>
 )
 
+// function checkIsActive(href: string, item: NavItem, mainNav = false) {
+//   return (
+//     href === item.url || // /endpint?search=param
+//     href.split("?")[0] === item.url || // endpoint
+//     !!item?.items?.filter(i => i.url === href).length || // if child nav is active
+//     (mainNav &&
+//       href.split("/")[1] !== "" &&
+//       href.split("/")[1] === item?.url?.split("/")[1])
+//   )
+// }
+
 function checkIsActive(href: string, item: NavItem, mainNav = false) {
-  return (
-    href === item.url || // /endpint?search=param
-    href.split("?")[0] === item.url || // endpoint
-    !!item?.items?.filter(i => i.url === href).length || // if child nav is active
-    (mainNav &&
-      href.split("/")[1] !== "" &&
-      href.split("/")[1] === item?.url?.split("/")[1])
-  )
+  const normalize = (u?: string) => (u ?? "").split("?")[0].replace(/\/$/, "")
+
+  const path = normalize(href)
+  const itemUrl = normalize(item.url)
+
+  // exact match or trailing match (works with prefixed routes like /en/admin/...)
+  if (itemUrl && (path === itemUrl || path.endsWith(itemUrl))) return true
+
+  // check children URLs
+  if (item.items) {
+    for (const child of item.items) {
+      const childUrl = normalize(child.url)
+      if (childUrl && (path === childUrl || path.endsWith(childUrl)))
+        return true
+    }
+  }
+
+  // fallback: for main nav groups try to match first path segment (e.g. "chats" in /en/.../chats)
+  if (mainNav && itemUrl) {
+    const pathFirst = path.split("/").filter(Boolean)[0]
+    const itemFirst = itemUrl.split("/").filter(Boolean)[0]
+    if (pathFirst && itemFirst && pathFirst === itemFirst) return true
+  }
+
+  return false
 }

@@ -10,7 +10,6 @@ import {
   IconBuildingStore,
   IconReceiptDollar,
   IconChartHistogram,
-  IconChartTreemap,
   IconUserDollar
 } from "@tabler/icons-react"
 import { AudioWaveform, GalleryVerticalEnd } from "lucide-react"
@@ -45,23 +44,12 @@ export const sidebarData: SidebarData = {
   ],
   navGroups: [
     {
-      title: "General",
+      title: "Workspace",
       items: [
         {
-          title: "Dashboard",
-          icon: IconLayoutDashboard,
-          items: [
-            {
-              title: "Overview",
-              url: "/overview",
-              icon: IconChartTreemap
-            },
-            {
-              title: "Analytics",
-              url: "/analytics",
-              icon: IconChartHistogram
-            }
-          ]
+          title: "Overview",
+          url: "/overview",
+          icon: IconLayoutDashboard
         },
         {
           title: "Chats",
@@ -79,14 +67,40 @@ export const sidebarData: SidebarData = {
           icon: IconUserDollar
         },
         {
+          title: "Analytics",
+          url: "/analytics",
+          icon: IconChartHistogram
+        },
+        {
           title: "Integrations",
           url: "/integrations",
           icon: IconLink
         },
         {
           title: "Bot Settings",
-          url: "/bot-settings",
-          icon: IconAdjustmentsHorizontal
+          icon: IconAdjustmentsHorizontal,
+          items: [
+            {
+              title: "General",
+              url: "/bot-settings/general"
+            },
+            // {
+            //   title: "Bot Behaviour",
+            //   url: "/bot-settings/bot-behaviour"
+            // },
+            {
+              title: "Chat Interface",
+              url: "/bot-settings/chat-interface"
+            }
+            // {
+            //   title: "Data Sources",
+            //   url: "/bot-settings/data-sources"
+            // },
+            // {
+            //   title: "Playground",
+            //   url: "/bot-settings/playground"
+            // }
+          ]
         }
       ]
     },

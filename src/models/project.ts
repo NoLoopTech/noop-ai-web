@@ -5,4 +5,5 @@ export interface UserProject {
   botType: string
   chatbotCode: string
   projectName: string
+  createdAt: string
 }

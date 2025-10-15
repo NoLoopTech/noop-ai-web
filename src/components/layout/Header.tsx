@@ -46,9 +46,16 @@ export function Header() {
         ? `${afterProject[idx - 1]}/[id]`
         : currentPath.join("/")
 
-    const label = specialCases[pathPattern] || capitalize(seg)
-    const href = isLast ? undefined : `${basePath}/${currentPath.join("/")}`
+    const omitBotSettings = seg.includes("bot-settings")
+    const disableLink = !isLast && omitBotSettings
 
+    const label = specialCases[pathPattern] || capitalize(seg)
+    // const href = isLast ? undefined : `${basePath}/${currentPath.join("/")}`
+    const href = disableLink
+      ? undefined
+      : isLast
+        ? undefined
+        : `${basePath}/${currentPath.join("/")}`
     return { label, href }
   })
 

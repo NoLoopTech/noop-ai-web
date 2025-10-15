@@ -30,7 +30,7 @@ const General = () => {
 
   const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
     UserProject[]
-  >(["user-projects"], `user/me/projects`, () => ({
+  >(["user-projects-bot-settings-general"], `user/me/projects`, () => ({
     method: "get"
   }))
 
@@ -188,7 +188,7 @@ const General = () => {
                             <TabsList>
                               <TabsTrigger value="html">HTML</TabsTrigger>
                             </TabsList>
-                            {/* <div className="mr-1 h-max w-max cursor-pointer rounded-sm p-1 transition-colors duration-300 ease-in-out hover:bg-zinc-200/50 dark:hover:bg-zinc-700/80"> */}
+
                             <IconCopy
                               onClick={copyIntegrationCode}
                               className={`mr-1 h-5 w-5 cursor-pointer transition-colors duration-500 ease-in-out ${integrationCodeCopied ? "stroke-emerald-600 dark:stroke-emerald-600" : "stroke-zinc-400 hover:stroke-zinc-500 dark:stroke-zinc-500 dark:hover:stroke-zinc-700"}`}

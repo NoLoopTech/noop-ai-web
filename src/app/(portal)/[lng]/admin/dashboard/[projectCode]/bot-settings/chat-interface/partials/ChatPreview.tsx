@@ -108,7 +108,7 @@ const ChatPreview = ({
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className={`relative flex h-[510px] ${isBotSettingsLoading ? "min-h-[560px] min-w-[330px]" : ""} flex-col rounded-xl bg-white`}
+                  className={`relative flex h-[510px] ${isBotSettingsLoading ? "min-h-[560px] min-w-[320px]" : ""} flex-col rounded-xl bg-white`}
                 >
                   {isBotSettingsLoading ? (
                     <div className="flex h-[300px] items-center justify-center text-gray-500">

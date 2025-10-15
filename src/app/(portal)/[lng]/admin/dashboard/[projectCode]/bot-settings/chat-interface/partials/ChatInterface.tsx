@@ -1,14 +1,14 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import ChatPreview from "./ChatPreview"
-import InterfaceSettings from "./InterfaceSettings"
 import { ChatStylePreviewType, ContentForm } from "@/types/botSettings"
 import { Button } from "@/components/ui/button"
 import { useApiMutation, useApiQuery } from "@/query"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useSession } from "next-auth/react"
 import { useToast } from "@/lib/hooks/useToast"
+import InterfaceSettings from "./InterfaceSettings"
+import ChatPreview from "./ChatPreview"
 
 interface botSettingsResponse {
   botSettings: {
@@ -119,8 +119,6 @@ const ChatInterface = () => {
     }
   )
 
-  const [isSaving, setIsSaving] = useState(false)
-
   useEffect(() => {
     if (!stylingSettings) return
     setBrandStyling({
@@ -198,22 +196,23 @@ const ChatInterface = () => {
           contentSettings={contentSettings}
           stylingSettings={stylingSettings}
           isBotSettingsLoading={isBotSettingsLoading}
-          setIsSaving={setIsSaving}
         />
 
         {!isBotSettingsLoading && (
           <div className="flex w-full items-center justify-end space-x-4 px-3">
             <p className="shine-text text-xs">
-              {isSaving ? "Settings are being saved" : ""}
+              {saveBotInterfaceSettings.isPending
+                ? "Settings are being saved"
+                : ""}
             </p>
             <Button
               type="button"
               variant="default"
               onClick={handleSave}
-              disabled={isSaving}
+              disabled={saveBotInterfaceSettings.isPending}
               className="max-w-max min-w-24 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSaving ? "Saving" : "Save"}
+              {saveBotInterfaceSettings.isPending ? "Saving" : "Save"}
             </Button>
           </div>
         )}

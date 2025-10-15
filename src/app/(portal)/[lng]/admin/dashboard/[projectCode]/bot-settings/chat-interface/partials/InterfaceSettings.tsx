@@ -3,15 +3,15 @@
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AnimatePresence } from "motion/react"
-import ChatInterfaceStyles from "./ChatInterfaceStyles"
 import { useEffect, useState } from "react"
 import {
   ContentForm,
   InterfaceSettingsTypes,
   StyleForm
 } from "@/types/botSettings"
-import ChatInterfaceContent from "./ChatInterfaceContent"
 import { IconSettings } from "@tabler/icons-react"
+import ChatInterfaceContent from "./ChatInterfaceContent"
+import ChatInterfaceStyles from "./ChatInterfaceStyles"
 
 type StyleFormInitial = Omit<StyleForm, "brandLogo" | "chatButtonIcon"> & {
   brandLogo?: File | string | null
@@ -23,7 +23,6 @@ interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   contentSettings?: ContentForm | undefined
   stylingSettings?: StyleFormInitial | undefined
   isBotSettingsLoading: boolean
-  setIsSaving?: (saving: boolean) => void
 }
 
 const InterfaceSettings = ({
@@ -33,8 +32,7 @@ const InterfaceSettings = ({
   setContentPreview,
   contentSettings,
   stylingSettings,
-  isBotSettingsLoading,
-  setIsSaving
+  isBotSettingsLoading
 }: InterfaceSettingsProps) => {
   const [tab, setTab] = useState("content")
   const [stylingFormUpdate, setStylingFormUpdate] = useState<
@@ -111,7 +109,6 @@ const InterfaceSettings = ({
               setChatButtonStyling={setChatButtonStyling}
               setWelcomeScreenStyling={setWelcomeScreenStyling}
               stylingSettings={stylingFormUpdate}
-              setIsSaving={setIsSaving}
             />
           )}
         </AnimatePresence>

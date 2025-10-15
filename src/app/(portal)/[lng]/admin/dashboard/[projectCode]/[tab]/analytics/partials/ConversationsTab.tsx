@@ -21,19 +21,16 @@ import {
   IconClock,
   IconTarget,
   IconCaretUpFilled,
-  IconCaretDownFilled
+  IconCaretDownFilled,
+  IconSparkles
 } from "@tabler/icons-react"
-import {
-  IconTrendingUpTriangle,
-  IconTrendingDownTriangle
-} from "@/components/icons/TrendIcons"
-import { SparkleIcon } from "@/components/icons/SparkleIcon"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useConversationsAnalyticsData } from "@/lib/hooks/useConversationsAnalyticsData"
 import { DashboardRange } from "@/models/dashboard"
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
+import { format, parseISO } from "date-fns"
 const confidenceChartConfig = {
   positive: {
     label: "High",
@@ -307,6 +304,127 @@ export default function ConversationsTab() {
       .join(" ")
   }
 
+  // INFO: Determine aggregation type based on date range
+  const days = Number(dateRange.replace(/\D/g, ""))
+  let aggregation = "daily"
+  if (days <= 7) {
+    aggregation = "daily"
+  } else if (days === 30 || days === 90) {
+    aggregation = "weekly"
+  } else if (days === 365) {
+    aggregation = "monthly"
+  } else {
+    aggregation = "monthly" // Default for other ranges
+  }
+
+  // INFO: Aggregate by week
+  const aggregateByWeek = (
+    rawData: Array<{
+      day: string
+      positive: number
+      normal: number
+      negative: number
+    }>
+  ) => {
+    const weekly: Record<
+      string,
+      {
+        positive: number
+        normal: number
+        negative: number
+        month: string
+        week: number
+        year: string
+      }
+    > = {}
+
+    rawData.forEach(item => {
+      const date = new Date(item.day)
+      if (isNaN(date.getTime())) return
+      const month = format(date, "MMM")
+      const year = format(date, "yyyy")
+      const dayOfMonth = date.getDate()
+      const week = Math.ceil(dayOfMonth / 7)
+      const key = `${year}-${month}-${week}`
+      if (!weekly[key]) {
+        weekly[key] = { positive: 0, normal: 0, negative: 0, month, week, year }
+      }
+      weekly[key].positive += item.positive
+      weekly[key].normal += item.normal
+      weekly[key].negative += item.negative
+    })
+
+    return Object.entries(weekly).map(
+      ([_, { positive, normal, negative, month, week, year }]) => ({
+        day: month,
+        positive,
+        normal,
+        negative,
+        tooltipDate: `${month} Week ${week}, ${year}`
+      })
+    )
+  }
+
+  // INFO: Aggregate by month
+  const aggregateByMonth = (
+    rawData: Array<{
+      day: string
+      positive: number
+      normal: number
+      negative: number
+    }>
+  ) => {
+    const monthly: Record<
+      string,
+      { positive: number; normal: number; negative: number }
+    > = {}
+
+    rawData.forEach(item => {
+      const date = new Date(item.day)
+      if (isNaN(date.getTime())) return
+      const monthKey = format(date, "yyyy-MM")
+      if (!monthly[monthKey]) {
+        monthly[monthKey] = { positive: 0, normal: 0, negative: 0 }
+      }
+      monthly[monthKey].positive += item.positive
+      monthly[monthKey].normal += item.normal
+      monthly[monthKey].negative += item.negative
+    })
+
+    const monthlyArray = Object.entries(monthly).map(
+      ([month, { positive, normal, negative }]) => {
+        const date = parseISO(`${month}-01`)
+        return {
+          day: format(date, "MMM"),
+          positive,
+          normal,
+          negative,
+          tooltipDate: format(date, "MMM yyyy")
+        }
+      }
+    )
+
+    // If long range, reduce to last 12 months
+    return monthlyArray.length > 12 ? monthlyArray.slice(-12) : monthlyArray
+  }
+
+  // INFO: Process chart data based on aggregation type
+  const chartData = useMemo(() => {
+    const rawData = data?.confidenceDistributionData ?? []
+
+    if (aggregation === "daily") {
+      return rawData.map(item => ({
+        ...item,
+        day: format(new Date(item.day), "MMM d"),
+        tooltipDate: format(new Date(item.day), "MMM d, yyyy")
+      }))
+    } else if (aggregation === "weekly") {
+      return aggregateByWeek(rawData)
+    } else {
+      return aggregateByMonth(rawData)
+    }
+  }, [data?.confidenceDistributionData, aggregation])
+
   // Filter metrics to only show the 4 required ones
   const allowedMetrics = [
     "Total Conversations",
@@ -389,13 +507,14 @@ export default function ConversationsTab() {
                 <div className="flex-1">
                   <ResponsiveContainer width="100%" height={320}>
                     <ChartContainer config={confidenceChartConfig}>
-                      <BarChart data={data?.confidenceDistributionData ?? []}>
+                      <BarChart data={chartData}>
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
                         <XAxis
                           dataKey="day"
                           tickLine={false}
                           axisLine={false}
                           tickMargin={8}
+                          interval={0}
                         />
                         <YAxis
                           tickLine={false}
@@ -615,7 +734,7 @@ export default function ConversationsTab() {
                     }}
                   >
                     <span>Learn More</span>
-                    <SparkleIcon size={14} />
+                    <IconSparkles size={14} />
                   </button>
                 </div>
               </div>
@@ -656,16 +775,17 @@ export default function ConversationsTab() {
                       </span>
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-1 text-sm font-semibold">
-                      {item.trend === "up" ? (
-                        <IconTrendingUpTriangle size={14} />
-                      ) : (
-                        <IconTrendingDownTriangle size={14} />
-                      )}
                       <span
+                        className="flex items-center gap-0.5"
                         style={{
                           color: item.trend === "up" ? "#34C759" : "#EF4444"
                         }}
                       >
+                        {item.trend === "up" ? (
+                          <IconCaretUpFilled size={14} />
+                        ) : (
+                          <IconCaretDownFilled size={14} />
+                        )}
                         {item.growth}%
                       </span>
                     </div>

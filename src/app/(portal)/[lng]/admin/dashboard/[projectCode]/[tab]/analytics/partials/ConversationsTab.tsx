@@ -672,7 +672,7 @@ export default function ConversationsTab() {
           </CardContent>
         </Card>
 
-        {/* Smart Highlights */}
+        {/* Smart Highlights - Hard coded till the bot api is finished */}
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle

@@ -53,7 +53,6 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
     exit: { opacity: number; x: number }
   }
   stylingSettings?: StyleFormInitial | undefined
-  setIsSaving?: (saving: boolean) => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -75,8 +74,7 @@ const ChatInterfaceStyles = ({
   setBrandStyling,
   setChatButtonStyling,
   setWelcomeScreenStyling,
-  stylingSettings,
-  setIsSaving
+  stylingSettings
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
@@ -90,11 +88,13 @@ const ChatInterfaceStyles = ({
 
   const currentProjectId = useProjectCode()
 
-  const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
-    UserProject[]
-  >(["user-projects"], `user/me/projects`, () => ({
-    method: "get"
-  }))
+  const { data: userProjects } = useApiQuery<UserProject[]>(
+    ["user-projects"],
+    `user/me/projects`,
+    () => ({
+      method: "get"
+    })
+  )
 
   const memoizedProjects = useMemo(() => {
     const projects = userProjects ?? []
@@ -110,10 +110,7 @@ const ChatInterfaceStyles = ({
       ?.projectName.replace(/\s/g, "-") ||
     `project-${currentProjectId || "unknown"}`
 
-  const {
-    data: getBrandLogoUploadUrl,
-    isLoading: isGetBrandLogoUploadUrlLoading
-  } = useApiQuery<{
+  const { data: getBrandLogoUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
@@ -121,16 +118,13 @@ const ChatInterfaceStyles = ({
   }>(["get-brand-logo-upload-url"], "/botsettings/image/upload", () => ({
     method: "post",
     data: {
-      fileName: "brand-logo.png",
+      fileName: "brand-logo-local.png",
       contentType: "image/png",
       folder: currentProjectName
     }
   }))
 
-  const {
-    data: getChatButtonIconUploadUrl,
-    isLoading: isGetChatButtonIconUploadUrlLoading
-  } = useApiQuery<{
+  const { data: getChatButtonIconUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
@@ -138,24 +132,11 @@ const ChatInterfaceStyles = ({
   }>(["get-chat-button-icon-upload-url"], "/botsettings/image/upload", () => ({
     method: "post",
     data: {
-      fileName: "chat-button-icon.png",
+      fileName: "chat-button-icon-local.png",
       contentType: "image/png",
       folder: currentProjectName
     }
   }))
-
-  useEffect(() => {
-    setIsSaving?.(
-      isGetBrandLogoUploadUrlLoading ||
-        isGetChatButtonIconUploadUrlLoading ||
-        isUserProjectsLoading
-    )
-  }, [
-    isGetBrandLogoUploadUrlLoading,
-    isGetChatButtonIconUploadUrlLoading,
-    isUserProjectsLoading,
-    setIsSaving
-  ])
 
   const resetColor =
     <T extends keyof StyleForm>(

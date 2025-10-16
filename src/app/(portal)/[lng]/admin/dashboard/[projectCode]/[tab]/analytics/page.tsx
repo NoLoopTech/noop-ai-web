@@ -1,57 +1,84 @@
 "use client"
 
 import { lazy, Suspense } from "react"
-import LazyInView from "@/components/LazyInView"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  IconChartBar,
+  IconMessages,
+  IconUsers,
+  IconTicket
+} from "@tabler/icons-react"
 
-const BuyersProfileCard = lazy(() => import("./partials/BuyersProfileCard"))
-const CustomersCard = lazy(() => import("./partials/CustomersCard"))
-const SalesCard = lazy(() => import("./partials/SalesCard"))
-const TrafficSourceCard = lazy(() => import("./partials/TrafficSourceCard"))
-const VisitorsCard = lazy(() => import("./partials/VisitorsCard"))
+const ConversationsTab = lazy(() => import("./partials/ConversationsTab"))
+const TrackEngagementTab = lazy(() => import("./partials/TrackEngagementTab"))
+const LeadsOpportunitiesTab = lazy(
+  () => import("./partials/LeadsOpportunitiesTab")
+)
+const SupportTicketTab = lazy(() => import("./partials/SupportTicketTab"))
 
-const LoadingCard = ({ className = "h-full" }: { className?: string }) => (
-  <div className={`shine w-full rounded-lg ${className}`} />
+const TabSkeleton = () => (
+  <div className="space-y-6">
+    <div className="grid auto-rows-auto grid-cols-6 gap-5">
+      <div className="shine col-span-6 h-96 rounded-lg" />
+      <div className="shine col-span-6 h-96 rounded-lg" />
+    </div>
+  </div>
 )
 
 export default function Analytics() {
   return (
-    <div className="grid auto-rows-auto grid-cols-6 gap-5">
-      {/* Top row - Load immediately (above fold) */}
-      <div className="col-span-6 xl:col-span-3">
-        <Suspense fallback={<LoadingCard className="h-96" />}>
-          <SalesCard />
+    <Tabs defaultValue="conversations" className="space-y-6">
+      <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsTrigger
+          value="track-engagement"
+          className="flex items-center gap-2"
+        >
+          <IconChartBar size={16} />
+          <span className="hidden sm:inline">Track & Engagement</span>
+          <span className="sm:hidden">Track</span>
+        </TabsTrigger>
+        <TabsTrigger value="conversations" className="flex items-center gap-2">
+          <IconMessages size={16} />
+          Conversations
+        </TabsTrigger>
+        <TabsTrigger
+          value="leads-opportunities"
+          className="flex items-center gap-2"
+        >
+          <IconUsers size={16} />
+          <span className="hidden sm:inline">Leads & Opportunities</span>
+          <span className="sm:hidden">Leads</span>
+        </TabsTrigger>
+        <TabsTrigger value="support-ticket" className="flex items-center gap-2">
+          <IconTicket size={16} />
+          <span className="hidden sm:inline">Support & Ticket</span>
+          <span className="sm:hidden">Support</span>
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="track-engagement" className="space-y-4">
+        <Suspense fallback={<TabSkeleton />}>
+          <TrackEngagementTab />
         </Suspense>
-      </div>
-      <div className="col-span-6 xl:col-span-3">
-        <Suspense fallback={<LoadingCard className="h-96" />}>
-          <VisitorsCard />
+      </TabsContent>
+
+      <TabsContent value="conversations" className="space-y-4">
+        <Suspense fallback={<TabSkeleton />}>
+          <ConversationsTab />
         </Suspense>
-      </div>
+      </TabsContent>
 
-      {/* Bottom row - Load when visible (below fold) */}
-      <LazyInView
-        className="col-span-6 lg:col-span-3 xl:col-span-2"
-        fallback={<LoadingCard className="h-64" />}
-        placeholder={<div className="bg-muted h-64 rounded-lg" />}
-      >
-        <TrafficSourceCard />
-      </LazyInView>
+      <TabsContent value="leads-opportunities" className="space-y-4">
+        <Suspense fallback={<TabSkeleton />}>
+          <LeadsOpportunitiesTab />
+        </Suspense>
+      </TabsContent>
 
-      <LazyInView
-        className="col-span-6 lg:col-span-3 xl:col-span-2"
-        fallback={<LoadingCard className="h-64" />}
-        placeholder={<div className="bg-muted h-64 rounded-lg" />}
-      >
-        <CustomersCard />
-      </LazyInView>
-
-      <LazyInView
-        className="col-span-6 lg:col-span-3 xl:col-span-2"
-        fallback={<LoadingCard className="h-64" />}
-        placeholder={<div className="bg-muted h-64 rounded-lg" />}
-      >
-        <BuyersProfileCard />
-      </LazyInView>
-    </div>
+      <TabsContent value="support-ticket" className="space-y-4">
+        <Suspense fallback={<TabSkeleton />}>
+          <SupportTicketTab />
+        </Suspense>
+      </TabsContent>
+    </Tabs>
   )
 }

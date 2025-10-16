@@ -51,7 +51,7 @@ const DeleteAllConversations = ({
 
   const deleteAllConversations = useApiMutation(
     currentProject?.id
-      ? `/dashboard/project/sessionData/${currentProject.id}`
+      ? `/conversations/project/sessionData/${currentProject.id}`
       : "",
     "delete",
     {

@@ -443,8 +443,8 @@ export default function ConversationsTab() {
               Conversations & Accuracy
             </h2>
             <p className="text-muted-foreground text-sm">
-              Track how well Noop.ai is handling conversations, from accuracy to
-              user sentiment
+              Track how well Noopy.ai is handling conversations, from accuracy
+              to user sentiment
             </p>
           </div>
           <DateRangeDropdown
@@ -490,7 +490,7 @@ export default function ConversationsTab() {
       </div>
 
       {/* Confidence Distribution & Smart Highlights */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_400px]">
         {/* Confidence Distribution Chart */}
         <Card className="min-w-0">
           <CardHeader>
@@ -672,7 +672,7 @@ export default function ConversationsTab() {
           </CardContent>
         </Card>
 
-        {/* Smart Highlights - Hard coded till the bot api is finished */}
+        {/* Smart Highlights - Coming soon */}
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle
@@ -690,7 +690,11 @@ export default function ConversationsTab() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-1 flex-col justify-between space-y-4">
+              <div className="relative flex flex-1 flex-col justify-between space-y-4 overflow-clip rounded-lg">
+                <h2 className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center text-lg font-semibold text-zinc-600">
+                  Coming soon
+                </h2>
+                <span className="absolute z-10 h-full w-full bg-white/60 backdrop-blur-sm"></span>
                 <div className="space-y-4">
                   {/* Bullet Points */}
                   <ul className="space-y-2">

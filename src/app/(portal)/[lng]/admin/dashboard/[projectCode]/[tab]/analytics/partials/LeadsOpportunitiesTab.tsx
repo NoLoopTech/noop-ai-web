@@ -32,7 +32,7 @@ import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useLeadsOpportunitiesData } from "@/lib/hooks/useLeadsOpportunitiesData"
 import { DashboardRange } from "@/models/dashboard"
-import React, { useMemo } from "react"
+import React, { useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -44,7 +44,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
 
 const strokeColorMap: Record<string, string> = {
   "Total Leads": "var(--chart-stat-green)",
-  "Lead Conversion Rate": "var(--chart-stat-blue)",
+  "Lead Conversion Rate": "var(--chart-stat-orange)",
   "Lead Generation Rate": "var(--chart-stat-orange)",
   "Avg. Lead Response Time": "var(--chart-stat-purple)"
 }
@@ -60,7 +60,7 @@ interface StatCardProps {
   trend?: "up" | "down" | "neutral"
 }
 
-const StatCard = ({
+const StatCard = React.memo(function StatCard({
   label,
   value,
   description,
@@ -69,7 +69,7 @@ const StatCard = ({
   isLoading,
   percentage,
   trend
-}: StatCardProps) => {
+}: StatCardProps) {
   const strokeColor = strokeColorMap[label] || "var(--chart-stat-green)"
 
   const chartConfig = {
@@ -172,7 +172,7 @@ const StatCard = ({
       </CardContent>
     </Card>
   )
-}
+})
 
 export default function LeadsOpportunitiesTab() {
   const { dateRange, setDateRange } = useDashboardFilters()
@@ -210,74 +210,82 @@ export default function LeadsOpportunitiesTab() {
   }
 
   // INFO: Aggregate by week
-  const aggregateByWeek = (
-    rawData: Array<{
-      date: string
-      leads: number
-    }>
-  ) => {
-    const weekly: Record<
-      string,
-      {
+  const aggregateByWeek = useCallback(
+    (
+      rawData: Array<{
+        date: string
         leads: number
-        month: string
-        week: number
-        year: string
-      }
-    > = {}
+      }>
+    ) => {
+      const weekly: Record<
+        string,
+        {
+          leads: number
+          month: string
+          week: number
+          year: string
+        }
+      > = {}
 
-    rawData.forEach(item => {
-      const date = new Date(item.date)
-      if (isNaN(date.getTime())) return
-      const month = format(date, "MMM")
-      const year = format(date, "yyyy")
-      const dayOfMonth = date.getDate()
-      const week = Math.ceil(dayOfMonth / 7)
-      const key = `${year}-${month}-${week}`
-      if (!weekly[key]) {
-        weekly[key] = { leads: 0, month, week, year }
-      }
-      weekly[key].leads += item.leads
-    })
+      rawData.forEach(item => {
+        const date = new Date(item.date)
+        if (isNaN(date.getTime())) return
+        const month = format(date, "MMM")
+        const year = format(date, "yyyy")
+        const dayOfMonth = date.getDate()
+        const week = Math.ceil(dayOfMonth / 7)
+        const key = `${year}-${month}-${week}`
+        if (!weekly[key]) {
+          weekly[key] = { leads: 0, month, week, year }
+        }
+        weekly[key].leads += item.leads
+      })
 
-    return Object.entries(weekly).map(([_, { leads, month, week, year }]) => ({
-      date: month,
-      leads,
-      tooltipDate: `${month} Week ${week}, ${year}`
-    }))
-  }
+      return Object.entries(weekly).map(
+        ([_, { leads, month, week, year }]) => ({
+          date: month,
+          leads,
+          tooltipDate: `${month} Week ${week}, ${year}`
+        })
+      )
+    },
+    []
+  )
 
   // INFO: Aggregate by month
-  const aggregateByMonth = (
-    rawData: Array<{
-      date: string
-      leads: number
-    }>
-  ) => {
-    const monthly: Record<string, { leads: number }> = {}
+  const aggregateByMonth = useCallback(
+    (
+      rawData: Array<{
+        date: string
+        leads: number
+      }>
+    ) => {
+      const monthly: Record<string, { leads: number }> = {}
 
-    rawData.forEach(item => {
-      const date = new Date(item.date)
-      if (isNaN(date.getTime())) return
-      const monthKey = format(date, "yyyy-MM")
-      if (!monthly[monthKey]) {
-        monthly[monthKey] = { leads: 0 }
-      }
-      monthly[monthKey].leads += item.leads
-    })
+      rawData.forEach(item => {
+        const date = new Date(item.date)
+        if (isNaN(date.getTime())) return
+        const monthKey = format(date, "yyyy-MM")
+        if (!monthly[monthKey]) {
+          monthly[monthKey] = { leads: 0 }
+        }
+        monthly[monthKey].leads += item.leads
+      })
 
-    const monthlyArray = Object.entries(monthly).map(([month, { leads }]) => {
-      const date = parseISO(`${month}-01`)
-      return {
-        date: format(date, "MMM"),
-        leads,
-        tooltipDate: format(date, "MMM yyyy")
-      }
-    })
+      const monthlyArray = Object.entries(monthly).map(([month, { leads }]) => {
+        const date = parseISO(`${month}-01`)
+        return {
+          date: format(date, "MMM"),
+          leads,
+          tooltipDate: format(date, "MMM yyyy")
+        }
+      })
 
-    // If long range, reduce to last 12 months
-    return monthlyArray.length > 12 ? monthlyArray.slice(-12) : monthlyArray
-  }
+      // If long range, reduce to last 12 months
+      return monthlyArray.length > 12 ? monthlyArray.slice(-12) : monthlyArray
+    },
+    []
+  )
 
   // INFO: Process chart data based on aggregation type
   const leadGrowthChartData = useMemo(() => {
@@ -294,7 +302,7 @@ export default function LeadsOpportunitiesTab() {
     } else {
       return aggregateByMonth(rawData)
     }
-  }, [data?.leadGrowthOverTime, aggregation])
+  }, [data?.leadGrowthOverTime, aggregation, aggregateByWeek, aggregateByMonth])
 
   // Filter metrics to only show the 4 required ones
   const allowedMetrics = [

@@ -29,7 +29,7 @@ import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useConversationsAnalyticsData } from "@/lib/hooks/useConversationsAnalyticsData"
 import { DashboardRange } from "@/models/dashboard"
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
 const confidenceChartConfig = {
   positive: {
@@ -81,22 +81,25 @@ interface IntentPerformanceTableProps {
   isLoading: boolean
 }
 
-const IntentPerformanceTable = ({
+const IntentPerformanceTable = React.memo(function IntentPerformanceTable({
   data,
   isLoading
-}: IntentPerformanceTableProps) => {
+}: IntentPerformanceTableProps) {
   const [showAll, setShowAll] = useState(false)
-  const displayedData = showAll ? data : data.slice(0, 4)
+  const displayedData = useMemo(
+    () => (showAll ? data : data.slice(0, 4)),
+    [showAll, data]
+  )
   const hasMore = data.length > 4
 
   // INFO: Convert intents to snake_case or space-separated text to Title Case
-  const toTitleCase = (text: string) => {
+  const toTitleCase = useCallback((text: string) => {
     return text
       .replace(/_/g, " ")
       .split(" ")
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ")
-  }
+  }, [])
 
   return (
     <Card className="md:col-span-2">
@@ -165,9 +168,9 @@ const IntentPerformanceTable = ({
       </CardContent>
     </Card>
   )
-}
+})
 
-const StatCard = ({
+const StatCard = React.memo(function StatCard({
   label,
   value,
   description,
@@ -176,7 +179,7 @@ const StatCard = ({
   isLoading,
   percentage,
   trend
-}: StatCardProps) => {
+}: StatCardProps) {
   const strokeColor = strokeColorMap[label] || "var(--chart-stat-green)"
 
   const chartConfig = {
@@ -283,7 +286,7 @@ const StatCard = ({
       </CardContent>
     </Card>
   )
-}
+})
 
 export default function ConversationsTab() {
   const { dateRange, setDateRange } = useDashboardFilters()
@@ -318,95 +321,108 @@ export default function ConversationsTab() {
   }
 
   // INFO: Aggregate by week
-  const aggregateByWeek = (
-    rawData: Array<{
-      day: string
-      positive: number
-      normal: number
-      negative: number
-    }>
-  ) => {
-    const weekly: Record<
-      string,
-      {
+  const aggregateByWeek = useCallback(
+    (
+      rawData: Array<{
+        day: string
         positive: number
         normal: number
         negative: number
-        month: string
-        week: number
-        year: string
-      }
-    > = {}
+      }>
+    ) => {
+      const weekly: Record<
+        string,
+        {
+          positive: number
+          normal: number
+          negative: number
+          month: string
+          week: number
+          year: string
+        }
+      > = {}
 
-    rawData.forEach(item => {
-      const date = new Date(item.day)
-      if (isNaN(date.getTime())) return
-      const month = format(date, "MMM")
-      const year = format(date, "yyyy")
-      const dayOfMonth = date.getDate()
-      const week = Math.ceil(dayOfMonth / 7)
-      const key = `${year}-${month}-${week}`
-      if (!weekly[key]) {
-        weekly[key] = { positive: 0, normal: 0, negative: 0, month, week, year }
-      }
-      weekly[key].positive += item.positive
-      weekly[key].normal += item.normal
-      weekly[key].negative += item.negative
-    })
-
-    return Object.entries(weekly).map(
-      ([_, { positive, normal, negative, month, week, year }]) => ({
-        day: month,
-        positive,
-        normal,
-        negative,
-        tooltipDate: `${month} Week ${week}, ${year}`
+      rawData.forEach(item => {
+        const date = new Date(item.day)
+        if (isNaN(date.getTime())) return
+        const month = format(date, "MMM")
+        const year = format(date, "yyyy")
+        const dayOfMonth = date.getDate()
+        const week = Math.ceil(dayOfMonth / 7)
+        const key = `${year}-${month}-${week}`
+        if (!weekly[key]) {
+          weekly[key] = {
+            positive: 0,
+            normal: 0,
+            negative: 0,
+            month,
+            week,
+            year
+          }
+        }
+        weekly[key].positive += item.positive
+        weekly[key].normal += item.normal
+        weekly[key].negative += item.negative
       })
-    )
-  }
 
-  // INFO: Aggregate by month
-  const aggregateByMonth = (
-    rawData: Array<{
-      day: string
-      positive: number
-      normal: number
-      negative: number
-    }>
-  ) => {
-    const monthly: Record<
-      string,
-      { positive: number; normal: number; negative: number }
-    > = {}
-
-    rawData.forEach(item => {
-      const date = new Date(item.day)
-      if (isNaN(date.getTime())) return
-      const monthKey = format(date, "yyyy-MM")
-      if (!monthly[monthKey]) {
-        monthly[monthKey] = { positive: 0, normal: 0, negative: 0 }
-      }
-      monthly[monthKey].positive += item.positive
-      monthly[monthKey].normal += item.normal
-      monthly[monthKey].negative += item.negative
-    })
-
-    const monthlyArray = Object.entries(monthly).map(
-      ([month, { positive, normal, negative }]) => {
-        const date = parseISO(`${month}-01`)
-        return {
-          day: format(date, "MMM"),
+      return Object.entries(weekly).map(
+        ([_, { positive, normal, negative, month, week, year }]) => ({
+          day: month,
           positive,
           normal,
           negative,
-          tooltipDate: format(date, "MMM yyyy")
-        }
-      }
-    )
+          tooltipDate: `${month} Week ${week}, ${year}`
+        })
+      )
+    },
+    []
+  )
 
-    // If long range, reduce to last 12 months
-    return monthlyArray.length > 12 ? monthlyArray.slice(-12) : monthlyArray
-  }
+  // INFO: Aggregate by month
+  const aggregateByMonth = useCallback(
+    (
+      rawData: Array<{
+        day: string
+        positive: number
+        normal: number
+        negative: number
+      }>
+    ) => {
+      const monthly: Record<
+        string,
+        { positive: number; normal: number; negative: number }
+      > = {}
+
+      rawData.forEach(item => {
+        const date = new Date(item.day)
+        if (isNaN(date.getTime())) return
+        const monthKey = format(date, "yyyy-MM")
+        if (!monthly[monthKey]) {
+          monthly[monthKey] = { positive: 0, normal: 0, negative: 0 }
+        }
+        monthly[monthKey].positive += item.positive
+        monthly[monthKey].normal += item.normal
+        monthly[monthKey].negative += item.negative
+      })
+
+      const monthlyArray = Object.entries(monthly).map(
+        ([month, { positive, normal, negative }]) => {
+          const date = parseISO(`${month}-01`)
+          return {
+            day: format(date, "MMM"),
+            positive,
+            normal,
+            negative,
+            tooltipDate: format(date, "MMM yyyy")
+          }
+        }
+      )
+
+      // If long range, reduce to last 12 months
+      return monthlyArray.length > 12 ? monthlyArray.slice(-12) : monthlyArray
+    },
+    []
+  )
 
   // INFO: Process chart data based on aggregation type
   const chartData = useMemo(() => {
@@ -423,7 +439,12 @@ export default function ConversationsTab() {
     } else {
       return aggregateByMonth(rawData)
     }
-  }, [data?.confidenceDistributionData, aggregation])
+  }, [
+    data?.confidenceDistributionData,
+    aggregation,
+    aggregateByWeek,
+    aggregateByMonth
+  ])
 
   // Filter metrics to only show the 4 required ones
   const allowedMetrics = [

@@ -517,7 +517,7 @@ export default function LeadsOpportunitiesTab() {
               className="relative flex items-center gap-2 rounded-full bg-transparent px-4 py-1.5 text-xs font-medium text-zinc-500 transition-all hover:opacity-80"
               style={{
                 background:
-                  "linear-gradient(white, white) padding-box, linear-gradient(90deg, #63E2FF 0%, #903A7E 100%) border-box",
+                  "linear-gradient(var(--background), var(--background)) padding-box, linear-gradient(90deg, #63E2FF 0%, #903A7E 100%) border-box",
                 border: "2px solid transparent"
               }}
             >

@@ -152,7 +152,8 @@ const StatCard = React.memo(function StatCard({
             <p className="text-muted-foreground flex items-center gap-1 text-xs">
               {extractedPercentage !== undefined &&
                 trend &&
-                trend !== "neutral" && (
+                trend !== "neutral" &&
+                label !== "Avg. Lead Response Time" && (
                   <span
                     className="mr-1 flex items-center gap-0.5 font-medium"
                     style={{ color: showUpIcon ? "#34C759" : "#EF4444" }}
@@ -165,7 +166,15 @@ const StatCard = React.memo(function StatCard({
                     {Math.abs(extractedPercentage)}%
                   </span>
                 )}
-              <span>{cleanDescription}</span>
+              <span
+                style={
+                  label === "Avg. Lead Response Time"
+                    ? { color: "#EF4444" }
+                    : undefined
+                }
+              >
+                {cleanDescription}
+              </span>
             </p>
           )}
         </div>
@@ -387,7 +396,7 @@ export default function LeadsOpportunitiesTab() {
                   {/* Donut Chart */}
                   <div
                     className="relative flex-shrink-0"
-                    style={{ width: "220px", height: "220px" }}
+                    style={{ width: "280px", height: "280px" }}
                   >
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -395,8 +404,8 @@ export default function LeadsOpportunitiesTab() {
                           data={data?.mostLeadGeneratedIntents ?? []}
                           cx="50%"
                           cy="50%"
-                          innerRadius={55}
-                          outerRadius={100}
+                          innerRadius={70}
+                          outerRadius={130}
                           paddingAngle={0}
                           dataKey="conversations"
                           startAngle={90}

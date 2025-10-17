@@ -427,10 +427,10 @@ export default function LeadsOpportunitiesTab() {
                                 <Sector
                                   {...p}
                                   outerRadius={p.outerRadius + 10}
-                                  stroke="white"
+                                  stroke="hsl(var(--background))"
                                   strokeWidth={2}
                                 />
-                                {/* White band effect near the edge */}
+                                {/* Highlight band effect that works in both themes */}
                                 <Sector
                                   cx={p.cx}
                                   cy={p.cy}
@@ -452,7 +452,7 @@ export default function LeadsOpportunitiesTab() {
                               <Cell
                                 key={`cell-${index}`}
                                 fill={entry.color}
-                                stroke="white"
+                                stroke="hsl(var(--background))"
                                 strokeWidth={2}
                                 style={{ cursor: "pointer" }}
                               />

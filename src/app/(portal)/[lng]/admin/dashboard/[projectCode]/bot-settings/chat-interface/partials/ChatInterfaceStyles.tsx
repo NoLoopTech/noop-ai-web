@@ -41,17 +41,11 @@ import { UserProject } from "@/models/project"
 import axios from "axios"
 import { Separator } from "@/components/ui/separator"
 import ImageCropper from "@/components/ImageCropper"
+import { CroppedMeta } from "@/types/reactImageCrop"
 
 type StyleFormInitial = Omit<StyleForm, "brandLogo" | "chatButtonIcon"> & {
   brandLogo?: File | string | null
   chatButtonIcon?: File | string | null
-}
-
-type CroppedMeta = {
-  name: string
-  width: number
-  height: number
-  size: string
 }
 
 interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {

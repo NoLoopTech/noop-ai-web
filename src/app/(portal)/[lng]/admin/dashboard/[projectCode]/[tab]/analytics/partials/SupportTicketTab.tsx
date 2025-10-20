@@ -332,10 +332,6 @@ export default function SupportTicketTab() {
               <CardTitle className="text-base font-semibold">
                 Ticket Category Breakdown
               </CardTitle>
-              <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                Trending up by 5.2%
-                <IconCaretUpFilled size={12} className="text-green-500" />
-              </p>
             </div>
           </CardHeader>
           <CardContent>

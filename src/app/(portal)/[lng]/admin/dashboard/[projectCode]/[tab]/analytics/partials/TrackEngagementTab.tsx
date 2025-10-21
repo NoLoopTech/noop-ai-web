@@ -251,11 +251,42 @@ export default function TrackEngagementTab() {
         rank: "01",
         name: "United States of America",
         percent: "16.89%",
-        code: "US"
+        code: "US",
+        growth: "12%",
+        trend: "up"
       },
-      { rank: "02", name: "United Kingdom", percent: "10.89%", code: "GB" },
-      { rank: "03", name: "Germany", percent: "6.89%", code: "DE" },
-      { rank: "04", name: "India", percent: "2.89%", code: "IN" }
+      {
+        rank: "02",
+        name: "United Kingdom",
+        percent: "10.89%",
+        code: "GB",
+        growth: "8%",
+        trend: "up"
+      },
+      {
+        rank: "03",
+        name: "Germany",
+        percent: "6.89%",
+        code: "DE",
+        growth: "5%",
+        trend: "down"
+      },
+      {
+        rank: "04",
+        name: "Sri Lanka",
+        percent: "6.89%",
+        code: "LK",
+        growth: "4%",
+        trend: "up"
+      },
+      {
+        rank: "05",
+        name: "India",
+        percent: "2.89%",
+        code: "IN",
+        growth: "3%",
+        trend: "down"
+      }
     ],
     []
   )
@@ -507,7 +538,7 @@ export default function TrackEngagementTab() {
       </div>
 
       {/* Bottom row: Top countries + Geo map */}
-      <div className="grid gap-4 lg:grid-cols-[2fr_3fr]">
+      <div className="grid gap-4 lg:grid-cols-[2fr_5fr]">
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-semibold">
@@ -543,13 +574,28 @@ export default function TrackEngagementTab() {
 
                       <div>
                         <div className="font-medium">{c.name}</div>
-                        <div className="text-muted-foreground text-xs">
+                        <div className="text-muted-foreground text-md">
                           {c.percent}
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="text-sm text-emerald-500">▲ 12%</div>
+
+                  <div className="flex flex-shrink-0 items-center gap-1 text-sm font-semibold">
+                    <span
+                      className="flex items-center gap-0.5"
+                      style={{
+                        color: c.trend === "up" ? "#34C759" : "#EF4444"
+                      }}
+                    >
+                      {c.trend === "up" ? (
+                        <IconCaretUpFilled size={14} />
+                      ) : (
+                        <IconCaretDownFilled size={14} />
+                      )}
+                      {c.growth}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

@@ -20,8 +20,8 @@ import {
   IconCaretUpFilled,
   IconClock,
   IconMessages,
-  IconSparkles,
-  IconUsers
+  IconUsers,
+  IconSparkles
 } from "@tabler/icons-react"
 import ReactCountryFlag from "react-country-flag"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
@@ -180,13 +180,13 @@ export default function TrackEngagementTab() {
   // Loading placeholder flag
   const isLoading = false
 
-  // Dummy data for design-only charts
+  // Dummy data for design-only charts (two series: new + returning users)
   const trafficData = useMemo(
     () => [
-      { day: "Week 1", value: 4200 },
-      { day: "Week 2", value: 6800 },
-      { day: "Week 3", value: 3200 },
-      { day: "Week 4", value: 5200 }
+      { day: "Week 1", new: 3800, returning: 5200 },
+      { day: "Week 2", new: 4600, returning: 7600 },
+      { day: "Week 3", new: 3200, returning: 1800 },
+      { day: "Week 4", new: 5000, returning: 4800 }
     ],
     []
   )
@@ -299,35 +299,139 @@ export default function TrackEngagementTab() {
 
       {/* Main chart + Right highlights */}
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        {/* Traffic Trend (replace existing Traffic Trend Card with this) */}
         <Card className="min-w-0">
           <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Traffic Trend
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">
+                  Traffic Trend
+                </CardTitle>
+                <div className="text-muted-foreground text-sm">
+                  Trending up by
+                  <span className="font-medium text-emerald-600">5.2%</span>
+                </div>
+              </div>
+            </div>
           </CardHeader>
+
           <CardContent>
             {isLoading ? (
               <div className="shine h-80 w-full rounded-md" />
             ) : (
-              <div className="h-80 w-full">
-                <ResponsiveContainer width="100%" height={320}>
-                  <LineChart
-                    data={trafficData}
-                    margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#06b6d4"
-                      strokeWidth={2.5}
-                      dot={{ r: 3 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="flex h-80 w-full gap-4">
+                {/* Chart area (left) */}
+                <div className="flex-1 pr-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={trafficData}
+                      margin={{ top: 10, right: 6, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={v =>
+                          Number.isFinite(v) ? `${Math.round(v / 1000)}k` : v
+                        }
+                      />
+                      <Tooltip
+                        contentStyle={{ borderRadius: 8 }}
+                        formatter={(value: string | number, name: string) => [
+                          value,
+                          name === "returning" ? "Return users" : "New users"
+                        ]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="returning"
+                        name="Return users"
+                        stroke="#16A34A"
+                        strokeWidth={2.5}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="new"
+                        name="New users"
+                        stroke="#F97316"
+                        strokeWidth={2.5}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Embedded Overview panel (right inside same card) */}
+                <div className="w-72 flex-shrink-0 border-l border-gray-100 pl-4">
+                  <div className="flex h-full flex-col justify-between">
+                    <div>
+                      {/* Last month change */}
+                      <div>
+                        <div className="text-muted-foreground text-sm">
+                          Last month change
+                        </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <IconCaretDownFilled
+                            size={14}
+                            className="text-rose-500"
+                          />
+                          <span className="text-lg font-bold text-rose-500">
+                            4.15%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Avg Visit Duration */}
+                      <div className="mt-6">
+                        <div className="text-muted-foreground text-sm">
+                          Avg Visit Duration
+                        </div>
+                        <div className="mt-1 text-lg font-bold">00:02:01</div>
+                      </div>
+
+                      {/* New vs Returning Visitors */}
+                      <div className="mt-6">
+                        <div className="text-muted-foreground text-sm">
+                          New vs Returning Visitors
+                        </div>
+
+                        <div className="mt-3 flex flex-col gap-2">
+                          {/* Return users */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="inline-block h-2 w-2 rounded-full"
+                                style={{ background: "#16A34A" }}
+                              />
+                              <span className="text-sm">Return users</span>
+                            </div>
+                            <div className="text-sm text-emerald-500">
+                              ▲ 12%
+                            </div>
+                          </div>
+
+                          {/* New users */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="inline-block h-2 w-2 rounded-full"
+                                style={{ background: "#F97316" }}
+                              />
+                              <span className="text-sm">New users</span>
+                            </div>
+                            <div className="text-sm text-emerald-500">
+                              ▲ 12%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
@@ -357,7 +461,7 @@ export default function TrackEngagementTab() {
                   {/* Bullet Points */}
                   <ul className="space-y-2.5">
                     <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />{" "}
                       <span>
                         Traffic increased by 32% compared to last week.
                       </span>
@@ -370,13 +474,12 @@ export default function TrackEngagementTab() {
                       </span>
                     </li>
                     <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />{" "}
                       <span>
                         Most visits came from organic search around mid-month.
                       </span>
                     </li>
                   </ul>
-
                   {/* Summary */}
                   <p className="text-muted-foreground text-sm">
                     Overall, the traffic shows a clear upward trend throughout
@@ -385,7 +488,6 @@ export default function TrackEngagementTab() {
                     strategies are effective.
                   </p>
                 </div>
-
                 {/* Learn More Button */}
                 <div className="flex justify-end pt-2">
                   <button
@@ -395,8 +497,7 @@ export default function TrackEngagementTab() {
                         "linear-gradient(90deg, #63E2FF 0%, #903A7E 100%)"
                     }}
                   >
-                    <span>Learn more</span>
-                    <IconSparkles size={14} />
+                    <span>Learn more</span> <IconSparkles size={14} />
                   </button>
                 </div>
               </div>
@@ -470,7 +571,6 @@ export default function TrackEngagementTab() {
           </CardHeader>
           <CardContent className="flex flex-1 flex-col justify-center">
             <div className="relative h-64 w-full">
-              {/* Centered 'Coming soon' label with blurred overlay to match Smart Highlights */}
               <h2 className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center text-lg font-semibold text-zinc-600">
                 Coming soon
               </h2>

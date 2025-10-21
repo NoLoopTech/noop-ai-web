@@ -19,8 +19,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const projectId = useProjectCode()
 
+  // INFO: Get the projectCode from route params (could be chatbotCode or numeric id)
+  const projectCodeFromParams = params.projectCode as string | undefined
+
   const lng = (params.lng as string) ?? "en"
-  const prefix = `/${lng}/admin/dashboard/${projectId ?? 0}`
+
+  // INFO: Use the projectCode from params (chatbotCode like "noopy") instead of numeric projectId
+  const projectSegment = projectCodeFromParams ?? String(projectId ?? 0)
+  const prefix = `/${lng}/admin/dashboard/${projectSegment}`
 
   return (
     <div className="relative">

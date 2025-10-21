@@ -9,5 +9,5 @@ export default async function AdminPage(): Promise<JSX.Element> {
     method: "GET"
   })
 
-  redirect(`/admin/dashboard/${userData[0].id}/overview`)
+  redirect(`/admin/dashboard/${userData[0].chatbotCode}/overview`)
 }

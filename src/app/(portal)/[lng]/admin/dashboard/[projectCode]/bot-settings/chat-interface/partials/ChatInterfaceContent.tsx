@@ -158,7 +158,7 @@ const ChatInterfaceContent = ({
         animate="animate"
         exit="exit"
         transition={{ duration: 0.3 }}
-        className="space-y-4"
+        className="min-w-[630px] space-y-4"
       >
         <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
@@ -169,7 +169,7 @@ const ChatInterfaceContent = ({
                 onError={onError}
                 className="flex flex-col gap-4"
               >
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <div className="flex items-center justify-between">
                       <div className="flex w-full items-center justify-between">
@@ -232,6 +232,7 @@ const ChatInterfaceContent = ({
                             <Textarea
                               {...field}
                               placeholder="Hi! What can I help you with?"
+                              maxLength={50}
                               rows={2}
                               className="mt-1 resize-none text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
@@ -250,6 +251,7 @@ const ChatInterfaceContent = ({
                           <FormControl>
                             <Input
                               {...field}
+                              maxLength={35}
                               placeholder="Message...."
                               className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
@@ -265,7 +267,7 @@ const ChatInterfaceContent = ({
                       disabled
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
+                          <div className="flex w-full items-center justify-between opacity-50">
                             <FormLabel>
                               Enable Suggested Messages{" "}
                               <span className="opacity-40">(Coming Soon)</span>
@@ -275,7 +277,7 @@ const ChatInterfaceContent = ({
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                                 disabled
-                                className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                className="mt-1 text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
                           </div>
@@ -424,7 +426,7 @@ const ChatInterfaceContent = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="opacity-50">
                   <CardContent className="space-y-5 p-5">
                     <FormField
                       control={form.control}
@@ -434,7 +436,10 @@ const ChatInterfaceContent = ({
                           <div className="flex w-full items-center justify-between">
                             <div className="">
                               <FormLabel className="text-foreground text-lg font-semibold">
-                                Quick Prompts
+                                Quick Prompts{" "}
+                                <span className="text-sm font-normal opacity-40">
+                                  (Coming Soon)
+                                </span>
                               </FormLabel>
                               <FormDescription>
                                 Personalize the floating chat bubble add
@@ -446,7 +451,9 @@ const ChatInterfaceContent = ({
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                // TODO: Enable this switch when the feature is ready
+                                disabled
+                                className="mt-1 text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
                           </div>
@@ -511,7 +518,7 @@ const ChatInterfaceContent = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardContent className="space-y-5 p-5">
                     <FormField
                       control={form.control}
@@ -554,6 +561,7 @@ const ChatInterfaceContent = ({
                               <FormControl>
                                 <Input
                                   {...field}
+                                  maxLength={40}
                                   placeholder={`Almost Ready to Chat!`}
                                   className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                 />
@@ -576,6 +584,7 @@ const ChatInterfaceContent = ({
                               <FormControl>
                                 <Input
                                   {...field}
+                                  maxLength={75}
                                   placeholder={`Tell us who you are so noopy can assist you better`}
                                   className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                 />

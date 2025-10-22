@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ChatStylePreviewType, ContentForm } from "@/types/botSettings"
 import { Button } from "@/components/ui/button"
 import { useApiMutation, useApiQuery } from "@/query"
@@ -63,6 +63,9 @@ const ChatInterface = () => {
 
     return botSettingsApiResponse?.botSettings.contentPreview
   }, [botSettingsApiResponse])
+
+  const brandLogoPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const chatButtonIconPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const [brandStyling, setBrandStyling] = useState<
     ChatStylePreviewType["brandStyling"]
@@ -196,6 +199,8 @@ const ChatInterface = () => {
           contentSettings={contentSettings}
           stylingSettings={stylingSettings}
           isBotSettingsLoading={isBotSettingsLoading}
+          brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
+          chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
         />
 
         {!isBotSettingsLoading && (
@@ -226,6 +231,8 @@ const ChatInterface = () => {
           welcomeScreenStyling={welcomeScreenStyling}
           contentPreview={contentPreview}
           isBotSettingsLoading={isBotSettingsLoading}
+          brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
+          chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
         />
       </div>
     </>

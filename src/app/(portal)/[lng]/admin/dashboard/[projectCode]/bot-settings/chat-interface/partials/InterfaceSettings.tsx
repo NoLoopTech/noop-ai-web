@@ -23,6 +23,8 @@ interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   contentSettings?: ContentForm | undefined
   stylingSettings?: StyleFormInitial | undefined
   isBotSettingsLoading: boolean
+  brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
 }
 
 const InterfaceSettings = ({
@@ -32,7 +34,9 @@ const InterfaceSettings = ({
   setContentPreview,
   contentSettings,
   stylingSettings,
-  isBotSettingsLoading
+  isBotSettingsLoading,
+  brandLogoPreviewCanvasRef,
+  chatButtonIconPreviewCanvasRef
 }: InterfaceSettingsProps) => {
   const [tab, setTab] = useState("content")
   const [stylingFormUpdate, setStylingFormUpdate] = useState<
@@ -109,6 +113,8 @@ const InterfaceSettings = ({
               setChatButtonStyling={setChatButtonStyling}
               setWelcomeScreenStyling={setWelcomeScreenStyling}
               stylingSettings={stylingFormUpdate}
+              brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
+              chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
             />
           )}
         </AnimatePresence>

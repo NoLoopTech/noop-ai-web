@@ -29,7 +29,7 @@ import FullBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-full.
 import HalfBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-half.svg"
 import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   InterfaceSettingsTypes,
   StyleForm,
@@ -57,6 +57,8 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
   stylingSettings?: StyleFormInitial | undefined
   brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
   chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  setIsBrandLogoCropping: (isCropping: boolean) => void
+  setIsChatButtonIconCropping: (isCropping: boolean) => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -80,7 +82,9 @@ const ChatInterfaceStyles = ({
   setWelcomeScreenStyling,
   stylingSettings,
   brandLogoPreviewCanvasRef,
-  chatButtonIconPreviewCanvasRef
+  chatButtonIconPreviewCanvasRef,
+  setIsBrandLogoCropping,
+  setIsChatButtonIconCropping
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
@@ -97,7 +101,17 @@ const ChatInterfaceStyles = ({
     useState<CroppedMeta | null>(null)
   const [brandLogoCroppingDone, setBrandLogoCroppingDone] = useState(false)
 
+  // INFO: Track when imgSrc changes to notify parent that cropping is active
+  useEffect(() => {
+    setIsBrandLogoCropping(!!imgSrc)
+  }, [imgSrc, setIsBrandLogoCropping])
+
   const [chatButtonIconSrc, setChatButtonIconSrc] = useState<string>("")
+
+  // INFO: Track when chatButtonIconSrc changes to notify parent that cropping is active
+  useEffect(() => {
+    setIsChatButtonIconCropping(!!chatButtonIconSrc)
+  }, [chatButtonIconSrc, setIsChatButtonIconCropping])
   const [chatButtonCroppedImgUrl, setChatButtonCroppedImgUrl] =
     useState<string>("")
   const [chatButtonCroppedMeta, setChatButtonCroppedMeta] =
@@ -208,29 +222,47 @@ const ChatInterfaceStyles = ({
     })
   }
 
+  // INFO: State to store the current brand logo URL (DataURL or Azure public URL)
+  const [currentBrandLogoUrl, setCurrentBrandLogoUrl] = useState<string | null>(
+    null
+  )
+  // INFO: Ref to track the Azure URL we've uploaded to prevent re-uploading
+  const uploadedBrandLogoUrlRef = useRef<string | null>(null)
+
+  // INFO: Initialize brand logo from DB on mount
   useEffect(() => {
-    const theme = form.watch("themes")
-    const brandBgColor = form.watch("brandBgColor")
-    const brandTextColor = form.watch("brandTextColor")
+    const brandLogoFile = form.watch("brandLogo")
+    if (typeof brandLogoFile === "string") {
+      setCurrentBrandLogoUrl(brandLogoFile)
+      uploadedBrandLogoUrlRef.current = brandLogoFile
+    }
+  }, []) // Only run once on mount
+
+  // INFO: Effect to handle brand logo upload to Azure (only when logo changes)
+  useEffect(() => {
     const brandLogoFile = form.watch("brandLogo")
 
     if (brandLogoFile instanceof File && brandLogoCropApplied) {
+      // Check if we've already uploaded to this Azure URL
+      if (
+        getBrandLogoUploadUrl?.publicUrl &&
+        uploadedBrandLogoUrlRef.current === getBrandLogoUploadUrl.publicUrl
+      ) {
+        // Already uploaded, just ensure state is correct
+        if (currentBrandLogoUrl !== getBrandLogoUploadUrl.publicUrl) {
+          setCurrentBrandLogoUrl(getBrandLogoUploadUrl.publicUrl)
+        }
+        return
+      }
+
+      // Handle newly cropped image
       fileToDataUrl(brandLogoFile).then(dataUrl => {
-        setBrandStyling({
-          theme: theme ?? "light",
-          backgroundColor: brandBgColor,
-          color: brandTextColor,
-          brandLogo: dataUrl
-        })
-        if (brandLogoCropApplied && getBrandLogoUploadUrl?.uploadUrl) {
+        setCurrentBrandLogoUrl(dataUrl)
+        if (getBrandLogoUploadUrl?.uploadUrl) {
           uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
             .then(() => {
-              setBrandStyling({
-                theme: theme ?? "light",
-                backgroundColor: brandBgColor,
-                color: brandTextColor,
-                brandLogo: getBrandLogoUploadUrl.publicUrl
-              })
+              setCurrentBrandLogoUrl(getBrandLogoUploadUrl.publicUrl)
+              uploadedBrandLogoUrlRef.current = getBrandLogoUploadUrl.publicUrl
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -238,52 +270,82 @@ const ChatInterfaceStyles = ({
             })
         }
       })
-    } else {
-      setBrandStyling({
-        theme: theme ?? "light",
-        backgroundColor: brandBgColor,
-        color: brandTextColor,
-        brandLogo: null
-      })
+    } else if (typeof brandLogoFile === "string") {
+      // Preserve existing logo from DB
+      setCurrentBrandLogoUrl(brandLogoFile)
+      uploadedBrandLogoUrlRef.current = brandLogoFile
+    } else if (!brandLogoFile) {
+      setCurrentBrandLogoUrl(null)
+      uploadedBrandLogoUrlRef.current = null
     }
+  }, [form.watch("brandLogo"), brandLogoCropApplied, getBrandLogoUploadUrl])
+
+  // INFO: Effect to update brand styling (only when colors or logo URL changes)
+  useEffect(() => {
+    const theme = form.watch("themes")
+    const brandBgColor = form.watch("brandBgColor")
+    const brandTextColor = form.watch("brandTextColor")
+
+    setBrandStyling({
+      theme: theme ?? "light",
+      backgroundColor: brandBgColor,
+      color: brandTextColor,
+      brandLogo: currentBrandLogoUrl
+    })
   }, [
+    form.watch("themes"),
     form.watch("brandBgColor"),
     form.watch("brandTextColor"),
-    form.watch("brandLogo"),
-    setBrandStyling,
-    brandLogoCropApplied,
-    getBrandLogoUploadUrl
+    currentBrandLogoUrl,
+    setBrandStyling
   ])
 
+  // INFO: State to store the current chat button icon URL (DataURL or Azure public URL)
+  const [currentChatButtonIconUrl, setCurrentChatButtonIconUrl] = useState<
+    string | null
+  >(null)
+  // INFO: Ref to track the Azure URL we've uploaded to prevent re-uploading
+  const uploadedChatButtonIconUrlRef = useRef<string | null>(null)
+
+  // INFO: Initialize chat button icon from DB on mount
   useEffect(() => {
-    const chatButtonBgColor = form.watch("chatButtonBgColor")
-    const chatButtonBorderColor = form.watch("chatButtonBorderColor")
     const chatButtonIconFile = form.watch("chatButtonIcon")
-    const chatButtonPosition = form.watch("chatButtonPosition")
-    const chatButtonTextColor = form.watch("chatButtonTextColor")
+    if (typeof chatButtonIconFile === "string") {
+      setCurrentChatButtonIconUrl(chatButtonIconFile)
+      uploadedChatButtonIconUrlRef.current = chatButtonIconFile
+    }
+  }, []) // Only run once on mount
+
+  // INFO: Effect to handle chat button icon upload to Azure (only when icon changes)
+  useEffect(() => {
+    const chatButtonIconFile = form.watch("chatButtonIcon")
 
     if (chatButtonIconFile instanceof File && chatButtonCropApplied) {
+      // Check if we've already uploaded to this Azure URL
+      if (
+        getChatButtonIconUploadUrl?.publicUrl &&
+        uploadedChatButtonIconUrlRef.current ===
+          getChatButtonIconUploadUrl.publicUrl
+      ) {
+        // Already uploaded, just ensure state is correct
+        if (currentChatButtonIconUrl !== getChatButtonIconUploadUrl.publicUrl) {
+          setCurrentChatButtonIconUrl(getChatButtonIconUploadUrl.publicUrl)
+        }
+        return
+      }
+
+      // Handle newly cropped icon
       fileToDataUrl(chatButtonIconFile).then(dataUrl => {
-        setChatButtonStyling({
-          backgroundColor: chatButtonBgColor,
-          borderColor: chatButtonBorderColor,
-          chatButtonIcon: dataUrl,
-          chatButtonTextColor: chatButtonTextColor,
-          chatButtonPosition: chatButtonPosition
-        })
-        if (chatButtonCropApplied && getChatButtonIconUploadUrl?.uploadUrl) {
+        setCurrentChatButtonIconUrl(dataUrl)
+        if (getChatButtonIconUploadUrl?.uploadUrl) {
           uploadImageToAzure(
             getChatButtonIconUploadUrl.uploadUrl,
             chatButtonIconFile
           )
             .then(() => {
-              setChatButtonStyling({
-                backgroundColor: chatButtonBgColor,
-                borderColor: chatButtonBorderColor,
-                chatButtonIcon: getChatButtonIconUploadUrl.publicUrl,
-                chatButtonTextColor: chatButtonTextColor,
-                chatButtonPosition: chatButtonPosition
-              })
+              setCurrentChatButtonIconUrl(getChatButtonIconUploadUrl.publicUrl)
+              uploadedChatButtonIconUrlRef.current =
+                getChatButtonIconUploadUrl.publicUrl
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -291,24 +353,41 @@ const ChatInterfaceStyles = ({
             })
         }
       })
-    } else {
-      setChatButtonStyling({
-        backgroundColor: chatButtonBgColor,
-        borderColor: chatButtonBorderColor,
-        chatButtonIcon: null,
-        chatButtonTextColor: chatButtonTextColor,
-        chatButtonPosition: chatButtonPosition
-      })
+    } else if (typeof chatButtonIconFile === "string") {
+      // Preserve existing icon from DB
+      setCurrentChatButtonIconUrl(chatButtonIconFile)
+      uploadedChatButtonIconUrlRef.current = chatButtonIconFile
+    } else if (!chatButtonIconFile) {
+      setCurrentChatButtonIconUrl(null)
+      uploadedChatButtonIconUrlRef.current = null
     }
+  }, [
+    form.watch("chatButtonIcon"),
+    chatButtonCropApplied,
+    getChatButtonIconUploadUrl
+  ])
+
+  // INFO: Effect to update chat button styling (only when colors or icon URL changes)
+  useEffect(() => {
+    const chatButtonBgColor = form.watch("chatButtonBgColor")
+    const chatButtonBorderColor = form.watch("chatButtonBorderColor")
+    const chatButtonPosition = form.watch("chatButtonPosition")
+    const chatButtonTextColor = form.watch("chatButtonTextColor")
+
+    setChatButtonStyling({
+      backgroundColor: chatButtonBgColor,
+      borderColor: chatButtonBorderColor,
+      chatButtonIcon: currentChatButtonIconUrl,
+      chatButtonTextColor: chatButtonTextColor,
+      chatButtonPosition: chatButtonPosition
+    })
   }, [
     form.watch("chatButtonBgColor"),
     form.watch("chatButtonBorderColor"),
-    form.watch("chatButtonIcon"),
     form.watch("chatButtonPosition"),
     form.watch("chatButtonTextColor"),
-    setChatButtonStyling,
-    chatButtonCropApplied,
-    getChatButtonIconUploadUrl
+    currentChatButtonIconUrl,
+    setChatButtonStyling
   ])
 
   useEffect(() => {

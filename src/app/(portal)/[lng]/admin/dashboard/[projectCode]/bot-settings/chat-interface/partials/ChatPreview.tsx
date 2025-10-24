@@ -24,6 +24,8 @@ interface ChatPreviewProps extends ChatStylePreviewType {
   isBotSettingsLoading: boolean
   brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
   chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  isBrandLogoCropping: boolean
+  isChatButtonIconCropping: boolean
 }
 
 const ChatPreview = ({
@@ -33,7 +35,9 @@ const ChatPreview = ({
   contentPreview,
   isBotSettingsLoading,
   brandLogoPreviewCanvasRef,
-  chatButtonIconPreviewCanvasRef
+  chatButtonIconPreviewCanvasRef,
+  isBrandLogoCropping,
+  isChatButtonIconCropping
 }: ChatPreviewProps) => {
   const [tab, setTab] = useState("chat")
 
@@ -112,10 +116,25 @@ const ChatPreview = ({
                         style={brandColor}
                       >
                         <div className="relative flex items-center overflow-clip text-[6px]">
-                          <canvas
-                            ref={brandLogoPreviewCanvasRef}
-                            className={`h-8 w-32 object-contain object-left`}
-                          />
+                          {isBrandLogoCropping ? (
+                            <canvas
+                              ref={brandLogoPreviewCanvasRef}
+                              className={`h-8 w-32 object-contain object-left`}
+                            />
+                          ) : brandStyling.brandLogo ? (
+                            <Image
+                              src={brandStyling.brandLogo}
+                              alt="Brand Logo"
+                              width={128}
+                              height={32}
+                              className="h-8 w-32 object-contain object-left"
+                            />
+                          ) : (
+                            <canvas
+                              ref={brandLogoPreviewCanvasRef}
+                              className={`h-8 w-32 object-contain object-left`}
+                            />
+                          )}
                         </div>
                         <div className="flex items-center space-x-3">
                           <IconArrowsDiagonal className="h-5 w-5" />
@@ -226,10 +245,25 @@ const ChatPreview = ({
                   /> */}
 
                   <div className="relative flex items-center overflow-clip text-[6px]">
-                    <canvas
-                      ref={chatButtonIconPreviewCanvasRef}
-                      className={`h-14 w-14 rounded-full object-contain object-center`}
-                    />
+                    {isChatButtonIconCropping ? (
+                      <canvas
+                        ref={chatButtonIconPreviewCanvasRef}
+                        className={`h-14 w-14 rounded-full object-contain object-center`}
+                      />
+                    ) : chatButtonStyling.chatButtonIcon ? (
+                      <Image
+                        src={chatButtonIcon as string}
+                        alt="Chat Button Icon"
+                        width={56}
+                        height={56}
+                        className="h-14 w-14 rounded-full object-contain object-center"
+                      />
+                    ) : (
+                      <canvas
+                        ref={chatButtonIconPreviewCanvasRef}
+                        className={`h-14 w-14 rounded-full object-contain object-center`}
+                      />
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -318,20 +352,10 @@ const ChatPreview = ({
                   layout
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  {/* {chatButtonStyling.chatButtonIcon ? (
-                    <Image
-                      src={chatButtonIcon as string}
-                      alt="Brand Logo"
-                      width={56}
-                      height={56}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <IconDiamond
-                      className="h-8 w-8"
-                      style={{ color: chatButtonStyling.chatButtonTextColor }}
-                    />
-                  )} */}
+                  <IconDiamond
+                    className="h-8 w-8"
+                    style={{ color: chatButtonStyling.chatButtonTextColor }}
+                  />
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -355,10 +379,22 @@ const ChatPreview = ({
                     style={brandColor}
                   >
                     <div className="flex items-center space-x-1.5 py-5">
-                      <IconDiamond className="h-7 w-7" />
-                      <p className="text-2xl font-extrabold uppercase">
-                        {contentPreview?.botName?.trim() || "Noopy"}
-                      </p>
+                      {brandStyling.brandLogo ? (
+                        <Image
+                          src={brandStyling.brandLogo}
+                          alt="Brand Logo"
+                          width={128}
+                          height={32}
+                          className="h-8 w-32 object-contain object-left"
+                        />
+                      ) : (
+                        <>
+                          <IconDiamond className="h-7 w-7" />
+                          <p className="text-2xl font-extrabold uppercase">
+                            {contentPreview?.botName?.trim() || "Noopy"}
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex flex-col space-y-0.5 capitalize">

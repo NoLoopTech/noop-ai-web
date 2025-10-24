@@ -112,10 +112,20 @@ const ChatPreview = ({
                         style={brandColor}
                       >
                         <div className="relative flex items-center overflow-clip text-[6px]">
-                          <canvas
-                            ref={brandLogoPreviewCanvasRef}
-                            className={`h-8 w-32 object-contain object-left`}
-                          />
+                          {brandStyling.brandLogo ? (
+                            <Image
+                              src={brandStyling.brandLogo}
+                              alt="Brand Logo"
+                              width={128}
+                              height={32}
+                              className="h-8 w-32 object-contain object-left"
+                            />
+                          ) : (
+                            <canvas
+                              ref={brandLogoPreviewCanvasRef}
+                              className={`h-8 w-32 object-contain object-left`}
+                            />
+                          )}
                         </div>
                         <div className="flex items-center space-x-3">
                           <IconArrowsDiagonal className="h-5 w-5" />
@@ -355,10 +365,22 @@ const ChatPreview = ({
                     style={brandColor}
                   >
                     <div className="flex items-center space-x-1.5 py-5">
-                      <IconDiamond className="h-7 w-7" />
-                      <p className="text-2xl font-extrabold uppercase">
-                        {contentPreview?.botName?.trim() || "Noopy"}
-                      </p>
+                      {brandStyling.brandLogo ? (
+                        <Image
+                          src={brandStyling.brandLogo}
+                          alt="Brand Logo"
+                          width={128}
+                          height={32}
+                          className="h-8 w-32 object-contain object-left"
+                        />
+                      ) : (
+                        <>
+                          <IconDiamond className="h-7 w-7" />
+                          <p className="text-2xl font-extrabold uppercase">
+                            {contentPreview?.botName?.trim() || "Noopy"}
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex flex-col space-y-0.5 capitalize">

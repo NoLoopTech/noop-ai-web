@@ -122,6 +122,12 @@ const ChatInterface = () => {
     }
   )
 
+  // INFO: Track when brand logo is being actively cropped
+  const [isBrandLogoCropping, setIsBrandLogoCropping] = useState(false)
+  // INFO: Track when chat button icon is being actively cropped
+  const [isChatButtonIconCropping, setIsChatButtonIconCropping] =
+    useState(false)
+
   useEffect(() => {
     if (!stylingSettings) return
     setBrandStyling({
@@ -201,6 +207,8 @@ const ChatInterface = () => {
           isBotSettingsLoading={isBotSettingsLoading}
           brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
           chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
+          setIsBrandLogoCropping={setIsBrandLogoCropping}
+          setIsChatButtonIconCropping={setIsChatButtonIconCropping}
         />
 
         {!isBotSettingsLoading && (
@@ -233,6 +241,8 @@ const ChatInterface = () => {
           isBotSettingsLoading={isBotSettingsLoading}
           brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
           chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
+          isBrandLogoCropping={isBrandLogoCropping}
+          isChatButtonIconCropping={isChatButtonIconCropping}
         />
       </div>
     </>

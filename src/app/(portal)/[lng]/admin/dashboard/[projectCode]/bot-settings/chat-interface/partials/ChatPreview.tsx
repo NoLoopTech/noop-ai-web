@@ -17,7 +17,7 @@ import {
 import { Smile } from "lucide-react"
 import { motion, AnimatePresence, MotionConfig } from "motion/react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 interface ChatPreviewProps extends ChatStylePreviewType {
   contentPreview: ContentForm | undefined
@@ -47,61 +47,6 @@ const ChatPreview = ({
     exit: { y: 20, opacity: 0 }
   }
 
-  // INFO: Redraw brand logo canvas when tab switches to "chat" or "welcome" and logo exists
-  useEffect(() => {
-    if (
-      (tab === "chat" || tab === "welcome") &&
-      brandStyling.brandLogo &&
-      brandLogoPreviewCanvasRef.current
-    ) {
-      const canvas = brandLogoPreviewCanvasRef.current
-      const ctx = canvas.getContext("2d")
-      if (!ctx) return
-
-      const img = new window.Image()
-      img.onload = () => {
-        canvas.width = img.width
-        canvas.height = img.height
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.drawImage(img, 0, 0)
-      }
-      img.src = brandStyling.brandLogo as string
-    }
-  }, [tab, brandStyling.brandLogo, brandLogoPreviewCanvasRef])
-
-  // INFO: Redraw chat button icon canvas when tab switches and icon exists
-  useEffect(() => {
-    if (
-      chatButtonStyling.chatButtonIcon &&
-      chatButtonIconPreviewCanvasRef.current
-    ) {
-      const canvas = chatButtonIconPreviewCanvasRef.current
-      const ctx = canvas.getContext("2d")
-      if (!ctx) return
-
-      const img = new window.Image()
-      img.onload = () => {
-        canvas.width = img.width
-        canvas.height = img.height
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(
-          canvas.width / 2,
-          canvas.height / 2,
-          canvas.width / 2,
-          0,
-          Math.PI * 2
-        )
-        ctx.closePath()
-        ctx.clip()
-        ctx.drawImage(img, 0, 0)
-        ctx.restore()
-      }
-      img.src = chatButtonStyling.chatButtonIcon as string
-    }
-  }, [tab, chatButtonStyling.chatButtonIcon, chatButtonIconPreviewCanvasRef])
-
   const brandColor = {
     backgroundColor: brandStyling.backgroundColor ?? "#1E50EF",
     color: brandStyling.color ?? "#FFFFFF"
@@ -122,6 +67,7 @@ const ChatPreview = ({
   }
 
   const welcomeScreenAppearance = welcomeScreenStyling.welcomeScreenAppearance
+  const chatButtonIcon = chatButtonStyling.chatButtonIcon
 
   const buttonPosition = {
     left: chatButtonStyling.chatButtonPosition === "right" ? "100%" : 0,
@@ -372,19 +318,20 @@ const ChatPreview = ({
                   layout
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  {chatButtonStyling.chatButtonIcon ? (
-                    <div className="relative flex items-center overflow-clip">
-                      <canvas
-                        ref={chatButtonIconPreviewCanvasRef}
-                        className="h-14 w-14 rounded-full object-contain object-center"
-                      />
-                    </div>
+                  {/* {chatButtonStyling.chatButtonIcon ? (
+                    <Image
+                      src={chatButtonIcon as string}
+                      alt="Brand Logo"
+                      width={56}
+                      height={56}
+                      className="rounded-full"
+                    />
                   ) : (
                     <IconDiamond
                       className="h-8 w-8"
                       style={{ color: chatButtonStyling.chatButtonTextColor }}
                     />
-                  )}
+                  )} */}
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -408,21 +355,10 @@ const ChatPreview = ({
                     style={brandColor}
                   >
                     <div className="flex items-center space-x-1.5 py-5">
-                      {brandStyling.brandLogo ? (
-                        <div className="relative flex items-center overflow-clip">
-                          <canvas
-                            ref={brandLogoPreviewCanvasRef}
-                            className="h-8 w-32 object-contain object-left"
-                          />
-                        </div>
-                      ) : (
-                        <>
-                          <IconDiamond className="h-7 w-7" />
-                          <p className="text-2xl font-extrabold uppercase">
-                            {contentPreview?.botName?.trim() || "Noopy"}
-                          </p>
-                        </>
-                      )}
+                      <IconDiamond className="h-7 w-7" />
+                      <p className="text-2xl font-extrabold uppercase">
+                        {contentPreview?.botName?.trim() || "Noopy"}
+                      </p>
                     </div>
 
                     <div className="flex flex-col space-y-0.5 capitalize">
@@ -510,12 +446,13 @@ const ChatPreview = ({
                 transition={{ duration: 0.5, ease: "easeInOut" }}
               >
                 {chatButtonStyling.chatButtonIcon ? (
-                  <div className="relative flex items-center overflow-clip">
-                    <canvas
-                      ref={chatButtonIconPreviewCanvasRef}
-                      className="h-14 w-14 rounded-full object-contain object-center"
-                    />
-                  </div>
+                  <Image
+                    src={chatButtonIcon as string}
+                    alt="Brand Logo"
+                    width={56}
+                    height={56}
+                    className="rounded-full"
+                  />
                 ) : (
                   <IconDiamond
                     className="h-8 w-8"

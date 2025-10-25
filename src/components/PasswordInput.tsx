@@ -1,16 +1,16 @@
-import * as React from "react"
 import { IconEye, IconEyeOff } from "@tabler/icons-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
+import { forwardRef, useState } from "react"
 
 type PasswordInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "type"
 >
 
-const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
+const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className = "", disabled, ...props }, ref) => {
-    const [showPassword, setShowPassword] = React.useState(false)
+    const [showPassword, setShowPassword] = useState(false)
     return (
       <div className={cn("relative rounded-md", className)}>
         <input

@@ -55,6 +55,7 @@ export function NavGroup({ title, items, prefix }: NavGroupProps) {
                   // isActive={checkIsActive(pathname, item, true)}
                   isActive={checkIsActive(path, item, true)}
                   tooltip={item.title}
+                  className={`${item.disabled ? "pointer-events-none opacity-30" : ""}`}
                 >
                   <Link
                     href={prefix + item.url}
@@ -81,6 +82,7 @@ export function NavGroup({ title, items, prefix }: NavGroupProps) {
                   <SidebarMenuButton
                     tooltip={item.title}
                     isActive={checkIsActive(path, item, true)}
+                    className={`${item.disabled ? "pointer-events-none opacity-30" : ""}`}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -96,6 +98,7 @@ export function NavGroup({ title, items, prefix }: NavGroupProps) {
                           asChild
                           // isActive={checkIsActive(pathname, subItem)}
                           isActive={checkIsActive(path, subItem)}
+                          className={`${subItem.disabled ? "pointer-events-none opacity-30" : ""}`}
                         >
                           <Link
                             href={prefix + subItem.url}

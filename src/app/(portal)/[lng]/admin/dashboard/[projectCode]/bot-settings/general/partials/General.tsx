@@ -36,10 +36,10 @@ const General = () => {
 
   return (
     <section className="flex w-full flex-col py-4 pr-2">
-      <h2 className="mx-auto w-full max-w-4xl self-start text-left text-3xl font-semibold">
+      <h2 className="mx-auto w-full max-w-4xl self-start px-5 text-left text-3xl font-semibold">
         General
       </h2>
-      <ScrollArea className="mt-3 h-[calc(100vh_-_150px)] w-full">
+      <ScrollArea className="mt-3 h-[calc(100vh_-_150px)] w-full px-5">
         <div className="mx-auto mb-5 flex max-w-4xl flex-col space-y-7">
           <AgentDetailsCard
             currentProject={currentProject}

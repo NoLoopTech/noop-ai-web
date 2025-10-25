@@ -11,6 +11,7 @@ import { roleRedirectMap } from "@/lib/roleRedirectMap"
 
 import "@/app/globals.css"
 import { ThemeProvider } from "@/components/layout/ThemeProvider"
+import { Toaster } from "@/components/ui/toaster"
 
 export const metadata = {
   title: "Noopy – Powering Smart Conversations",
@@ -42,6 +43,7 @@ export default async function RootLayout({
             <ReactQueryWrapper>
               {/* <NavBase /> */}
               {children}
+              <Toaster />
             </ReactQueryWrapper>
           </NextAuthProvider>
         </ThemeProvider>

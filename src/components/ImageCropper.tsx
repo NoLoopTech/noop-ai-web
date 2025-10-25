@@ -283,7 +283,7 @@ const ImageCropper = ({
             type="button"
             variant="outline"
           >
-            <XIcon className="mr-2 h-4 w-4" />
+            <XIcon className="h-4 w-4" />
             Remove
           </Button>
 
@@ -324,7 +324,7 @@ const ImageCropper = ({
             type="button"
             variant="outline"
           >
-            <XIcon className="mr-2 h-4 w-4" />
+            <XIcon className="h-4 w-4" />
             Cancel
           </Button>
         </div>

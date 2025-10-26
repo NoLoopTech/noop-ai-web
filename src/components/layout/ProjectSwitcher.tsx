@@ -46,7 +46,8 @@ export function ProjectSwitcher() {
     const projects = userProjects ?? []
     return projects.map((project, index) => ({
       id: project.id,
-      projectName: project.projectName ?? `Project ${index + 1}`
+      projectName: project.projectName ?? `Project ${index + 1}`,
+      chatbotCode: project.chatbotCode // INFO: Add chatbotCode for URL building
     }))
   }, [userProjects])
 
@@ -63,16 +64,20 @@ export function ProjectSwitcher() {
   }
 
   // Use transition and close dropdown on select
-  const handleSelectProject = (projectId: number) => () => {
-    setProjectSwitcherOpen(false)
-    startTransition(() => {
-      const pathParts = pathname.split("/").filter(p => p)
-      if (pathParts.length >= 4) {
-        const newPath = `/${prefix}/${projectId}/overview`
-        router.push(newPath)
-      }
-    })
-  }
+  const handleSelectProject =
+    (project: { id: number; projectName: string; chatbotCode?: string }) =>
+    () => {
+      setProjectSwitcherOpen(false)
+      startTransition(() => {
+        const pathParts = pathname.split("/").filter(p => p)
+        if (pathParts.length >= 4) {
+          // Use chatbotCode for URL, fallback to numeric id
+          const projectSegment = project.chatbotCode ?? String(project.id)
+          const newPath = `/${prefix}/${projectSegment}/overview`
+          router.push(newPath)
+        }
+      })
+    }
 
   return (
     <SidebarMenu>
@@ -118,7 +123,7 @@ export function ProjectSwitcher() {
               {memoizedProjects.map((project, index) => (
                 <DropdownMenuItem
                   key={project.id}
-                  onClick={handleSelectProject(project.id)}
+                  onClick={handleSelectProject(project)}
                   className="gap-2 p-2 text-balance"
                 >
                   {/* <div className="flex size-6 items-center justify-center rounded-sm border">

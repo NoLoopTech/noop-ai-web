@@ -17,13 +17,15 @@ import {
 import { Smile } from "lucide-react"
 import { motion, AnimatePresence, MotionConfig } from "motion/react"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface ChatPreviewProps extends ChatStylePreviewType {
   contentPreview: ContentForm | undefined
   isBotSettingsLoading: boolean
   brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
   chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  isChatIconCropping?: boolean
+  isBrandLogoCropping?: boolean
 }
 
 const ChatPreview = ({
@@ -33,7 +35,9 @@ const ChatPreview = ({
   contentPreview,
   isBotSettingsLoading,
   brandLogoPreviewCanvasRef,
-  chatButtonIconPreviewCanvasRef
+  chatButtonIconPreviewCanvasRef,
+  isChatIconCropping,
+  isBrandLogoCropping
 }: ChatPreviewProps) => {
   const [tab, setTab] = useState("chat")
 
@@ -74,6 +78,67 @@ const ChatPreview = ({
     right: chatButtonStyling.chatButtonPosition === "left" ? "100%" : 0
   }
 
+  useEffect(() => {
+    const canvas = brandLogoPreviewCanvasRef.current
+    const logoSrc = brandStyling.brandLogo
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const width = 128
+    const height = 32
+    canvas.width = width
+    canvas.height = height
+    ctx.clearRect(0, 0, width, height)
+
+    if (!logoSrc) return
+
+    const img = new window.Image()
+    img.crossOrigin = "anonymous"
+    img.onload = () => {
+      ctx.clearRect(0, 0, width, height)
+      const scale = Math.min(width / img.width, height / img.height)
+      const drawWidth = img.width * scale
+      const drawHeight = img.height * scale
+      const offsetX = 0 // Align left
+      const offsetY = (height - drawHeight) / 2
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight)
+    }
+    img.onerror = () => ctx.clearRect(0, 0, width, height)
+    img.src = logoSrc as string
+  }, [brandStyling.brandLogo, brandLogoPreviewCanvasRef])
+
+  useEffect(() => {
+    const canvas = chatButtonIconPreviewCanvasRef.current
+    const iconSrc = chatButtonStyling.chatButtonIcon
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const size = 56
+    canvas.width = size
+    canvas.height = size
+    ctx.clearRect(0, 0, size, size)
+
+    if (!iconSrc) return
+
+    const img = new window.Image()
+    img.crossOrigin = "anonymous"
+    img.onload = () => {
+      ctx.clearRect(0, 0, size, size)
+      const scale = Math.min(size / img.width, size / img.height)
+      const drawWidth = img.width * scale
+      const drawHeight = img.height * scale
+      const offsetX = (size - drawWidth) / 2
+      const offsetY = (size - drawHeight) / 2
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight)
+    }
+    img.onerror = () => ctx.clearRect(0, 0, size, size)
+    img.src = iconSrc as string
+  }, [chatButtonStyling.chatButtonIcon, chatButtonIconPreviewCanvasRef])
+
   return (
     <MotionConfig
       transition={{ duration: 0.5, ease: "easeInOut", type: "tween" }}
@@ -111,11 +176,35 @@ const ChatPreview = ({
                         className="flex h-12 items-center justify-between rounded-t-xl px-5"
                         style={brandColor}
                       >
-                        <div className="relative flex items-center overflow-clip text-[6px]">
+                        {/* <div className="relative flex items-center overflow-clip text-[6px]">
                           <canvas
                             ref={brandLogoPreviewCanvasRef}
                             className={`h-8 w-32 object-contain object-left`}
                           />
+                        </div> */}
+                        <div className="relative flex items-center overflow-clip rounded-sm text-[6px]">
+                          {isBotSettingsLoading ? (
+                            <div
+                              style={buttonStyle}
+                              className={`shine flex h-8 w-32 object-contain object-left`}
+                            />
+                          ) : (
+                            <div className="relative flex items-center justify-center">
+                              <canvas
+                                ref={brandLogoPreviewCanvasRef}
+                                className={`h-8 w-32 object-contain object-left`}
+                              />
+                              {!brandStyling.brandLogo &&
+                                !isBrandLogoCropping && (
+                                  <p
+                                    className="text-3xl font-semibold uppercase"
+                                    style={{ color: brandColor.color }}
+                                  >
+                                    {contentPreview?.botName}
+                                  </p>
+                                )}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center space-x-3">
                           <IconArrowsDiagonal className="h-5 w-5" />
@@ -212,7 +301,12 @@ const ChatPreview = ({
                 </motion.div>
               </AnimatePresence>
 
-              {!isBotSettingsLoading && (
+              {isBotSettingsLoading ? (
+                <div
+                  style={buttonStyle}
+                  className={`shine flex h-14 w-14 flex-shrink-0 rounded-full`}
+                />
+              ) : (
                 <motion.div
                   className="flex h-14 w-14 items-center justify-center rounded-full"
                   style={buttonStyle}
@@ -220,16 +314,20 @@ const ChatPreview = ({
                   layout
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  {/* <IconDiamond
-                    className="h-8 w-8"
-                    style={{ color: chatButtonStyling.chatButtonTextColor }}
-                  /> */}
-
-                  <div className="relative flex items-center overflow-clip text-[6px]">
+                  <div className="relative flex h-14 w-14 items-center justify-center overflow-clip rounded-full text-[6px]">
                     <canvas
                       ref={chatButtonIconPreviewCanvasRef}
                       className={`h-14 w-14 rounded-full object-contain object-center`}
                     />
+                    {!chatButtonStyling.chatButtonIcon &&
+                      !isChatIconCropping && (
+                        <IconDiamond
+                          className="absolute h-8 w-8"
+                          style={{
+                            color: chatButtonStyling.chatButtonTextColor
+                          }}
+                        />
+                      )}
                   </div>
                 </motion.div>
               )}

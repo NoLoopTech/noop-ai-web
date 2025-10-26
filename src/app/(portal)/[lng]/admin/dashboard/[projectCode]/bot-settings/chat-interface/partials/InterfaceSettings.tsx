@@ -25,6 +25,8 @@ interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   isBotSettingsLoading: boolean
   brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
   chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  setIsChatIconCropping?: (isCropping: boolean) => void
+  setIsBrandLogoCropping?: (isCropping: boolean) => void
 }
 
 const InterfaceSettings = ({
@@ -36,7 +38,9 @@ const InterfaceSettings = ({
   stylingSettings,
   isBotSettingsLoading,
   brandLogoPreviewCanvasRef,
-  chatButtonIconPreviewCanvasRef
+  chatButtonIconPreviewCanvasRef,
+  setIsChatIconCropping,
+  setIsBrandLogoCropping
 }: InterfaceSettingsProps) => {
   const [tab, setTab] = useState("content")
   const [stylingFormUpdate, setStylingFormUpdate] = useState<
@@ -115,6 +119,8 @@ const InterfaceSettings = ({
               stylingSettings={stylingFormUpdate}
               brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
               chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
+              setIsChatIconCropping={setIsChatIconCropping}
+              setIsBrandLogoCropping={setIsBrandLogoCropping}
             />
           )}
         </AnimatePresence>

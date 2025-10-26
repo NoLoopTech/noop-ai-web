@@ -57,6 +57,8 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
   stylingSettings?: StyleFormInitial | undefined
   brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
   chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  setIsChatIconCropping?: (isCropping: boolean) => void
+  setIsBrandLogoCropping?: (isCropping: boolean) => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -73,6 +75,13 @@ function getContrastTextColor(hex: string): string {
   return luminance > 0.5 ? "#000000" : "#FFFFFF"
 }
 
+const FALLBACK_IMAGE_MIME = "image/png"
+
+function mimeTypeToExtension(mimeType: string) {
+  const [, ext] = mimeType.split("/")
+  return ext || "png"
+}
+
 const ChatInterfaceStyles = ({
   tabVariants,
   setBrandStyling,
@@ -80,7 +89,9 @@ const ChatInterfaceStyles = ({
   setWelcomeScreenStyling,
   stylingSettings,
   brandLogoPreviewCanvasRef,
-  chatButtonIconPreviewCanvasRef
+  chatButtonIconPreviewCanvasRef,
+  setIsChatIconCropping,
+  setIsBrandLogoCropping
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
@@ -129,33 +140,59 @@ const ChatInterfaceStyles = ({
       ?.projectName.replace(/\s/g, "-") ||
     `project-${currentProjectId || "unknown"}`
 
+  const brandLogoFile = form.watch("brandLogo")
+  const brandLogoMimeType = useMemo(
+    () =>
+      brandLogoFile instanceof File && brandLogoFile.type
+        ? brandLogoFile.type
+        : FALLBACK_IMAGE_MIME,
+    [brandLogoFile]
+  )
+
   const { data: getBrandLogoUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
     expiresOn: string
-  }>(["get-brand-logo-upload-url"], "/botsettings/image/upload", () => ({
-    method: "post",
-    data: {
-      fileName: "brand-logo-local.png",
-      contentType: "image/png",
-      folder: currentProjectName
-    }
-  }))
+  }>(
+    ["get-brand-logo-upload-url", brandLogoMimeType],
+    "/botsettings/image/upload",
+    () => ({
+      method: "post",
+      data: {
+        fileName: `brand-logo-local.${mimeTypeToExtension(brandLogoMimeType)}`,
+        contentType: brandLogoMimeType,
+        folder: currentProjectName
+      }
+    })
+  )
+
+  const chatButtonIconFile = form.watch("chatButtonIcon")
+  const chatButtonMimeType = useMemo(
+    () =>
+      chatButtonIconFile instanceof File && chatButtonIconFile.type
+        ? chatButtonIconFile.type
+        : FALLBACK_IMAGE_MIME,
+    [chatButtonIconFile]
+  )
 
   const { data: getChatButtonIconUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
     expiresOn: string
-  }>(["get-chat-button-icon-upload-url"], "/botsettings/image/upload", () => ({
-    method: "post",
-    data: {
-      fileName: "chat-button-icon-local.png",
-      contentType: "image/png",
-      folder: currentProjectName
-    }
-  }))
+  }>(
+    ["get-chat-button-icon-upload-url", chatButtonMimeType],
+    "/botsettings/image/upload",
+    () => ({
+      method: "post",
+      data: {
+        fileName: `chat-button-icon-local.${mimeTypeToExtension(chatButtonMimeType)}`,
+        contentType: chatButtonMimeType,
+        folder: currentProjectName
+      }
+    })
+  )
 
   const resetColor =
     <T extends keyof StyleForm>(
@@ -243,7 +280,7 @@ const ChatInterfaceStyles = ({
         theme: theme ?? "light",
         backgroundColor: brandBgColor,
         color: brandTextColor,
-        brandLogo: null
+        brandLogo: typeof brandLogoFile === "string" ? brandLogoFile : null
       })
     }
   }, [
@@ -295,7 +332,8 @@ const ChatInterfaceStyles = ({
       setChatButtonStyling({
         backgroundColor: chatButtonBgColor,
         borderColor: chatButtonBorderColor,
-        chatButtonIcon: null,
+        chatButtonIcon:
+          typeof chatButtonIconFile === "string" ? chatButtonIconFile : null,
         chatButtonTextColor: chatButtonTextColor,
         chatButtonPosition: chatButtonPosition
       })
@@ -328,8 +366,6 @@ const ChatInterfaceStyles = ({
     setWelcomeScreenStyling
   ])
 
-  // --------------------------------------------------------------
-
   function handleBrandLogoInputChange(
     file: File | null,
     fileToDataUrl: (file: File) => Promise<string>,
@@ -337,9 +373,11 @@ const ChatInterfaceStyles = ({
     setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
     setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
     setCroppedMeta: React.Dispatch<React.SetStateAction<CroppedMeta | null>>,
-    fieldOnChange: (file: File) => void
+    fieldOnChange: (file: File | null) => void
   ) {
     if (file) {
+      setIsBrandLogoCropping?.(true)
+      setBrandLogoCropApplied(false)
       fileToDataUrl(file).then(dataUrl => {
         setImgSrc(dataUrl)
         setCroppingDone(false)
@@ -347,6 +385,12 @@ const ChatInterfaceStyles = ({
         setCroppedMeta(null)
         fieldOnChange(file)
       })
+    } else {
+      setIsBrandLogoCropping?.(false)
+      setBrandLogoCroppedImgUrl("")
+      setBrandLogoCroppedMeta(null)
+      setBrandLogoCropApplied(false)
+      fieldOnChange(null)
     }
   }
 
@@ -377,11 +421,12 @@ const ChatInterfaceStyles = ({
     setBrandLogoCroppedMeta(meta)
   }
 
-  function handleBrandLogoCancelCrop() {
-    setImgSrc("")
-  }
-
-  // -----------------------------------
+  const handleBrandLogoCancelCrop =
+    (fieldOnChange: (file: File | null) => void) => () => {
+      setBrandLogoCropApplied(false)
+      setImgSrc("")
+      fieldOnChange(null)
+    }
 
   function handleChatButtonInputChange(
     file: File | null,
@@ -390,9 +435,11 @@ const ChatInterfaceStyles = ({
     setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
     setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
     setCroppedMeta: React.Dispatch<React.SetStateAction<CroppedMeta | null>>,
-    fieldOnChange: (file: File) => void
+    fieldOnChange: (file: File | null) => void
   ) {
     if (file) {
+      setIsChatIconCropping?.(true)
+      setChatButtonCropApplied(false)
       fileToDataUrl(file).then(dataUrl => {
         setImgSrc(dataUrl)
         setCroppingDone(false)
@@ -400,6 +447,12 @@ const ChatInterfaceStyles = ({
         setCroppedMeta(null)
         fieldOnChange(file)
       })
+    } else {
+      setIsChatIconCropping?.(false)
+      setChatButtonCroppedImgUrl("")
+      setChatButtonCroppedMeta(null)
+      setChatButtonCropApplied(false)
+      fieldOnChange(null)
     }
   }
 
@@ -430,11 +483,12 @@ const ChatInterfaceStyles = ({
     setChatButtonCroppedMeta(meta)
   }
 
-  function handleCancelChatButtonCrop() {
-    setChatButtonIconSrc("")
-  }
-
-  // --------------------------------------------------------------
+  const handleCancelChatButtonCrop =
+    (fieldOnChange: (file: File | null) => void) => () => {
+      setChatButtonIconSrc("")
+      setChatButtonCropApplied(false)
+      fieldOnChange(null)
+    }
 
   return (
     <TabsContent key="style" value="style">
@@ -475,7 +529,9 @@ const ChatInterfaceStyles = ({
                             <FormControl>
                               <ImageCropper
                                 src={imgSrc}
-                                onCancel={handleBrandLogoCancelCrop}
+                                onCancel={handleBrandLogoCancelCrop(
+                                  field.onChange
+                                )}
                                 previewCanvasRef={brandLogoPreviewCanvasRef}
                                 setCroppedImgUrl={(url: string) =>
                                   handleBrandLogoCrop(
@@ -713,7 +769,9 @@ const ChatInterfaceStyles = ({
                             <FormControl>
                               <ImageCropper
                                 src={chatButtonIconSrc}
-                                onCancel={handleCancelChatButtonCrop}
+                                onCancel={handleCancelChatButtonCrop(
+                                  field.onChange
+                                )}
                                 previewCanvasRef={
                                   chatButtonIconPreviewCanvasRef
                                 }

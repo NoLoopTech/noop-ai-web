@@ -220,7 +220,7 @@ const ChatInterface = () => {
   return (
     <>
       {/* Chat Interface - content/styles */}
-      <div className="bg-background flex-1 space-y-4 p-4">
+      <div className="bg-background w-8/12 space-y-4 p-4">
         <h2 className="text-xl font-semibold">Chat Interface</h2>
 
         <InterfaceSettings

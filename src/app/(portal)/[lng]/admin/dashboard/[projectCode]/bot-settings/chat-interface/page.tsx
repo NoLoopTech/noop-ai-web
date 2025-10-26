@@ -6,7 +6,7 @@ export default function BotSettings() {
     <>
       <Header />
 
-      <div className="flex">
+      <div className="flex w-full overflow-hidden">
         <ChatInterface />
       </div>
     </>

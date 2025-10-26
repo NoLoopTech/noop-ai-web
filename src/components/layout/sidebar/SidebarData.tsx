@@ -74,7 +74,8 @@ export const sidebarData: SidebarData = {
         {
           title: "Integrations",
           url: "/integrations",
-          icon: IconLink
+          icon: IconLink,
+          disabled: true
         },
         {
           title: "Bot Settings",
@@ -84,22 +85,25 @@ export const sidebarData: SidebarData = {
               title: "General",
               url: "/bot-settings/general"
             },
-            // {
-            //   title: "Bot Behaviour",
-            //   url: "/bot-settings/bot-behaviour"
-            // },
+            {
+              title: "Bot Behaviour",
+              url: "/bot-settings/bot-behaviour",
+              disabled: true
+            },
             {
               title: "Chat Interface",
               url: "/bot-settings/chat-interface"
+            },
+            {
+              title: "Data Sources",
+              url: "/bot-settings/data-sources",
+              disabled: true
+            },
+            {
+              title: "Playground",
+              url: "/bot-settings/playground",
+              disabled: true
             }
-            // {
-            //   title: "Data Sources",
-            //   url: "/bot-settings/data-sources"
-            // },
-            // {
-            //   title: "Playground",
-            //   url: "/bot-settings/playground"
-            // }
           ]
         }
       ]
@@ -110,17 +114,20 @@ export const sidebarData: SidebarData = {
         {
           title: "Team & Membership",
           url: "/team",
-          icon: IconUsers
+          icon: IconUsers,
+          disabled: true
         },
         {
           title: "Marketplace",
           url: "/marketplace",
-          icon: IconBuildingStore
+          icon: IconBuildingStore,
+          disabled: true
         },
         {
           title: "Plans & Billings",
           url: "/billings",
-          icon: IconReceiptDollar
+          icon: IconReceiptDollar,
+          disabled: true
         }
       ]
     },
@@ -130,12 +137,14 @@ export const sidebarData: SidebarData = {
         {
           title: "Help & Support",
           url: "/settings",
-          icon: IconHeartHandshake
+          icon: IconHeartHandshake,
+          disabled: true
         },
         {
           title: "Settings",
           url: "/settings",
-          icon: IconSettings
+          icon: IconSettings,
+          disabled: true
         }
       ]
     }

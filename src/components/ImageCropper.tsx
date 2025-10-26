@@ -38,6 +38,9 @@ interface ImageCropperProps {
   croppingDone?: boolean
   setImgSrc: (src: string) => void
   popoverTriggerText?: string
+  setCroppingDone?: (done: boolean) => void
+  backgroundColor?: string
+  resetInputOnApply?: boolean
 }
 
 export default function ImageCropper({
@@ -55,7 +58,10 @@ export default function ImageCropper({
   croppedMeta,
   croppingDone,
   setImgSrc,
-  popoverTriggerText
+  popoverTriggerText,
+  setCroppingDone,
+  backgroundColor,
+  resetInputOnApply = true
 }: ImageCropperProps) {
   const DEFAULT_CROP: Crop = { unit: "%", width: 30, aspect: 16 / 9 }
 
@@ -219,9 +225,10 @@ export default function ImageCropper({
       })
 
       setCropApplied(true)
+      setCroppingDone?.(true)
       setPopoverOpen(false)
       setImgSrc("")
-      if (onFileChange) {
+      if (onFileChange && resetInputOnApply) {
         onFileChange(null)
       }
     }
@@ -354,6 +361,7 @@ export default function ImageCropper({
             className={`${
               variant === "circular" ? "rounded-full" : "rounded-md"
             }`}
+            style={{ backgroundColor: backgroundColor }}
           >
             <CardContent className={`h-max w-max overflow-hidden p-1`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

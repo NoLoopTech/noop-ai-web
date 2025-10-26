@@ -116,6 +116,12 @@ const ChatInterfaceStyles = ({
   const [chatButtonCroppingDone, setChatButtonCroppingDone] = useState(false)
   const [chatButtonCropApplied, setChatButtonCropApplied] = useState(false)
 
+  const [croppedBrandLogoFile, setCroppedBrandLogoFile] = useState<File | null>(
+    null
+  )
+  const [croppedChatButtonIconFile, setCroppedChatButtonIconFile] =
+    useState<File | null>(null)
+
   const currentProjectId = useProjectCode()
 
   const { data: userProjects } = useApiQuery<UserProject[]>(
@@ -251,16 +257,19 @@ const ChatInterfaceStyles = ({
     const brandTextColor = form.watch("brandTextColor")
     const brandLogoFile = form.watch("brandLogo")
 
-    if (brandLogoFile instanceof File && brandLogoCropApplied) {
-      fileToDataUrl(brandLogoFile).then(dataUrl => {
+    if (croppedBrandLogoFile && brandLogoCropApplied) {
+      fileToDataUrl(croppedBrandLogoFile).then(dataUrl => {
         setBrandStyling({
           theme: theme ?? "light",
           backgroundColor: brandBgColor,
           color: brandTextColor,
           brandLogo: dataUrl
         })
-        if (brandLogoCropApplied && getBrandLogoUploadUrl?.uploadUrl) {
-          uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
+        if (getBrandLogoUploadUrl?.uploadUrl) {
+          uploadImageToAzure(
+            getBrandLogoUploadUrl.uploadUrl,
+            croppedBrandLogoFile // Use the cropped file for upload
+          )
             .then(() => {
               setBrandStyling({
                 theme: theme ?? "light",
@@ -276,6 +285,7 @@ const ChatInterfaceStyles = ({
         }
       })
     } else {
+      // This is the fallback for initial load or when no new file is cropped.
       setBrandStyling({
         theme: theme ?? "light",
         backgroundColor: brandBgColor,
@@ -289,7 +299,8 @@ const ChatInterfaceStyles = ({
     form.watch("brandLogo"),
     setBrandStyling,
     brandLogoCropApplied,
-    getBrandLogoUploadUrl
+    getBrandLogoUploadUrl,
+    croppedBrandLogoFile
   ])
 
   useEffect(() => {
@@ -299,8 +310,8 @@ const ChatInterfaceStyles = ({
     const chatButtonPosition = form.watch("chatButtonPosition")
     const chatButtonTextColor = form.watch("chatButtonTextColor")
 
-    if (chatButtonIconFile instanceof File && chatButtonCropApplied) {
-      fileToDataUrl(chatButtonIconFile).then(dataUrl => {
+    if (croppedChatButtonIconFile && chatButtonCropApplied) {
+      fileToDataUrl(croppedChatButtonIconFile).then(dataUrl => {
         setChatButtonStyling({
           backgroundColor: chatButtonBgColor,
           borderColor: chatButtonBorderColor,
@@ -308,10 +319,10 @@ const ChatInterfaceStyles = ({
           chatButtonTextColor: chatButtonTextColor,
           chatButtonPosition: chatButtonPosition
         })
-        if (chatButtonCropApplied && getChatButtonIconUploadUrl?.uploadUrl) {
+        if (getChatButtonIconUploadUrl?.uploadUrl) {
           uploadImageToAzure(
             getChatButtonIconUploadUrl.uploadUrl,
-            chatButtonIconFile
+            croppedChatButtonIconFile // Use the cropped file for upload
           )
             .then(() => {
               setChatButtonStyling({
@@ -346,7 +357,8 @@ const ChatInterfaceStyles = ({
     form.watch("chatButtonTextColor"),
     setChatButtonStyling,
     chatButtonCropApplied,
-    getChatButtonIconUploadUrl
+    getChatButtonIconUploadUrl,
+    croppedChatButtonIconFile
   ])
 
   useEffect(() => {
@@ -378,6 +390,7 @@ const ChatInterfaceStyles = ({
     if (file) {
       setIsBrandLogoCropping?.(true)
       setBrandLogoCropApplied(false)
+      setCroppedBrandLogoFile(null)
       fileToDataUrl(file).then(dataUrl => {
         setImgSrc(dataUrl)
         setCroppingDone(false)
@@ -390,6 +403,7 @@ const ChatInterfaceStyles = ({
       setBrandLogoCroppedImgUrl("")
       setBrandLogoCroppedMeta(null)
       setBrandLogoCropApplied(false)
+      setCroppedBrandLogoFile(null)
       fieldOnChange(null)
     }
   }
@@ -398,7 +412,6 @@ const ChatInterfaceStyles = ({
     url: string,
     setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
     setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
-    fieldOnChange: (file: File) => void,
     setBrandLogoCropApplied: React.Dispatch<React.SetStateAction<boolean>>
   ) {
     setCroppedImgUrl(url)
@@ -408,7 +421,7 @@ const ChatInterfaceStyles = ({
     const croppedFile = new File([blob], "brand-logo-cropped.png", {
       type: "image/png"
     })
-    fieldOnChange(croppedFile)
+    setCroppedBrandLogoFile(croppedFile)
     setBrandLogoCropApplied(true)
   }
 
@@ -425,6 +438,7 @@ const ChatInterfaceStyles = ({
     (fieldOnChange: (file: File | null) => void) => () => {
       setBrandLogoCropApplied(false)
       setImgSrc("")
+      setCroppedBrandLogoFile(null)
       fieldOnChange(null)
     }
 
@@ -440,6 +454,7 @@ const ChatInterfaceStyles = ({
     if (file) {
       setIsChatIconCropping?.(true)
       setChatButtonCropApplied(false)
+      setCroppedChatButtonIconFile(null)
       fileToDataUrl(file).then(dataUrl => {
         setImgSrc(dataUrl)
         setCroppingDone(false)
@@ -452,6 +467,7 @@ const ChatInterfaceStyles = ({
       setChatButtonCroppedImgUrl("")
       setChatButtonCroppedMeta(null)
       setChatButtonCropApplied(false)
+      setCroppedChatButtonIconFile(null)
       fieldOnChange(null)
     }
   }
@@ -471,6 +487,7 @@ const ChatInterfaceStyles = ({
       type: "image/png"
     })
     fieldOnChange(croppedFile)
+    setCroppedChatButtonIconFile(croppedFile)
     setCropApplied(true)
   }
 
@@ -487,6 +504,7 @@ const ChatInterfaceStyles = ({
     (fieldOnChange: (file: File | null) => void) => () => {
       setChatButtonIconSrc("")
       setChatButtonCropApplied(false)
+      setCroppedChatButtonIconFile(null)
       fieldOnChange(null)
     }
 
@@ -505,7 +523,7 @@ const ChatInterfaceStyles = ({
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
               <form id="chat-interface-style" className="flex flex-col gap-4">
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
                       Brand Styling
@@ -538,8 +556,7 @@ const ChatInterfaceStyles = ({
                                     url,
                                     setBrandLogoCroppedImgUrl,
                                     setBrandLogoCroppingDone,
-                                    field.onChange,
-                                    setBrandLogoCropApplied
+                                    field.onChange
                                   )
                                 }
                                 setCroppedMeta={handleSetBrandLogoCroppedMeta}
@@ -563,6 +580,8 @@ const ChatInterfaceStyles = ({
                                 croppedMeta={brandLogoCroppedMeta}
                                 setImgSrc={setImgSrc}
                                 popoverTriggerText="Select Logo"
+                                backgroundColor={form.watch("brandBgColor")}
+                                resetInputOnApply={false}
                               />
                             </FormControl>
                           </div>
@@ -668,7 +687,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
                       Chat Appearance{" "}
@@ -740,7 +759,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <div className="flex items-center justify-between">
                       <div className="flex w-full items-center justify-between">
@@ -805,6 +824,10 @@ const ChatInterfaceStyles = ({
                                 croppedMeta={chatButtonCroppedMeta}
                                 setImgSrc={setChatButtonIconSrc}
                                 popoverTriggerText="Select Icon"
+                                backgroundColor={form.watch(
+                                  "chatButtonBgColor"
+                                )}
+                                resetInputOnApply={false}
                               />
                             </FormControl>
                           </div>
@@ -981,7 +1004,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <div className="flex items-center justify-between">
                       <div className="flex w-full items-center justify-between">

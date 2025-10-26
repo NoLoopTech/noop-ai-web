@@ -27,7 +27,7 @@ const TabSkeleton = () => (
 
 export default function Analytics() {
   return (
-    <Tabs defaultValue="conversations" className="space-y-6">
+    <Tabs defaultValue="track-engagement" className="space-y-6">
       <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
         <TabsTrigger
           value="track-engagement"

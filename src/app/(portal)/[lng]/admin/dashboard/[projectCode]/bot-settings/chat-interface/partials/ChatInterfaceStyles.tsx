@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle
@@ -39,7 +40,6 @@ import { useApiQuery } from "@/query"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { UserProject } from "@/models/project"
 import axios from "axios"
-import { Separator } from "@/components/ui/separator"
 import ImageCropper from "@/components/ImageCropper"
 import { CroppedMeta } from "@/types/reactImageCrop"
 
@@ -521,17 +521,25 @@ const ChatInterfaceStyles = ({
         animate="animate"
         exit="exit"
         transition={{ duration: 0.3 }}
-        className="space-y-4"
+        className="min-w-[630px] space-y-4"
       >
         <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
-              <form id="chat-interface-style" className="flex flex-col gap-4">
-                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
+              <form
+                id="chat-interface-style"
+                className="flex flex-col gap-4 overflow-auto"
+              >
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
                       Brand Styling
                     </CardTitle>
+                    <CardDescription>
+                      Customize your bot’s look to match your brand. Update the
+                      bot profile image and primary color for a consistent
+                      visual identity
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-5">
                     <FormField
@@ -540,9 +548,8 @@ const ChatInterfaceStyles = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Brand Logo</FormLabel>
-
                           <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1 self-start">
+                            <div className="flex flex-col space-y-1">
                               <FormDescription>
                                 Supports JPG, PNG, and SVG
                               </FormDescription>
@@ -592,38 +599,6 @@ const ChatInterfaceStyles = ({
                         </FormItem>
                       )}
                     />
-                    {/* <FormField
-                      control={form.control}
-                      name="brandLogo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Brand Logo</FormLabel>
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1">
-                              <FormDescription>
-                                Supports JPG, PNG, and SVG
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                            <FormControl>
-                              <ImageCropper
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
-                                icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                display="icon-text"
-                                cropShape="logoCrop"
-                                setCropComplete={setBrandLogoCropCompleted}
-                              />
-                            </FormControl>
-                          </div>
-                        </FormItem>
-                      )}
-                    /> */}
-
-                    <Separator />
 
                     <FormField
                       control={form.control}
@@ -691,7 +666,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
                       Chat Appearance{" "}
@@ -699,6 +674,11 @@ const ChatInterfaceStyles = ({
                         (Coming Soon)
                       </span>
                     </CardTitle>
+
+                    <CardDescription>
+                      Control how your chat interface looks. Switch between
+                      light and dark themes to match your website’s style.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-6">
                     <FormField
@@ -718,7 +698,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <FormLabel htmlFor="light">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 p-0 pt-2.5 pl-5">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 p-0 pt-2 pl-3">
                                         <LightIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -738,7 +718,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <FormLabel htmlFor="dark">
                                     <Card className="_hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary _cursor-pointer cursor-not-allowed rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-800 p-0 pt-2.5 pl-5">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-800 p-0 pt-2 pl-3">
                                         <DarkIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -763,17 +743,17 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex flex-col space-y-1">
-                          <CardTitle className="text-xl font-semibold">
-                            Chat Button Appearance
-                          </CardTitle>
-                        </div>
-                      </div>
-                    </div>
+                    <CardTitle className="text-xl font-semibold">
+                      Chat Icon Appearance
+                    </CardTitle>
+
+                    <CardDescription>
+                      Personalize the chat launcher. Upload your own icon,
+                      choose background colors, and set its position on your
+                      site (left or right)
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-6">
                     <FormField
@@ -781,9 +761,9 @@ const ChatInterfaceStyles = ({
                       name="chatButtonIcon"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Chat Button Icon</FormLabel>
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1 self-start">
+                          <FormLabel>Chat icon</FormLabel>
+                          <div className="flex items-start justify-between">
+                            <div className="flex flex-col space-y-1">
                               <FormDescription>
                                 Supports JPG, PNG, and SVG
                               </FormDescription>
@@ -838,36 +818,6 @@ const ChatInterfaceStyles = ({
                         </FormItem>
                       )}
                     />
-                    {/* <FormField
-                      control={form.control}
-                      name="chatButtonIcon"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Chat button icon</FormLabel>
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1">
-                              <FormDescription>
-                                Supports JPG, PNG, and SVG
-                              </FormDescription>
-                              <FormMessage />
-                            </div>
-                            <FormControl>
-                              <ImageCropper
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
-                                icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                cropShape="circle"
-                                display="icon-text"
-                                setCropComplete={setChatButtonCropCompleted}
-                              />
-                            </FormControl>
-                          </div>
-                        </FormItem>
-                      )}
-                    /> */}
 
                     <FormField
                       control={form.control}
@@ -876,7 +826,7 @@ const ChatInterfaceStyles = ({
                         <FormItem>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat button color</FormLabel>
+                              <FormLabel>Chat icon button color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -909,7 +859,7 @@ const ChatInterfaceStyles = ({
                         <FormItem hidden>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat bubble text color</FormLabel>
+                              <FormLabel>Chat icon text color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -932,7 +882,7 @@ const ChatInterfaceStyles = ({
                         <FormItem>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat button border color</FormLabel>
+                              <FormLabel>Chat icon border color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -962,13 +912,13 @@ const ChatInterfaceStyles = ({
                       name="chatButtonPosition"
                       render={({ field }) => (
                         <FormItem className="col-span-6">
-                          <FormLabel>Aligns chat button</FormLabel>
+                          <FormLabel>Aligns chat icon</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                               value={field.value}
-                              className="mt-1 flex h-full w-full flex-col items-start space-y-1"
+                              className="mt-3 flex h-full w-full flex-col items-start space-y-1"
                             >
                               <FormItem>
                                 <FormControl>
@@ -1008,7 +958,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <div className="flex items-center justify-between">
                       <div className="flex w-full items-center justify-between">
@@ -1037,7 +987,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <FormLabel htmlFor="bg-half">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-6 pt-4 pb-0">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-3 pt-0 pb-0 dark:bg-slate-900">
                                         <HalfBgIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -1057,7 +1007,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <FormLabel htmlFor="bg-full">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-6 pt-4 pb-0">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-3 pt-0 pb-0 dark:bg-slate-900">
                                         <FullBgIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">

@@ -277,6 +277,8 @@ const ChatInterfaceStyles = ({
                 color: brandTextColor,
                 brandLogo: getBrandLogoUploadUrl.publicUrl
               })
+              // Reset crop flag after upload completes to prevent re-upload on color changes
+              setBrandLogoCropApplied(false)
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -332,6 +334,8 @@ const ChatInterfaceStyles = ({
                 chatButtonTextColor: chatButtonTextColor,
                 chatButtonPosition: chatButtonPosition
               })
+              // Reset crop flag after upload completes to prevent re-upload on color changes
+              setChatButtonCropApplied(false)
             })
             .catch(err => {
               // eslint-disable-next-line no-console

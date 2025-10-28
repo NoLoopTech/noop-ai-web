@@ -31,16 +31,17 @@ import HalfBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-half.
 import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
 import { useEffect, useMemo, useState } from "react"
-import ImageCropper from "@/components/ImageCropper"
 import {
   InterfaceSettingsTypes,
   StyleForm,
   StyleFormSchema
 } from "@/types/botSettings"
 import { useApiQuery } from "@/query"
-import { UserProject } from "@/models/project"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { UserProject } from "@/models/project"
 import axios from "axios"
+import ImageCropper from "@/components/ImageCropper"
+import { CroppedMeta } from "@/types/reactImageCrop"
 
 type StyleFormInitial = Omit<StyleForm, "brandLogo" | "chatButtonIcon"> & {
   brandLogo?: File | string | null
@@ -54,6 +55,10 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
     exit: { opacity: number; x: number }
   }
   stylingSettings?: StyleFormInitial | undefined
+  brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  setIsChatIconCropping?: (isCropping: boolean) => void
+  setIsBrandLogoCropping?: (isCropping: boolean) => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -70,12 +75,23 @@ function getContrastTextColor(hex: string): string {
   return luminance > 0.5 ? "#000000" : "#FFFFFF"
 }
 
+const FALLBACK_IMAGE_MIME = "image/png"
+
+function mimeTypeToExtension(mimeType: string) {
+  const [, ext] = mimeType.split("/")
+  return ext || "png"
+}
+
 const ChatInterfaceStyles = ({
   tabVariants,
   setBrandStyling,
   setChatButtonStyling,
   setWelcomeScreenStyling,
-  stylingSettings
+  stylingSettings,
+  brandLogoPreviewCanvasRef,
+  chatButtonIconPreviewCanvasRef,
+  setIsChatIconCropping,
+  setIsBrandLogoCropping
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
@@ -84,8 +100,27 @@ const ChatInterfaceStyles = ({
     }
   })
 
-  const [brandLogoCropCompleted, setBrandLogoCropCompleted] = useState(false)
-  const [chatButtonCropCompleted, setChatButtonCropCompleted] = useState(false)
+  const [brandLogoCropApplied, setBrandLogoCropApplied] = useState(false)
+  const [imgSrc, setImgSrc] = useState<string>("")
+  const [brandLogoCroppedImgUrl, setBrandLogoCroppedImgUrl] =
+    useState<string>("")
+  const [brandLogoCroppedMeta, setBrandLogoCroppedMeta] =
+    useState<CroppedMeta | null>(null)
+  const [brandLogoCroppingDone, setBrandLogoCroppingDone] = useState(false)
+
+  const [chatButtonIconSrc, setChatButtonIconSrc] = useState<string>("")
+  const [chatButtonCroppedImgUrl, setChatButtonCroppedImgUrl] =
+    useState<string>("")
+  const [chatButtonCroppedMeta, setChatButtonCroppedMeta] =
+    useState<CroppedMeta | null>(null)
+  const [chatButtonCroppingDone, setChatButtonCroppingDone] = useState(false)
+  const [chatButtonCropApplied, setChatButtonCropApplied] = useState(false)
+
+  const [croppedBrandLogoFile, setCroppedBrandLogoFile] = useState<File | null>(
+    null
+  )
+  const [croppedChatButtonIconFile, setCroppedChatButtonIconFile] =
+    useState<File | null>(null)
 
   const currentProjectId = useProjectCode()
 
@@ -111,33 +146,59 @@ const ChatInterfaceStyles = ({
       ?.projectName.replace(/\s/g, "-") ||
     `project-${currentProjectId || "unknown"}`
 
+  const brandLogoFile = form.watch("brandLogo")
+  const brandLogoMimeType = useMemo(
+    () =>
+      brandLogoFile instanceof File && brandLogoFile.type
+        ? brandLogoFile.type
+        : FALLBACK_IMAGE_MIME,
+    [brandLogoFile]
+  )
+
   const { data: getBrandLogoUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
     expiresOn: string
-  }>(["get-brand-logo-upload-url"], "/botsettings/image/upload", () => ({
-    method: "post",
-    data: {
-      fileName: "brand-logo-local.png",
-      contentType: "image/png",
-      folder: currentProjectName
-    }
-  }))
+  }>(
+    ["get-brand-logo-upload-url", brandLogoMimeType],
+    "/botsettings/image/upload",
+    () => ({
+      method: "post",
+      data: {
+        fileName: `brand-logo-local.${mimeTypeToExtension(brandLogoMimeType)}`,
+        contentType: brandLogoMimeType,
+        folder: currentProjectName
+      }
+    })
+  )
+
+  const chatButtonIconFile = form.watch("chatButtonIcon")
+  const chatButtonMimeType = useMemo(
+    () =>
+      chatButtonIconFile instanceof File && chatButtonIconFile.type
+        ? chatButtonIconFile.type
+        : FALLBACK_IMAGE_MIME,
+    [chatButtonIconFile]
+  )
 
   const { data: getChatButtonIconUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
     expiresOn: string
-  }>(["get-chat-button-icon-upload-url"], "/botsettings/image/upload", () => ({
-    method: "post",
-    data: {
-      fileName: "chat-button-icon-local.png",
-      contentType: "image/png",
-      folder: currentProjectName
-    }
-  }))
+  }>(
+    ["get-chat-button-icon-upload-url", chatButtonMimeType],
+    "/botsettings/image/upload",
+    () => ({
+      method: "post",
+      data: {
+        fileName: `chat-button-icon-local.${mimeTypeToExtension(chatButtonMimeType)}`,
+        contentType: chatButtonMimeType,
+        folder: currentProjectName
+      }
+    })
+  )
 
   const resetColor =
     <T extends keyof StyleForm>(
@@ -196,16 +257,19 @@ const ChatInterfaceStyles = ({
     const brandTextColor = form.watch("brandTextColor")
     const brandLogoFile = form.watch("brandLogo")
 
-    if (brandLogoFile instanceof File && brandLogoCropCompleted) {
-      fileToDataUrl(brandLogoFile).then(dataUrl => {
+    if (croppedBrandLogoFile && brandLogoCropApplied) {
+      fileToDataUrl(croppedBrandLogoFile).then(dataUrl => {
         setBrandStyling({
           theme: theme ?? "light",
           backgroundColor: brandBgColor,
           color: brandTextColor,
           brandLogo: dataUrl
         })
-        if (brandLogoCropCompleted && getBrandLogoUploadUrl?.uploadUrl) {
-          uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
+        if (getBrandLogoUploadUrl?.uploadUrl) {
+          uploadImageToAzure(
+            getBrandLogoUploadUrl.uploadUrl,
+            croppedBrandLogoFile // Use the cropped file for upload
+          )
             .then(() => {
               setBrandStyling({
                 theme: theme ?? "light",
@@ -213,6 +277,8 @@ const ChatInterfaceStyles = ({
                 color: brandTextColor,
                 brandLogo: getBrandLogoUploadUrl.publicUrl
               })
+              // Reset crop flag after upload completes to prevent re-upload on color changes
+              setBrandLogoCropApplied(false)
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -221,11 +287,12 @@ const ChatInterfaceStyles = ({
         }
       })
     } else {
+      // This is the fallback for initial load or when no new file is cropped.
       setBrandStyling({
         theme: theme ?? "light",
         backgroundColor: brandBgColor,
         color: brandTextColor,
-        brandLogo: null
+        brandLogo: typeof brandLogoFile === "string" ? brandLogoFile : null
       })
     }
   }, [
@@ -233,8 +300,9 @@ const ChatInterfaceStyles = ({
     form.watch("brandTextColor"),
     form.watch("brandLogo"),
     setBrandStyling,
-    brandLogoCropCompleted,
-    getBrandLogoUploadUrl
+    brandLogoCropApplied,
+    getBrandLogoUploadUrl,
+    croppedBrandLogoFile
   ])
 
   useEffect(() => {
@@ -244,8 +312,8 @@ const ChatInterfaceStyles = ({
     const chatButtonPosition = form.watch("chatButtonPosition")
     const chatButtonTextColor = form.watch("chatButtonTextColor")
 
-    if (chatButtonIconFile instanceof File && chatButtonCropCompleted) {
-      fileToDataUrl(chatButtonIconFile).then(dataUrl => {
+    if (croppedChatButtonIconFile && chatButtonCropApplied) {
+      fileToDataUrl(croppedChatButtonIconFile).then(dataUrl => {
         setChatButtonStyling({
           backgroundColor: chatButtonBgColor,
           borderColor: chatButtonBorderColor,
@@ -253,10 +321,10 @@ const ChatInterfaceStyles = ({
           chatButtonTextColor: chatButtonTextColor,
           chatButtonPosition: chatButtonPosition
         })
-        if (chatButtonCropCompleted && getChatButtonIconUploadUrl?.uploadUrl) {
+        if (getChatButtonIconUploadUrl?.uploadUrl) {
           uploadImageToAzure(
             getChatButtonIconUploadUrl.uploadUrl,
-            chatButtonIconFile
+            croppedChatButtonIconFile // Use the cropped file for upload
           )
             .then(() => {
               setChatButtonStyling({
@@ -266,6 +334,8 @@ const ChatInterfaceStyles = ({
                 chatButtonTextColor: chatButtonTextColor,
                 chatButtonPosition: chatButtonPosition
               })
+              // Reset crop flag after upload completes to prevent re-upload on color changes
+              setChatButtonCropApplied(false)
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -277,7 +347,8 @@ const ChatInterfaceStyles = ({
       setChatButtonStyling({
         backgroundColor: chatButtonBgColor,
         borderColor: chatButtonBorderColor,
-        chatButtonIcon: null,
+        chatButtonIcon:
+          typeof chatButtonIconFile === "string" ? chatButtonIconFile : null,
         chatButtonTextColor: chatButtonTextColor,
         chatButtonPosition: chatButtonPosition
       })
@@ -289,8 +360,9 @@ const ChatInterfaceStyles = ({
     form.watch("chatButtonPosition"),
     form.watch("chatButtonTextColor"),
     setChatButtonStyling,
-    chatButtonCropCompleted,
-    getChatButtonIconUploadUrl
+    chatButtonCropApplied,
+    getChatButtonIconUploadUrl,
+    croppedChatButtonIconFile
   ])
 
   useEffect(() => {
@@ -309,6 +381,136 @@ const ChatInterfaceStyles = ({
     form.watch("welcomeButtonTextColor"),
     setWelcomeScreenStyling
   ])
+
+  function handleBrandLogoInputChange(
+    file: File | null,
+    fileToDataUrl: (file: File) => Promise<string>,
+    setImgSrc: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppedMeta: React.Dispatch<React.SetStateAction<CroppedMeta | null>>,
+    fieldOnChange: (file: File | null) => void
+  ) {
+    if (file) {
+      setIsBrandLogoCropping?.(true)
+      setBrandLogoCropApplied(false)
+      setCroppedBrandLogoFile(null)
+      fileToDataUrl(file).then(dataUrl => {
+        setImgSrc(dataUrl)
+        setCroppingDone(false)
+        setCroppedImgUrl("")
+        setCroppedMeta(null)
+        fieldOnChange(file)
+      })
+    } else {
+      setIsBrandLogoCropping?.(false)
+      setBrandLogoCroppedImgUrl("")
+      setBrandLogoCroppedMeta(null)
+      setBrandLogoCropApplied(false)
+      setCroppedBrandLogoFile(null)
+      fieldOnChange(null)
+    }
+  }
+
+  async function handleBrandLogoCrop(
+    url: string,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    setBrandLogoCropApplied: React.Dispatch<React.SetStateAction<boolean>>
+  ) {
+    setCroppedImgUrl(url)
+    setCroppingDone(true)
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const croppedFile = new File([blob], "brand-logo-cropped.png", {
+      type: "image/png"
+    })
+    setCroppedBrandLogoFile(croppedFile)
+    setBrandLogoCropApplied(true)
+  }
+
+  function handleSetBrandLogoCroppedMeta(meta: {
+    name: string
+    width: number
+    height: number
+    size: string
+  }) {
+    setBrandLogoCroppedMeta(meta)
+  }
+
+  const handleBrandLogoCancelCrop =
+    (fieldOnChange: (file: File | null) => void) => () => {
+      setBrandLogoCropApplied(false)
+      setImgSrc("")
+      setCroppedBrandLogoFile(null)
+      fieldOnChange(null)
+    }
+
+  function handleChatButtonInputChange(
+    file: File | null,
+    fileToDataUrl: (file: File) => Promise<string>,
+    setImgSrc: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppedMeta: React.Dispatch<React.SetStateAction<CroppedMeta | null>>,
+    fieldOnChange: (file: File | null) => void
+  ) {
+    if (file) {
+      setIsChatIconCropping?.(true)
+      setChatButtonCropApplied(false)
+      setCroppedChatButtonIconFile(null)
+      fileToDataUrl(file).then(dataUrl => {
+        setImgSrc(dataUrl)
+        setCroppingDone(false)
+        setCroppedImgUrl("")
+        setCroppedMeta(null)
+        fieldOnChange(file)
+      })
+    } else {
+      setIsChatIconCropping?.(false)
+      setChatButtonCroppedImgUrl("")
+      setChatButtonCroppedMeta(null)
+      setChatButtonCropApplied(false)
+      setCroppedChatButtonIconFile(null)
+      fieldOnChange(null)
+    }
+  }
+
+  async function handleChatButtonCrop(
+    url: string,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    fieldOnChange: (file: File) => void,
+    setCropApplied: React.Dispatch<React.SetStateAction<boolean>>
+  ) {
+    setCroppedImgUrl(url)
+    setCroppingDone(true)
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const croppedFile = new File([blob], "chat-button-icon-cropped.png", {
+      type: "image/png"
+    })
+    fieldOnChange(croppedFile)
+    setCroppedChatButtonIconFile(croppedFile)
+    setCropApplied(true)
+  }
+
+  function handleSetChatButtonCroppedMeta(meta: {
+    name: string
+    width: number
+    height: number
+    size: string
+  }) {
+    setChatButtonCroppedMeta(meta)
+  }
+
+  const handleCancelChatButtonCrop =
+    (fieldOnChange: (file: File | null) => void) => () => {
+      setChatButtonIconSrc("")
+      setChatButtonCropApplied(false)
+      setCroppedChatButtonIconFile(null)
+      fieldOnChange(null)
+    }
 
   return (
     <TabsContent key="style" value="style">
@@ -355,15 +557,42 @@ const ChatInterfaceStyles = ({
                             </div>
                             <FormControl>
                               <ImageCropper
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
+                                src={imgSrc}
+                                onCancel={handleBrandLogoCancelCrop(
+                                  field.onChange
+                                )}
+                                previewCanvasRef={brandLogoPreviewCanvasRef}
+                                setCroppedImgUrl={(url: string) =>
+                                  handleBrandLogoCrop(
+                                    url,
+                                    setBrandLogoCroppedImgUrl,
+                                    setBrandLogoCroppingDone,
+                                    field.onChange
+                                  )
+                                }
+                                setCroppedMeta={handleSetBrandLogoCroppedMeta}
+                                variant={"freeform"}
+                                setCropApplied={setBrandLogoCropApplied}
+                                accept="image/*"
                                 icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                display="icon-text"
-                                cropShape="logoCrop"
-                                setCropComplete={setBrandLogoCropCompleted}
+                                onFileChange={(file: File | null) =>
+                                  handleBrandLogoInputChange(
+                                    file,
+                                    fileToDataUrl,
+                                    setImgSrc,
+                                    setBrandLogoCroppingDone,
+                                    setBrandLogoCroppedImgUrl,
+                                    setBrandLogoCroppedMeta,
+                                    field.onChange
+                                  )
+                                }
+                                croppingDone={brandLogoCroppingDone}
+                                croppedImgUrl={brandLogoCroppedImgUrl}
+                                croppedMeta={brandLogoCroppedMeta}
+                                setImgSrc={setImgSrc}
+                                popoverTriggerText="Select Logo"
+                                backgroundColor={form.watch("brandBgColor")}
+                                resetInputOnApply={false}
                               />
                             </FormControl>
                           </div>
@@ -542,15 +771,47 @@ const ChatInterfaceStyles = ({
                             </div>
                             <FormControl>
                               <ImageCropper
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
+                                src={chatButtonIconSrc}
+                                onCancel={handleCancelChatButtonCrop(
+                                  field.onChange
+                                )}
+                                previewCanvasRef={
+                                  chatButtonIconPreviewCanvasRef
+                                }
+                                setCroppedImgUrl={(url: string) =>
+                                  handleChatButtonCrop(
+                                    url,
+                                    setChatButtonCroppedImgUrl,
+                                    setChatButtonCroppingDone,
+                                    field.onChange,
+                                    setChatButtonCropApplied
+                                  )
+                                }
+                                setCroppedMeta={handleSetChatButtonCroppedMeta}
+                                variant={"circular"}
+                                setCropApplied={setChatButtonCropApplied}
+                                accept="image/*"
                                 icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                cropShape="circle"
-                                display="icon-text"
-                                setCropComplete={setChatButtonCropCompleted}
+                                onFileChange={(file: File | null) =>
+                                  handleChatButtonInputChange(
+                                    file,
+                                    fileToDataUrl,
+                                    setChatButtonIconSrc,
+                                    setChatButtonCroppingDone,
+                                    setChatButtonCroppedImgUrl,
+                                    setChatButtonCroppedMeta,
+                                    field.onChange
+                                  )
+                                }
+                                croppingDone={chatButtonCroppingDone}
+                                croppedImgUrl={chatButtonCroppedImgUrl}
+                                croppedMeta={chatButtonCroppedMeta}
+                                setImgSrc={setChatButtonIconSrc}
+                                popoverTriggerText="Select Icon"
+                                backgroundColor={form.watch(
+                                  "chatButtonBgColor"
+                                )}
+                                resetInputOnApply={false}
                               />
                             </FormControl>
                           </div>

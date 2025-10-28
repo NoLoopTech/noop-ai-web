@@ -1,8 +1,8 @@
-import { Textarea } from "./ui/textarea"
+import { InputWithLength } from "./InputWithLength"
 
 interface RichTextEditorProps {
-  value?: string
-  onChange?: (value: string) => void
+  value: string
+  onChange: (value: string) => void
   placeholder?: string
   className?: string
 }
@@ -10,21 +10,25 @@ interface RichTextEditorProps {
 const RichTextEditor = ({
   value,
   onChange,
-  placeholder,
-  className
+  placeholder
 }: RichTextEditorProps) => {
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
     onChange?.(e.target.value)
   }
 
   return (
-    <div>
+    <div className="bg-transparent">
       {/* TODO: Implement rich text editing functionality. text only for now */}
-      <Textarea
+      <InputWithLength
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className={className}
+        type="textarea"
+        maxLength={50}
+        showMaxLength={true}
+        rows={2}
       />
     </div>
   )

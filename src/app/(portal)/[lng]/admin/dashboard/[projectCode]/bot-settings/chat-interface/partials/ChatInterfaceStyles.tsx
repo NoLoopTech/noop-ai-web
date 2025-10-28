@@ -54,6 +54,7 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
     exit: { opacity: number; x: number }
   }
   stylingSettings?: StyleFormInitial | undefined
+  setCurrentEditingTab: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -75,7 +76,8 @@ const ChatInterfaceStyles = ({
   setBrandStyling,
   setChatButtonStyling,
   setWelcomeScreenStyling,
-  stylingSettings
+  stylingSettings,
+  setCurrentEditingTab
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
@@ -310,6 +312,11 @@ const ChatInterfaceStyles = ({
     setWelcomeScreenStyling
   ])
 
+  const handleCurrentEditingTab =
+    (tab: "chat" | "chatbutton" | "welcome") => () => {
+      setCurrentEditingTab(tab)
+    }
+
   return (
     <TabsContent key="style" value="style">
       <motion.div
@@ -344,7 +351,7 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="brandLogo"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem onClick={handleCurrentEditingTab("chat")}>
                           <FormLabel>Brand Logo</FormLabel>
                           <div className="flex items-center justify-between">
                             <div className="flex flex-col space-y-1">
@@ -375,7 +382,7 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="brandBgColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem onClick={handleCurrentEditingTab("chat")}>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
                               <FormLabel>Brand color</FormLabel>
@@ -403,6 +410,7 @@ const ChatInterfaceStyles = ({
                       )}
                     />
 
+                    {/* INFO: This is a hidden input field since it's automatically calculated based on the brand background color */}
                     <FormField
                       control={form.control}
                       name="brandTextColor"
@@ -456,7 +464,10 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="themes"
                       render={({ field }) => (
-                        <FormItem className="col-span-6">
+                        <FormItem
+                          className="col-span-6"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <FormLabel>Themes</FormLabel>
                           <FormControl>
                             <RadioGroup
@@ -485,7 +496,10 @@ const ChatInterfaceStyles = ({
                                 </FormControl>
                               </FormItem>
 
-                              <FormItem className="flex items-center">
+                              <FormItem
+                                className="flex items-center"
+                                onClick={handleCurrentEditingTab("chat")}
+                              >
                                 <FormControl>
                                   <FormLabel htmlFor="dark">
                                     <Card className="_hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary _cursor-pointer cursor-not-allowed rounded-xl duration-300 ease-in-out transform-fill">
@@ -531,7 +545,9 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="chatButtonIcon"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
                           <FormLabel>Chat icon</FormLabel>
                           <div className="flex items-start justify-between">
                             <div className="flex flex-col space-y-1">
@@ -562,7 +578,9 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="chatButtonBgColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
                               <FormLabel>Chat icon button color</FormLabel>
@@ -590,7 +608,7 @@ const ChatInterfaceStyles = ({
                       )}
                     />
 
-                    {/* INFO: this is a hidden input field since it is calculated automatically */}
+                    {/* INFO: This is a hidden input field since it's automatically calculated based on the chat button background color */}
                     <FormField
                       control={form.control}
                       name="chatButtonTextColor"
@@ -618,7 +636,9 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="chatButtonBorderColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
                               <FormLabel>Chat icon border color</FormLabel>
@@ -659,7 +679,9 @@ const ChatInterfaceStyles = ({
                               value={field.value}
                               className="mt-3 flex h-full w-full flex-col items-start space-y-1"
                             >
-                              <FormItem>
+                              <FormItem
+                                onClick={handleCurrentEditingTab("chatbutton")}
+                              >
                                 <FormControl>
                                   <div className="flex items-center space-x-3">
                                     <RadioGroupItem
@@ -674,7 +696,9 @@ const ChatInterfaceStyles = ({
                                 </FormControl>
                               </FormItem>
 
-                              <FormItem>
+                              <FormItem
+                                onClick={handleCurrentEditingTab("chatbutton")}
+                              >
                                 <FormControl>
                                   <div className="flex items-center space-x-3">
                                     <RadioGroupItem
@@ -722,7 +746,10 @@ const ChatInterfaceStyles = ({
                               value={field.value}
                               className="mt-1 flex h-full w-full items-center justify-start space-x-5"
                             >
-                              <FormItem className="flex items-center">
+                              <FormItem
+                                className="flex items-center"
+                                onClick={handleCurrentEditingTab("welcome")}
+                              >
                                 <FormControl>
                                   <FormLabel htmlFor="bg-half">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
@@ -742,7 +769,10 @@ const ChatInterfaceStyles = ({
                                 </FormControl>
                               </FormItem>
 
-                              <FormItem className="flex items-center">
+                              <FormItem
+                                className="flex items-center"
+                                onClick={handleCurrentEditingTab("welcome")}
+                              >
                                 <FormControl>
                                   <FormLabel htmlFor="bg-full">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
@@ -772,7 +802,7 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="welcomeButtonBgColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem onClick={handleCurrentEditingTab("welcome")}>
                           <div className="flex items-center justify-between">
                             <FormLabel>Submit button color</FormLabel>
                             <FormControl>
@@ -798,7 +828,7 @@ const ChatInterfaceStyles = ({
                       )}
                     />
 
-                    {/* INFO: this is a hidden input field since it is calculated automatically */}
+                    {/* INFO: This is a hidden input field since it's automatically calculated based on the chat welcome screen background color */}
                     <FormField
                       control={form.control}
                       name="welcomeButtonTextColor"

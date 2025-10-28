@@ -23,6 +23,7 @@ interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   contentSettings?: ContentForm | undefined
   stylingSettings?: StyleFormInitial | undefined
   isBotSettingsLoading: boolean
+  setCurrentEditingTab: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 const InterfaceSettings = ({
@@ -32,7 +33,8 @@ const InterfaceSettings = ({
   setContentPreview,
   contentSettings,
   stylingSettings,
-  isBotSettingsLoading
+  isBotSettingsLoading,
+  setCurrentEditingTab
 }: InterfaceSettingsProps) => {
   const [tab, setTab] = useState("content")
   const [stylingFormUpdate, setStylingFormUpdate] = useState<
@@ -99,6 +101,7 @@ const InterfaceSettings = ({
               tabVariants={tabVariants}
               setContentPreview={setContentPreview}
               contentSettings={contentSettings}
+              setCurrentEditingTab={setCurrentEditingTab}
             />
           )}
           {tab === "style" && (
@@ -109,6 +112,7 @@ const InterfaceSettings = ({
               setChatButtonStyling={setChatButtonStyling}
               setWelcomeScreenStyling={setWelcomeScreenStyling}
               stylingSettings={stylingFormUpdate}
+              setCurrentEditingTab={setCurrentEditingTab}
             />
           )}
         </AnimatePresence>

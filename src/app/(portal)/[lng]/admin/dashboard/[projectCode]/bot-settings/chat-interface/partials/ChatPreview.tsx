@@ -22,6 +22,8 @@ import { useEffect, useState } from "react"
 interface ChatPreviewProps extends ChatStylePreviewType {
   contentPreview: ContentForm | undefined
   isBotSettingsLoading: boolean
+  currentEditingTab: "chat" | "chatbutton" | "welcome"
+  onTabChange: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 const ChatPreview = ({
@@ -29,12 +31,19 @@ const ChatPreview = ({
   chatButtonStyling,
   welcomeScreenStyling,
   contentPreview,
-  isBotSettingsLoading
+  isBotSettingsLoading,
+  currentEditingTab,
+  onTabChange
 }: ChatPreviewProps) => {
-  const [tab, setTab] = useState("chat")
   const [brandLogoVersion, setBrandLogoVersion] = useState(Date.now())
   const [chatButtonIconVersion, setChatButtonIconVersion] = useState(Date.now())
   const [toggleDismissibleNotice, setToggleDismissibleNotice] = useState(false)
+
+  const handleTabChange = (value: string) => {
+    if (value === "chat" || value === "chatbutton" || value === "welcome") {
+      onTabChange(value as "chat" | "chatbutton" | "welcome")
+    }
+  }
 
   useEffect(() => {
     setToggleDismissibleNotice(contentPreview?.dismissibleNotice ? true : false)
@@ -92,7 +101,11 @@ const ChatPreview = ({
     <MotionConfig
       transition={{ duration: 0.5, ease: "easeInOut", type: "tween" }}
     >
-      <Tabs orientation="vertical" value={tab} onValueChange={setTab}>
+      <Tabs
+        orientation="vertical"
+        value={currentEditingTab}
+        onValueChange={handleTabChange}
+      >
         <TabsList>
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger disabled={isBotSettingsLoading} value="chatbutton">
@@ -103,12 +116,12 @@ const ChatPreview = ({
           </TabsTrigger>
         </TabsList>
 
-        {tab === "chat" && (
+        {currentEditingTab === "chat" && (
           <TabsContent value="chat" className="m-0 mt-3 h-full w-full p-0">
             <div className="flex h-[580px] w-full flex-col space-y-3">
               <AnimatePresence mode="sync">
                 <motion.div
-                  key={tab}
+                  key={currentEditingTab}
                   variants={tabVariants}
                   initial="initial"
                   animate="animate"
@@ -297,7 +310,7 @@ const ChatPreview = ({
           </TabsContent>
         )}
 
-        {tab === "chatbutton" && (
+        {currentEditingTab === "chatbutton" && (
           <TabsContent
             value="chatbutton"
             className="m-0 mt-3 h-full w-full min-w-[350px] p-0"
@@ -305,7 +318,7 @@ const ChatPreview = ({
             <div className="flex h-[580px] w-full flex-col justify-end space-y-3">
               <AnimatePresence mode="sync">
                 <motion.div
-                  key={tab}
+                  key={currentEditingTab}
                   variants={{
                     initial: { y: 20, opacity: 0 },
                     animate: { y: 0, opacity: 1 },
@@ -398,12 +411,12 @@ const ChatPreview = ({
           </TabsContent>
         )}
 
-        {tab === "welcome" && (
+        {currentEditingTab === "welcome" && (
           <TabsContent value="welcome" className="m-0 mt-3 h-full w-full p-0">
             <div className="flex h-[580px] w-full min-w-[350px] flex-col space-y-3">
               <AnimatePresence mode="sync">
                 <motion.div
-                  key={tab}
+                  key={currentEditingTab}
                   variants={tabVariants}
                   initial="initial"
                   animate="animate"

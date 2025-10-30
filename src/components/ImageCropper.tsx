@@ -369,7 +369,7 @@ export default function ImageCropper({
                 src={croppedImgUrl}
                 alt="Cropped"
                 className={`max-w-40 ${
-                  variant === "circular" ? "rounded-full" : "rounded-md"
+                  variant === "circular" ? "rounded-full" : "rounded-sm"
                 }`}
               />
             </CardContent>

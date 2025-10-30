@@ -40,6 +40,11 @@ const ChatPreview = ({
   isBrandLogoCropping
 }: ChatPreviewProps) => {
   const [tab, setTab] = useState("chat")
+  const [toggleDismissibleNotice, setToggleDismissibleNotice] = useState(false)
+
+  useEffect(() => {
+    setToggleDismissibleNotice(contentPreview?.dismissibleNotice ? true : false)
+  }, [contentPreview?.dismissibleNotice])
 
   const tabVariants = {
     initial: { y: 20, opacity: 0 },
@@ -71,7 +76,6 @@ const ChatPreview = ({
   }
 
   const welcomeScreenAppearance = welcomeScreenStyling.welcomeScreenAppearance
-  // const chatButtonIcon = chatButtonStyling.chatButtonIcon
 
   const buttonPosition = {
     left: chatButtonStyling.chatButtonPosition === "right" ? "100%" : 0,
@@ -205,7 +209,7 @@ const ChatPreview = ({
                   )}
                 </div>
 
-                <div className="">
+                <div>
                   {tab === "chat" && (
                     <div className="flex items-center space-x-3">
                       <IconArrowsDiagonal className="h-5 w-5" />
@@ -236,130 +240,111 @@ const ChatPreview = ({
                           </div>
                         ) : (
                           <>
-                            {/* <div
-                              className="flex h-12 items-center justify-between rounded-t-xl px-5"
-                              style={brandColor}
-                            >
-                              <div className="relative flex items-center overflow-clip text-[6px]">
-                                <canvas
-                                  ref={brandLogoPreviewCanvasRef}
-                                  className={`h-8 w-32 object-contain object-left`}
-                                />
-                              </div>
-                              <div className="relative flex items-center overflow-clip rounded-sm text-[6px]">
-                                {isBotSettingsLoading ? (
-                                  <div
-                                    style={buttonStyle}
-                                    className={`shine flex h-8 w-32 object-contain object-left`}
-                                  />
-                                ) : (
-                                  <div className="relative flex items-center justify-center">
-                                    <canvas
-                                      ref={brandLogoPreviewCanvasRef}
-                                      className={`h-8 w-32 object-contain object-left`}
-                                    />
-                                    {!brandStyling.brandLogo &&
-                                      !isBrandLogoCropping && (
-                                        <p
-                                          className="text-3xl font-semibold uppercase"
-                                          style={{ color: brandColor.color }}
-                                        >
-                                          {contentPreview?.botName}
-                                        </p>
-                                      )}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="flex items-center space-x-3">
-                                <IconArrowsDiagonal className="h-5 w-5" />
-                                <IconX className="h-5 w-5" />
-                                <IconDotsVertical className="h-5 w-5" />
-                              </div>
-                            </div> */}
-
-                            <div className="flex flex-col space-y-3 px-4 py-3 text-xs">
-                              <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
-                                <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                                  Hi John! 👋
-                                </p>
-                                <p className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
-                                  {contentPreview?.initialMessage?.trim() ||
-                                    "How can I help you today?"}
-                                </p>
-                              </div>
-
-                              <div className="self-end">
-                                <p
-                                  className="rounded-3xl px-3 py-2"
-                                  style={brandColor}
-                                >
-                                  What can you do?
-                                </p>
-                              </div>
-
-                              <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
-                                <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                                  Here’s a quick overview of what{" "}
-                                  {(contentPreview?.botName ?? "Noopy.ai") ||
-                                    "Noopy.ai"}{" "}
-                                  can do for you:
-                                </p>
-                                <div className="flex flex-col space-y-1.5">
-                                  <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
-                                    <ul className="list-inside list-disc space-y-1 text-xs font-semibold">
-                                      <li>Automate Customer Support</li>
-                                      <li>Improve Efficiency</li>
-                                      <li>Personalized Interactions</li>
-                                      <li>Easy Setup</li>
-                                      <li>Scalable Solution</li>
-                                      <li>Real-Time Analytics</li>
-                                    </ul>
-                                  </div>
-
-                                  <div className="flex items-center justify-between px-3">
-                                    <div className="flex items-center text-[10px] text-zinc-400">
-                                      <p className="border-r border-zinc-200 pr-1.5 capitalize">
-                                        {contentPreview?.botName?.trim() ||
-                                          "Noopy"}
-                                      </p>
-                                      <p className="pl-1.5">Just Now</p>
-                                    </div>
-                                    <div className="flex items-center space-x-1.5 text-zinc-600">
-                                      <IconCopy className="h-3.5 w-3.5" />
-                                      <IconThumbUp className="h-3.5 w-3.5" />
-                                      <IconThumbDown className="h-3.5 w-3.5" />
-                                      <IconRefresh className="h-3.5 w-3.5" />
-                                    </div>
-                                  </div>
+                            <div className="flex h-full flex-col justify-between px-4 py-3 text-xs">
+                              <div className="flex flex-col space-y-3">
+                                <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
+                                  <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
+                                    Hi John! 👋
+                                  </p>
+                                  <p className="w-full rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2 wrap-anywhere">
+                                    {contentPreview?.initialMessage?.trim() ||
+                                      "How can I help you today?"}
+                                  </p>
                                 </div>
-                              </div>
-                            </div>
 
-                            <div className="absolute inset-x-4 bottom-2 flex h-[90px] flex-col items-center space-y-2">
-                              <div className="flex h-full w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
-                                <p className="text-xs text-zinc-900">
-                                  {contentPreview?.messagePlaceholder?.trim() ||
-                                    `How do I register to ${contentPreview?.botName?.trim() || "noopy"}?`}
-                                </p>
-                                <div className="flex items-center justify-between">
-                                  <Smile className="h-3.5 w-3.5 text-zinc-500" />
-                                  <div
-                                    className="rounded-full p-1"
+                                <div className="self-end">
+                                  <p
+                                    className="rounded-3xl px-3 py-2"
                                     style={brandColor}
                                   >
-                                    <IconArrowUp className="h-3.5 w-3.5 text-zinc-50" />
+                                    What can you do?
+                                  </p>
+                                </div>
+
+                                <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
+                                  <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
+                                    Here’s a quick overview of what{" "}
+                                    {(contentPreview?.botName ?? "Noopy.ai") ||
+                                      "Noopy.ai"}{" "}
+                                    can do for you:
+                                  </p>
+                                  <div className="flex flex-col space-y-1.5">
+                                    <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
+                                      <ul className="list-inside list-disc space-y-1 text-xs font-semibold">
+                                        <li>Automate Customer Support</li>
+                                        <li>Improve Efficiency</li>
+                                        <li>Personalized Interactions</li>
+                                      </ul>
+                                    </div>
+
+                                    <div className="flex items-center justify-between px-3">
+                                      <div className="flex items-center text-[10px] text-zinc-400">
+                                        <p className="border-r border-zinc-200 pr-1.5 capitalize">
+                                          {contentPreview?.botName?.trim() ||
+                                            "Noopy"}
+                                        </p>
+                                        <p className="pl-1.5">Just Now</p>
+                                      </div>
+                                      <div className="flex items-center space-x-1.5 text-zinc-600">
+                                        <IconCopy className="h-3.5 w-3.5" />
+
+                                        {contentPreview?.collectUserFeedbackEnabled && (
+                                          <>
+                                            <IconThumbUp className="h-3.5 w-3.5" />
+                                            <IconThumbDown className="h-3.5 w-3.5" />
+                                          </>
+                                        )}
+
+                                        {contentPreview?.regenerateMessagesEnabled && (
+                                          <IconRefresh className="h-3.5 w-3.5" />
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-1 text-[10px] font-medium text-zinc-500">
-                                <p>Powered by </p>
-                                <Image
-                                  src="/assets/noopy-blue-full.png"
-                                  alt="Noopy.ai Logo"
-                                  width={60}
-                                  height={10}
-                                />
+
+                              <div className="flex h-max flex-col items-center">
+                                <div
+                                  className={`h-full w-full transition-all duration-300 ease-in-out ${toggleDismissibleNotice ? "rounded-t-xl rounded-b-3xl bg-zinc-200/80" : ""}`}
+                                >
+                                  {/* Dismissible Notice */}
+                                  {toggleDismissibleNotice && (
+                                    <div className="flex items-center justify-between space-x-2 px-3.5 py-1.5">
+                                      <p className="text-tiny w-full font-normal wrap-anywhere text-zinc-500">
+                                        {contentPreview?.dismissibleNotice?.trim()}
+                                      </p>
+
+                                      <IconX className="h-3.5 w-3.5 text-zinc-500" />
+                                    </div>
+                                  )}
+
+                                  <div className="flex h-20 w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
+                                    <p className="w-full text-xs wrap-anywhere text-zinc-900">
+                                      {contentPreview?.messagePlaceholder?.trim() ||
+                                        `How do I register to ${contentPreview?.botName?.trim() || "Noopy"}?`}
+                                    </p>
+                                    <div className="flex items-center justify-between">
+                                      <Smile className="h-3.5 w-3.5 text-zinc-500" />
+                                      <div
+                                        className="rounded-full p-1"
+                                        style={brandColor}
+                                      >
+                                        <IconArrowUp className="h-3.5 w-3.5 text-zinc-50" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-2 flex items-center space-x-1 text-[10px] font-medium text-zinc-500">
+                                  <p>Powered by </p>
+                                  <Image
+                                    src="/assets/noopy-blue-full.png"
+                                    alt="Noopy.ai Logo"
+                                    width={60}
+                                    height={10}
+                                  />
+                                </div>
                               </div>
                             </div>
                           </>
@@ -456,8 +441,11 @@ const ChatPreview = ({
               )}
 
               {tab === "welcome" && (
-                <TabsContent value="welcome" className="m-0 h-full w-full p-0">
-                  <div className="flex h-full w-full flex-col space-y-3">
+                <TabsContent
+                  value="welcome"
+                  className="m-0 mt-3 h-full w-full p-0"
+                >
+                  <div className="flex h-[580px] w-full min-w-[350px] flex-col space-y-3">
                     <AnimatePresence mode="sync">
                       <motion.div
                         key={tab}
@@ -465,25 +453,25 @@ const ChatPreview = ({
                         initial="initial"
                         animate="animate"
                         exit="exit"
-                        className="relative flex h-full w-full flex-col rounded-xl bg-white"
+                        className="relative flex h-[510px] flex-col rounded-xl bg-white"
                       >
                         <div
-                          className="flex flex-col rounded-t-xl px-4 pt-28 pb-5"
+                          className="flex flex-col rounded-t-xl px-4 pb-5"
                           style={brandColor}
                         >
-                          {/* <div className="flex items-center space-x-1.5 py-5">
+                          <div className="flex items-center space-x-1.5 py-5">
                             <IconDiamond className="h-7 w-7" />
                             <p className="text-2xl font-extrabold uppercase">
                               {contentPreview?.botName?.trim() || "Noopy"}
                             </p>
-                          </div> */}
+                          </div>
 
                           <div className="flex flex-col space-y-0.5 capitalize">
-                            <h2 className="text-2xl font-bold">
+                            <h2 className="w-full text-2xl font-bold wrap-anywhere">
                               {contentPreview?.welcomeScreen.title?.trim() ||
                                 "Almost Ready to Chat!"}
                             </h2>
-                            <p className="max-w-11/12 text-sm font-normal capitalize">
+                            <p className="max-w-11/12 text-sm font-normal wrap-anywhere capitalize">
                               {contentPreview?.welcomeScreen.instructions?.trim() ||
                                 "Tell us who you are so Noopy can assist you better."}
                             </p>
@@ -560,7 +548,7 @@ const ChatPreview = ({
             </div>
           </div>
 
-          <div className="" style={{ alignSelf: buttonStyle.alignSelf }}>
+          <div style={{ alignSelf: buttonStyle.alignSelf }}>
             {isBotSettingsLoading ? (
               <div
                 style={buttonStyle}

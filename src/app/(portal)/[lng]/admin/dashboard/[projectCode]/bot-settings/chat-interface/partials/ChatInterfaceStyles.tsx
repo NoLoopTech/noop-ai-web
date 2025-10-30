@@ -301,7 +301,7 @@ const ChatInterfaceStyles = ({
         if (getChatButtonIconUploadUrl?.uploadUrl) {
           uploadImageToAzure(
             getChatButtonIconUploadUrl.uploadUrl,
-            croppedChatButtonIconFile // Use the cropped file for upload
+            chatButtonIconFile
           )
             .then(() => {
               setChatButtonIconUrl(getChatButtonIconUploadUrl.publicUrl)
@@ -374,7 +374,6 @@ const ChatInterfaceStyles = ({
     if (file) {
       setIsBrandLogoCropping?.(true)
       setBrandLogoCropApplied(false)
-      setCroppedBrandLogoFile(null)
       fileToDataUrl(file).then(dataUrl => {
         setImgSrc(dataUrl)
         setCroppingDone(false)
@@ -387,7 +386,6 @@ const ChatInterfaceStyles = ({
       setBrandLogoCroppedImgUrl("")
       setBrandLogoCroppedMeta(null)
       setBrandLogoCropApplied(false)
-      setCroppedBrandLogoFile(null)
       fieldOnChange(null)
     }
   }
@@ -396,6 +394,7 @@ const ChatInterfaceStyles = ({
     url: string,
     setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
     setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    fieldOnChange: (file: File) => void,
     setBrandLogoCropApplied: React.Dispatch<React.SetStateAction<boolean>>
   ) {
     setCroppedImgUrl(url)
@@ -405,7 +404,7 @@ const ChatInterfaceStyles = ({
     const croppedFile = new File([blob], "brand-logo-cropped.png", {
       type: "image/png"
     })
-    setCroppedBrandLogoFile(croppedFile)
+    fieldOnChange(croppedFile)
     setBrandLogoCropApplied(true)
   }
 
@@ -422,7 +421,6 @@ const ChatInterfaceStyles = ({
     (fieldOnChange: (file: File | null) => void) => () => {
       setBrandLogoCropApplied(false)
       setImgSrc("")
-      setCroppedBrandLogoFile(null)
       fieldOnChange(null)
     }
 
@@ -438,7 +436,6 @@ const ChatInterfaceStyles = ({
     if (file) {
       setIsChatIconCropping?.(true)
       setChatButtonCropApplied(false)
-      setCroppedChatButtonIconFile(null)
       fileToDataUrl(file).then(dataUrl => {
         setImgSrc(dataUrl)
         setCroppingDone(false)
@@ -451,7 +448,6 @@ const ChatInterfaceStyles = ({
       setChatButtonCroppedImgUrl("")
       setChatButtonCroppedMeta(null)
       setChatButtonCropApplied(false)
-      setCroppedChatButtonIconFile(null)
       fieldOnChange(null)
     }
   }
@@ -471,7 +467,6 @@ const ChatInterfaceStyles = ({
       type: "image/png"
     })
     fieldOnChange(croppedFile)
-    setCroppedChatButtonIconFile(croppedFile)
     setCropApplied(true)
   }
 
@@ -488,7 +483,6 @@ const ChatInterfaceStyles = ({
     (fieldOnChange: (file: File | null) => void) => () => {
       setChatButtonIconSrc("")
       setChatButtonCropApplied(false)
-      setCroppedChatButtonIconFile(null)
       fieldOnChange(null)
     }
 
@@ -527,9 +521,9 @@ const ChatInterfaceStyles = ({
                       name="brandLogo"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Brand Logo</FormLabel>
                           <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1">
+                            <div className="flex flex-col space-y-1 self-start">
+                              <FormLabel>Brand Logo</FormLabel>
                               <FormDescription>
                                 Supports JPG, PNG, and SVG
                               </FormDescription>
@@ -547,7 +541,8 @@ const ChatInterfaceStyles = ({
                                     url,
                                     setBrandLogoCroppedImgUrl,
                                     setBrandLogoCroppingDone,
-                                    field.onChange
+                                    field.onChange,
+                                    setBrandLogoCropApplied
                                   )
                                 }
                                 setCroppedMeta={handleSetBrandLogoCroppedMeta}
@@ -579,8 +574,6 @@ const ChatInterfaceStyles = ({
                         </FormItem>
                       )}
                     />
-
-                    <Separator />
 
                     <FormField
                       control={form.control}
@@ -743,9 +736,9 @@ const ChatInterfaceStyles = ({
                       name="chatButtonIcon"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Chat icon</FormLabel>
                           <div className="flex items-start justify-between">
                             <div className="flex flex-col space-y-1">
+                              <FormLabel>Chat icon</FormLabel>
                               <FormDescription>
                                 Supports JPG, PNG, and SVG
                               </FormDescription>

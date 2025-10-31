@@ -27,6 +27,7 @@ interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
   setIsChatIconCropping?: (isCropping: boolean) => void
   setIsBrandLogoCropping?: (isCropping: boolean) => void
+  setCurrentEditingTab: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 const InterfaceSettings = ({
@@ -37,6 +38,7 @@ const InterfaceSettings = ({
   contentSettings,
   stylingSettings,
   isBotSettingsLoading,
+  setCurrentEditingTab,
   brandLogoPreviewCanvasRef,
   chatButtonIconPreviewCanvasRef,
   setIsChatIconCropping,
@@ -107,6 +109,7 @@ const InterfaceSettings = ({
               tabVariants={tabVariants}
               setContentPreview={setContentPreview}
               contentSettings={contentSettings}
+              setCurrentEditingTab={setCurrentEditingTab}
             />
           )}
           {tab === "style" && (
@@ -121,6 +124,7 @@ const InterfaceSettings = ({
               chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
               setIsChatIconCropping={setIsChatIconCropping}
               setIsBrandLogoCropping={setIsBrandLogoCropping}
+              setCurrentEditingTab={setCurrentEditingTab}
             />
           )}
         </AnimatePresence>

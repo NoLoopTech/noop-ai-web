@@ -25,6 +25,10 @@ const ChatInterface = () => {
   const token = session?.apiToken
   const projectId = useProjectCode()
 
+  const [currentEditingTab, setCurrentEditingTab] = useState<
+    "chat" | "chatbutton" | "welcome"
+  >("chat")
+
   const { data: botSettingsApiResponse, isLoading: isBotSettingsLoading } =
     useApiQuery<botSettingsResponse>(
       ["bot-settings-data"],
@@ -235,6 +239,7 @@ const ChatInterface = () => {
           chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
           setIsChatIconCropping={setIsChatIconCropping}
           setIsBrandLogoCropping={setIsBrandLogoCropping}
+          setCurrentEditingTab={setCurrentEditingTab}
         />
 
         {!isBotSettingsLoading && (
@@ -269,6 +274,8 @@ const ChatInterface = () => {
           chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
           isChatIconCropping={isChatIconCropping}
           isBrandLogoCropping={isBrandLogoCropping}
+          currentEditingTab={currentEditingTab}
+          onTabChange={setCurrentEditingTab}
         />
       </div>
     </>

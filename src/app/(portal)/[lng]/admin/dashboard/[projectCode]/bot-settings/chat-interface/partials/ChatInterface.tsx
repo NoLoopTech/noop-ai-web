@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ChatStylePreviewType, ContentForm } from "@/types/botSettings"
 import { Button } from "@/components/ui/button"
 import { useApiMutation, useApiQuery } from "@/query"
@@ -68,6 +68,12 @@ const ChatInterface = () => {
     return botSettingsApiResponse?.botSettings.contentPreview
   }, [botSettingsApiResponse])
 
+  const brandLogoPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const chatButtonIconPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null)
+
+  const [isChatIconCropping, setIsChatIconCropping] = useState(false)
+  const [isBrandLogoCropping, setIsBrandLogoCropping] = useState(false)
+
   const [brandStyling, setBrandStyling] = useState<
     ChatStylePreviewType["brandStyling"]
   >({
@@ -93,35 +99,41 @@ const ChatInterface = () => {
     welcomeButtonTextColor: "#1E50EF"
   })
 
-  const [contentPreview, setContentPreview] = useState<ContentForm | undefined>(
-    {
-      botName: contentSettings?.botName || "Noopy",
-      initialMessage:
-        contentSettings?.initialMessage || "How can I help you today?",
-      messagePlaceholder:
-        contentSettings?.messagePlaceholder || "How do I register to noopy?",
-      dismissibleNotice: contentSettings?.dismissibleNotice || null,
-      suggestedMessagesEnabled:
-        contentSettings?.suggestedMessagesEnabled || false,
-      suggestedMessages: contentSettings?.suggestedMessages || [],
-      collectUserFeedbackEnabled:
-        contentSettings?.collectUserFeedbackEnabled || false,
-      regenerateMessagesEnabled:
-        contentSettings?.regenerateMessagesEnabled || false,
-      quickPromptsEnabled: contentSettings?.quickPromptsEnabled || false,
-      quickPrompts: contentSettings?.quickPrompts || [
-        { text: "👋 Hi! I am Noopy AI, ask me anything about Noopy!" },
-        {
-          text: "By the way, you can create an agent like me for your website!"
+  const [contentPreview, setContentPreview] = useState<
+    ContentForm | undefined
+  >()
+
+  useEffect(() => {
+    if (contentSettings) {
+      setContentPreview({
+        botName: contentSettings?.botName || "Noopy",
+        initialMessage:
+          contentSettings?.initialMessage || "How can I help you today?",
+        messagePlaceholder:
+          contentSettings?.messagePlaceholder || "How do I register to noopy?",
+        dismissibleNotice: contentSettings?.dismissibleNotice || null,
+        suggestedMessagesEnabled:
+          contentSettings?.suggestedMessagesEnabled || false,
+        suggestedMessages: contentSettings?.suggestedMessages || [],
+        collectUserFeedbackEnabled:
+          contentSettings?.collectUserFeedbackEnabled || false,
+        regenerateMessagesEnabled:
+          contentSettings?.regenerateMessagesEnabled || false,
+        quickPromptsEnabled: contentSettings?.quickPromptsEnabled || false,
+        quickPrompts: contentSettings?.quickPrompts || [
+          { text: "👋 Hi! I am Noopy AI, ask me anything about Noopy!" },
+          {
+            text: "By the way, you can create an agent like me for your website!"
+          }
+        ],
+        welcomeScreenEnabled: contentSettings?.welcomeScreenEnabled || false,
+        welcomeScreen: contentSettings?.welcomeScreen || {
+          title: "Almost Ready to Chat!",
+          instructions: "Tell us who you are so Noopy can assist you better."
         }
-      ],
-      welcomeScreenEnabled: contentSettings?.welcomeScreenEnabled || false,
-      welcomeScreen: contentSettings?.welcomeScreen || {
-        title: "Almost Ready to Chat!",
-        instructions: "Tell us who you are so Noopy can assist you better."
-      }
+      })
     }
-  )
+  }, [contentSettings])
 
   useEffect(() => {
     if (!stylingSettings) return
@@ -146,6 +158,29 @@ const ChatInterface = () => {
         stylingSettings.welcomeButtonTextColor ?? "#1E50EF"
     })
   }, [stylingSettings])
+
+  useEffect(() => {
+    const canvas = chatButtonIconPreviewCanvasRef.current
+    const ctx = canvas?.getContext("2d")
+    if (canvas && ctx && typeof chatButtonStyling.chatButtonIcon === "string") {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.src = chatButtonStyling.chatButtonIcon
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.save()
+        ctx.beginPath()
+        const radius = Math.min(canvas.width, canvas.height) / 2
+        ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, 2 * Math.PI)
+        ctx.closePath()
+        ctx.clip()
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        ctx.restore()
+      }
+    } else if (canvas && ctx && !chatButtonStyling.chatButtonIcon) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    }
+  }, [chatButtonStyling.chatButtonIcon])
 
   const saveBotInterfaceSettings = useApiMutation(
     projectId ? `/botsettings/save/${projectId}` : "",
@@ -200,6 +235,10 @@ const ChatInterface = () => {
           contentSettings={contentSettings}
           stylingSettings={stylingSettings}
           isBotSettingsLoading={isBotSettingsLoading}
+          brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
+          chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
+          setIsChatIconCropping={setIsChatIconCropping}
+          setIsBrandLogoCropping={setIsBrandLogoCropping}
           setCurrentEditingTab={setCurrentEditingTab}
         />
 
@@ -231,6 +270,10 @@ const ChatInterface = () => {
           welcomeScreenStyling={welcomeScreenStyling}
           contentPreview={contentPreview}
           isBotSettingsLoading={isBotSettingsLoading}
+          brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
+          chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
+          isChatIconCropping={isChatIconCropping}
+          isBrandLogoCropping={isBrandLogoCropping}
           currentEditingTab={currentEditingTab}
           onTabChange={setCurrentEditingTab}
         />

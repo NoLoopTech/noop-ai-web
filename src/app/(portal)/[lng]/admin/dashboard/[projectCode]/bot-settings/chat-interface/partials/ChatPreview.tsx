@@ -201,7 +201,7 @@ const ChatPreview = ({
                   {isBotSettingsLoading ? (
                     <div
                       style={brandColor}
-                      className={`shine flex h-8 w-32 object-contain object-left`}
+                      className={`shine flex h-8 w-32 rounded-md object-contain object-left`}
                     />
                   ) : (
                     <div className="relative flex items-center justify-center">
@@ -257,7 +257,7 @@ const ChatPreview = ({
                               <div className="flex flex-col space-y-3">
                                 <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
                                   <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                                    Hi John! 👋
+                                    {`Hi John! 👋. I'm Noopy, the official ${contentPreview?.botName ?? "Noopy.ai"} assistant.`}
                                   </p>
                                   <p className="w-full rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2 wrap-anywhere">
                                     {contentPreview?.initialMessage?.trim() ||
@@ -275,20 +275,21 @@ const ChatPreview = ({
                                 </div>
 
                                 <div className="flex max-w-72 flex-col space-y-0.5 text-[#1C1C1C]">
-                                  <p className="rounded-t-2xl rounded-b-xs bg-zinc-100 px-3 py-2">
-                                    Here’s a quick overview of what{" "}
-                                    {(contentPreview?.botName ?? "Noopy.ai") ||
-                                      "Noopy.ai"}{" "}
-                                    can do for you:
-                                  </p>
                                   <div className="flex flex-col space-y-1.5">
-                                    <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
+                                    <p className="rounded-t-2xl rounded-br-2xl rounded-bl-xs bg-zinc-100 px-3 py-2">
+                                      Here’s a quick overview of what{" "}
+                                      {(contentPreview?.botName ??
+                                        "Noopy.ai") ||
+                                        "Noopy.ai"}{" "}
+                                      can do for you
+                                    </p>
+                                    {/* <div className="rounded-t-xs rounded-b-2xl bg-zinc-100 px-3 py-2">
                                       <ul className="list-inside list-disc space-y-1 text-xs font-semibold">
                                         <li>Automate Customer Support</li>
                                         <li>Improve Efficiency</li>
                                         <li>Personalized Interactions</li>
                                       </ul>
-                                    </div>
+                                    </div> */}
 
                                     <div className="flex items-center justify-between px-3">
                                       <div className="flex items-center text-[10px] text-zinc-400">
@@ -316,6 +317,39 @@ const ChatPreview = ({
                                   </div>
                                 </div>
                               </div>
+
+                              {/* Suggested Messages */}
+                              {contentPreview?.suggestedMessagesEnabled && (
+                                <div className="flex flex-col items-end">
+                                  <AnimatePresence>
+                                    {contentPreview.suggestedMessages.map(
+                                      (suggestion, index) => (
+                                        <motion.div
+                                          key={`suggestion-${index}`}
+                                          initial={{ x: 30, opacity: 0 }}
+                                          animate={{ x: 0, opacity: 1 }}
+                                          exit={{ x: 30, opacity: 0 }}
+                                          transition={{
+                                            x: {
+                                              delay: 0.1 + index * 0.12,
+                                              type: "tween",
+                                              ease: "easeOut"
+                                            },
+                                            opacity: {
+                                              delay: 0.1 + index * 0.12,
+                                              type: "tween",
+                                              ease: "easeOut"
+                                            }
+                                          }}
+                                          className="mb-1 w-max self-end rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs text-zinc-700"
+                                        >
+                                          &nbsp;{suggestion.text}
+                                        </motion.div>
+                                      )
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              )}
 
                               <div className="flex h-max flex-col items-center">
                                 <div
@@ -411,12 +445,12 @@ const ChatPreview = ({
                               exit={{ y: 20, opacity: 0 }}
                               transition={{
                                 y: {
-                                  delay: 0.3,
+                                  delay: 0.3 + index * 0.15,
                                   ease: "easeInOut",
                                   type: "tween"
                                 },
                                 opacity: {
-                                  delay: 0.3,
+                                  delay: 0.3 + index * 0.15,
                                   ease: "easeInOut",
                                   type: "tween"
                                 },

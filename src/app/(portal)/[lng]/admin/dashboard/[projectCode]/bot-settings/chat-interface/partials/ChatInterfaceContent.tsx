@@ -78,7 +78,13 @@ const ChatInterfaceContent = ({
     reValidateMode: "onBlur",
     defaultValues: {
       ...defaultContentFormValues,
-      ...contentSettings
+      ...contentSettings,
+      suggestedMessages: contentSettings?.suggestedMessagesEnabled
+        ? contentSettings?.suggestedMessages
+        : [],
+      quickPrompts: contentSettings?.quickPromptsEnabled
+        ? contentSettings?.quickPrompts
+        : []
     }
   })
 
@@ -280,22 +286,17 @@ const ChatInterfaceContent = ({
                     <FormField
                       control={form.control}
                       name="suggestedMessagesEnabled"
-                      disabled
                       render={({ field }) => (
                         <FormItem
                           className="flex flex-col space-y-2"
                           onClick={handleCurrentEditingTab("chat")}
                         >
-                          <div className="flex w-full items-center justify-between opacity-50">
-                            <FormLabel>
-                              Enable Suggested Messages{" "}
-                              <span className="opacity-40">(Coming Soon)</span>
-                            </FormLabel>
+                          <div className="flex w-full items-center justify-between">
+                            <FormLabel>Enable Suggested Messages</FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                disabled
                                 className="mt-1 text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
@@ -458,7 +459,7 @@ const ChatInterfaceContent = ({
                   </CardContent>
                 </Card>
 
-                <Card className="opacity-50">
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardContent className="space-y-7 p-5">
                     <FormField
                       control={form.control}
@@ -471,10 +472,7 @@ const ChatInterfaceContent = ({
                           <div className="flex w-full items-center justify-between">
                             <div className="">
                               <FormLabel className="text-foreground text-lg font-semibold">
-                                Quick Prompts{" "}
-                                <span className="text-sm font-normal opacity-40">
-                                  (Coming Soon)
-                                </span>
+                                Quick Prompts
                               </FormLabel>
                               <FormDescription>
                                 Personalize the floating chat bubble add
@@ -486,8 +484,6 @@ const ChatInterfaceContent = ({
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                // TODO: Enable this switch when the feature is ready
-                                disabled
                                 className="mt-1 text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>

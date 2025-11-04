@@ -24,5 +24,4 @@ export interface LeadsAndOpportunities {
   keyMetrics: LeadMetricCard[]
   mostLeadGeneratedIntents: LeadIntentDistribution[]
   leadGrowthOverTime: LeadGrowthDataPoint[]
-  smartHighlights: Array<{ text: string }>
 }

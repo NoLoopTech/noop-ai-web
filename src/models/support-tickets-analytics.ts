@@ -19,15 +19,9 @@ export interface TicketCategoryBreakdown {
   avgResolutionTime: string
   negativeSentiment: number
 }
-
-export interface SmartHighlight {
-  text: string
-}
-
 export interface SupportAndTickets {
   timeRange: string
   keyMetrics: TicketMetricCard[]
   smartAlerts: SmartAlert[]
   ticketCategoryBreakdown: TicketCategoryBreakdown[]
-  smartHighlights: SmartHighlight[]
 }

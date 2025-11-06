@@ -10,7 +10,9 @@ import {
 } from "@tabler/icons-react"
 
 const ConversationsTab = lazy(() => import("./partials/ConversationsTab"))
-const TrackEngagementTab = lazy(() => import("./partials/TrackEngagementTab"))
+const TrafficEngagementTab = lazy(
+  () => import("./partials/TrafficEngagementTab")
+)
 const LeadsOpportunitiesTab = lazy(
   () => import("./partials/LeadsOpportunitiesTab")
 )
@@ -27,14 +29,14 @@ const TabSkeleton = () => (
 
 export default function Analytics() {
   return (
-    <Tabs defaultValue="track-engagement" className="space-y-6">
+    <Tabs defaultValue="traffic-engagement" className="space-y-6">
       <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
         <TabsTrigger
-          value="track-engagement"
+          value="traffic-engagement"
           className="flex items-center gap-2"
         >
           <IconChartBar size={16} />
-          <span className="hidden sm:inline">Track & Engagement</span>
+          <span className="hidden sm:inline">Traffic & Engagement</span>
           <span className="sm:hidden">Track</span>
         </TabsTrigger>
         <TabsTrigger value="conversations" className="flex items-center gap-2">
@@ -56,9 +58,9 @@ export default function Analytics() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="track-engagement" className="space-y-4">
+      <TabsContent value="traffic-engagement" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
-          <TrackEngagementTab />
+          <TrafficEngagementTab />
         </Suspense>
       </TabsContent>
 

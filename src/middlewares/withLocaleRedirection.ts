@@ -42,9 +42,11 @@ export const withLocaleRedirection: MiddlewareFactory = (
       if (
         !languages.some(loc => req.nextUrl.pathname.startsWith(`/${loc}`)) &&
         !req.nextUrl.pathname.startsWith("/_next") &&
+        !req.nextUrl.pathname.startsWith("/data") &&
         !req.nextUrl.pathname.endsWith(".svg") &&
         !req.nextUrl.pathname.endsWith(".jpg") &&
         !req.nextUrl.pathname.endsWith(".png") &&
+        !req.nextUrl.pathname.endsWith(".geojson") &&
         !req.nextUrl.pathname.includes("/maintenance/api")
       ) {
         return NextResponse.redirect(

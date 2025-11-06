@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle
@@ -30,16 +31,17 @@ import HalfBgIcon from "@/../public/assets/icons/bot-settings-icon-welcome-half.
 import { ColorPicker } from "@/components/ColorPicker"
 import { IconRefresh, IconUpload } from "@tabler/icons-react"
 import { useEffect, useMemo, useState } from "react"
-import ImageCropper from "@/components/ImageCropper"
 import {
   InterfaceSettingsTypes,
   StyleForm,
   StyleFormSchema
 } from "@/types/botSettings"
 import { useApiQuery } from "@/query"
-import { UserProject } from "@/models/project"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { UserProject } from "@/models/project"
 import axios from "axios"
+import ImageCropper from "@/components/ImageCropper"
+import { CroppedMeta } from "@/types/reactImageCrop"
 
 type StyleFormInitial = Omit<StyleForm, "brandLogo" | "chatButtonIcon"> & {
   brandLogo?: File | string | null
@@ -53,6 +55,11 @@ interface ChatInterfaceStylesProps extends InterfaceSettingsTypes {
     exit: { opacity: number; x: number }
   }
   stylingSettings?: StyleFormInitial | undefined
+  brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  setIsChatIconCropping?: (isCropping: boolean) => void
+  setIsBrandLogoCropping?: (isCropping: boolean) => void
+  setCurrentEditingTab: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 // INFO: Utility function to determine text color (black or white) based on background color
@@ -69,12 +76,24 @@ function getContrastTextColor(hex: string): string {
   return luminance > 0.5 ? "#000000" : "#FFFFFF"
 }
 
+const FALLBACK_IMAGE_MIME = "image/png"
+
+function mimeTypeToExtension(mimeType: string) {
+  const [, ext] = mimeType.split("/")
+  return ext || "png"
+}
+
 const ChatInterfaceStyles = ({
   tabVariants,
   setBrandStyling,
   setChatButtonStyling,
   setWelcomeScreenStyling,
-  stylingSettings
+  stylingSettings,
+  setCurrentEditingTab,
+  brandLogoPreviewCanvasRef,
+  chatButtonIconPreviewCanvasRef,
+  setIsChatIconCropping,
+  setIsBrandLogoCropping
 }: ChatInterfaceStylesProps) => {
   const form = useForm<StyleForm>({
     resolver: zodResolver(StyleFormSchema),
@@ -83,8 +102,26 @@ const ChatInterfaceStyles = ({
     }
   })
 
-  const [brandLogoCropCompleted, setBrandLogoCropCompleted] = useState(false)
-  const [chatButtonCropCompleted, setChatButtonCropCompleted] = useState(false)
+  const [brandLogoCropApplied, setBrandLogoCropApplied] = useState(false)
+  const [imgSrc, setImgSrc] = useState<string>("")
+  const [brandLogoCroppedImgUrl, setBrandLogoCroppedImgUrl] =
+    useState<string>("")
+  const [brandLogoCroppedMeta, setBrandLogoCroppedMeta] =
+    useState<CroppedMeta | null>(null)
+  const [brandLogoCroppingDone, setBrandLogoCroppingDone] = useState(false)
+
+  const [chatButtonIconSrc, setChatButtonIconSrc] = useState<string>("")
+  const [chatButtonCroppedImgUrl, setChatButtonCroppedImgUrl] =
+    useState<string>("")
+  const [chatButtonCroppedMeta, setChatButtonCroppedMeta] =
+    useState<CroppedMeta | null>(null)
+  const [chatButtonCroppingDone, setChatButtonCroppingDone] = useState(false)
+  const [chatButtonCropApplied, setChatButtonCropApplied] = useState(false)
+
+  const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(null)
+  const [chatButtonIconUrl, setChatButtonIconUrl] = useState<string | null>(
+    null
+  )
 
   const currentProjectId = useProjectCode()
 
@@ -110,33 +147,59 @@ const ChatInterfaceStyles = ({
       ?.projectName.replace(/\s/g, "-") ||
     `project-${currentProjectId || "unknown"}`
 
+  const brandLogoFile = form.watch("brandLogo")
+  const brandLogoMimeType = useMemo(
+    () =>
+      brandLogoFile instanceof File && brandLogoFile.type
+        ? brandLogoFile.type
+        : FALLBACK_IMAGE_MIME,
+    [brandLogoFile]
+  )
+
   const { data: getBrandLogoUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
     expiresOn: string
-  }>(["get-brand-logo-upload-url"], "/botsettings/image/upload", () => ({
-    method: "post",
-    data: {
-      fileName: "brand-logo-local.png",
-      contentType: "image/png",
-      folder: currentProjectName
-    }
-  }))
+  }>(
+    ["get-brand-logo-upload-url", brandLogoMimeType],
+    "/botsettings/image/upload",
+    () => ({
+      method: "post",
+      data: {
+        fileName: `brand-logo-local.${mimeTypeToExtension(brandLogoMimeType)}`,
+        contentType: brandLogoMimeType,
+        folder: currentProjectName
+      }
+    })
+  )
+
+  const chatButtonIconFile = form.watch("chatButtonIcon")
+  const chatButtonMimeType = useMemo(
+    () =>
+      chatButtonIconFile instanceof File && chatButtonIconFile.type
+        ? chatButtonIconFile.type
+        : FALLBACK_IMAGE_MIME,
+    [chatButtonIconFile]
+  )
 
   const { data: getChatButtonIconUploadUrl } = useApiQuery<{
     uploadUrl: string
     publicUrl: string
     blobName: string
     expiresOn: string
-  }>(["get-chat-button-icon-upload-url"], "/botsettings/image/upload", () => ({
-    method: "post",
-    data: {
-      fileName: "chat-button-icon-local.png",
-      contentType: "image/png",
-      folder: currentProjectName
-    }
-  }))
+  }>(
+    ["get-chat-button-icon-upload-url", chatButtonMimeType],
+    "/botsettings/image/upload",
+    () => ({
+      method: "post",
+      data: {
+        fileName: `chat-button-icon-local.${mimeTypeToExtension(chatButtonMimeType)}`,
+        contentType: chatButtonMimeType,
+        folder: currentProjectName
+      }
+    })
+  )
 
   const resetColor =
     <T extends keyof StyleForm>(
@@ -165,12 +228,6 @@ const ChatInterfaceStyles = ({
     form.setValue("chatButtonTextColor", newTextColor, { shouldDirty: true })
   }, [form.watch("chatButtonBgColor")])
 
-  // useEffect(() => {
-  //   const brandBgColor = form.watch("brandBgColor")
-  //   const brandTextColor = form.watch("brandTextColor")
-  //   setBrandStyling({ backgroundColor: brandBgColor, color: brandTextColor })
-  // }, [form.watch("brandBgColor"), form.watch("brandTextColor")])
-
   function fileToDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -190,28 +247,18 @@ const ChatInterfaceStyles = ({
   }
 
   useEffect(() => {
-    const theme = form.watch("themes")
-    const brandBgColor = form.watch("brandBgColor")
-    const brandTextColor = form.watch("brandTextColor")
     const brandLogoFile = form.watch("brandLogo")
-
-    if (brandLogoFile instanceof File && brandLogoCropCompleted) {
+    if (
+      brandLogoFile instanceof File &&
+      brandLogoCropApplied &&
+      brandLogoFile.name.includes("cropped")
+    ) {
       fileToDataUrl(brandLogoFile).then(dataUrl => {
-        setBrandStyling({
-          theme: theme ?? "light",
-          backgroundColor: brandBgColor,
-          color: brandTextColor,
-          brandLogo: dataUrl
-        })
-        if (brandLogoCropCompleted && getBrandLogoUploadUrl?.uploadUrl) {
+        setBrandLogoUrl(dataUrl)
+        if (getBrandLogoUploadUrl?.uploadUrl) {
           uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
             .then(() => {
-              setBrandStyling({
-                theme: theme ?? "light",
-                backgroundColor: brandBgColor,
-                color: brandTextColor,
-                brandLogo: getBrandLogoUploadUrl.publicUrl
-              })
+              setBrandLogoUrl(getBrandLogoUploadUrl.publicUrl)
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -219,52 +266,47 @@ const ChatInterfaceStyles = ({
             })
         }
       })
+    } else if (typeof brandLogoFile === "string") {
+      setBrandLogoUrl(brandLogoFile)
     } else {
-      setBrandStyling({
-        theme: theme ?? "light",
-        backgroundColor: brandBgColor,
-        color: brandTextColor,
-        brandLogo: null
-      })
+      setBrandLogoUrl(null)
     }
+  }, [form.watch("brandLogo"), brandLogoCropApplied, getBrandLogoUploadUrl])
+
+  useEffect(() => {
+    const theme = form.watch("themes")
+    const brandBgColor = form.watch("brandBgColor")
+    const brandTextColor = form.watch("brandTextColor")
+    setBrandStyling({
+      theme: theme ?? "light",
+      backgroundColor: brandBgColor,
+      color: brandTextColor,
+      brandLogo: brandLogoUrl
+    })
   }, [
+    form.watch("themes"),
     form.watch("brandBgColor"),
     form.watch("brandTextColor"),
-    form.watch("brandLogo"),
-    setBrandStyling,
-    brandLogoCropCompleted,
-    getBrandLogoUploadUrl
+    brandLogoUrl,
+    setBrandStyling
   ])
 
   useEffect(() => {
-    const chatButtonBgColor = form.watch("chatButtonBgColor")
-    const chatButtonBorderColor = form.watch("chatButtonBorderColor")
     const chatButtonIconFile = form.watch("chatButtonIcon")
-    const chatButtonPosition = form.watch("chatButtonPosition")
-    const chatButtonTextColor = form.watch("chatButtonTextColor")
-
-    if (chatButtonIconFile instanceof File && chatButtonCropCompleted) {
+    if (
+      chatButtonIconFile instanceof File &&
+      chatButtonCropApplied &&
+      chatButtonIconFile.name.includes("cropped")
+    ) {
       fileToDataUrl(chatButtonIconFile).then(dataUrl => {
-        setChatButtonStyling({
-          backgroundColor: chatButtonBgColor,
-          borderColor: chatButtonBorderColor,
-          chatButtonIcon: dataUrl,
-          chatButtonTextColor: chatButtonTextColor,
-          chatButtonPosition: chatButtonPosition
-        })
-        if (chatButtonCropCompleted && getChatButtonIconUploadUrl?.uploadUrl) {
+        setChatButtonIconUrl(dataUrl)
+        if (getChatButtonIconUploadUrl?.uploadUrl) {
           uploadImageToAzure(
             getChatButtonIconUploadUrl.uploadUrl,
             chatButtonIconFile
           )
             .then(() => {
-              setChatButtonStyling({
-                backgroundColor: chatButtonBgColor,
-                borderColor: chatButtonBorderColor,
-                chatButtonIcon: getChatButtonIconUploadUrl.publicUrl,
-                chatButtonTextColor: chatButtonTextColor,
-                chatButtonPosition: chatButtonPosition
-              })
+              setChatButtonIconUrl(getChatButtonIconUploadUrl.publicUrl)
             })
             .catch(err => {
               // eslint-disable-next-line no-console
@@ -272,24 +314,37 @@ const ChatInterfaceStyles = ({
             })
         }
       })
+    } else if (typeof chatButtonIconFile === "string") {
+      setChatButtonIconUrl(chatButtonIconFile)
     } else {
-      setChatButtonStyling({
-        backgroundColor: chatButtonBgColor,
-        borderColor: chatButtonBorderColor,
-        chatButtonIcon: null,
-        chatButtonTextColor: chatButtonTextColor,
-        chatButtonPosition: chatButtonPosition
-      })
+      setChatButtonIconUrl(null)
     }
+  }, [
+    form.watch("chatButtonIcon"),
+    chatButtonCropApplied,
+    getChatButtonIconUploadUrl
+  ])
+
+  useEffect(() => {
+    const chatButtonBgColor = form.watch("chatButtonBgColor")
+    const chatButtonBorderColor = form.watch("chatButtonBorderColor")
+    const chatButtonPosition = form.watch("chatButtonPosition")
+    const chatButtonTextColor = form.watch("chatButtonTextColor")
+    setChatButtonStyling({
+      backgroundColor: chatButtonBgColor,
+      borderColor: chatButtonBorderColor,
+      chatButtonIcon: chatButtonIconUrl,
+      chatButtonTextColor: chatButtonTextColor,
+      chatButtonPosition: chatButtonPosition
+    })
   }, [
     form.watch("chatButtonBgColor"),
     form.watch("chatButtonBorderColor"),
     form.watch("chatButtonIcon"),
     form.watch("chatButtonPosition"),
     form.watch("chatButtonTextColor"),
-    setChatButtonStyling,
-    chatButtonCropCompleted,
-    getChatButtonIconUploadUrl
+    chatButtonIconUrl,
+    setChatButtonStyling
   ])
 
   useEffect(() => {
@@ -309,6 +364,135 @@ const ChatInterfaceStyles = ({
     setWelcomeScreenStyling
   ])
 
+  function handleBrandLogoInputChange(
+    file: File | null,
+    fileToDataUrl: (file: File) => Promise<string>,
+    setImgSrc: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppedMeta: React.Dispatch<React.SetStateAction<CroppedMeta | null>>,
+    fieldOnChange: (file: File | null) => void
+  ) {
+    if (file) {
+      setIsBrandLogoCropping?.(true)
+      setBrandLogoCropApplied(false)
+      fileToDataUrl(file).then(dataUrl => {
+        setImgSrc(dataUrl)
+        setCroppingDone(false)
+        setCroppedImgUrl("")
+        setCroppedMeta(null)
+        fieldOnChange(file)
+      })
+    } else {
+      setIsBrandLogoCropping?.(false)
+      setBrandLogoCroppedImgUrl("")
+      setBrandLogoCroppedMeta(null)
+      setBrandLogoCropApplied(false)
+      fieldOnChange(null)
+    }
+  }
+
+  async function handleBrandLogoCrop(
+    url: string,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    fieldOnChange: (file: File) => void,
+    setBrandLogoCropApplied: React.Dispatch<React.SetStateAction<boolean>>
+  ) {
+    setCroppedImgUrl(url)
+    setCroppingDone(true)
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const croppedFile = new File([blob], "brand-logo-cropped.png", {
+      type: "image/png"
+    })
+    fieldOnChange(croppedFile)
+    setBrandLogoCropApplied(true)
+  }
+
+  function handleSetBrandLogoCroppedMeta(meta: {
+    name: string
+    width: number
+    height: number
+    size: string
+  }) {
+    setBrandLogoCroppedMeta(meta)
+  }
+
+  const handleBrandLogoCancelCrop =
+    (fieldOnChange: (file: File | null) => void) => () => {
+      setBrandLogoCropApplied(false)
+      setImgSrc("")
+      fieldOnChange(null)
+    }
+
+  function handleChatButtonInputChange(
+    file: File | null,
+    fileToDataUrl: (file: File) => Promise<string>,
+    setImgSrc: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppedMeta: React.Dispatch<React.SetStateAction<CroppedMeta | null>>,
+    fieldOnChange: (file: File | null) => void
+  ) {
+    if (file) {
+      setIsChatIconCropping?.(true)
+      setChatButtonCropApplied(false)
+      fileToDataUrl(file).then(dataUrl => {
+        setImgSrc(dataUrl)
+        setCroppingDone(false)
+        setCroppedImgUrl("")
+        setCroppedMeta(null)
+        fieldOnChange(file)
+      })
+    } else {
+      setIsChatIconCropping?.(false)
+      setChatButtonCroppedImgUrl("")
+      setChatButtonCroppedMeta(null)
+      setChatButtonCropApplied(false)
+      fieldOnChange(null)
+    }
+  }
+
+  async function handleChatButtonCrop(
+    url: string,
+    setCroppedImgUrl: React.Dispatch<React.SetStateAction<string>>,
+    setCroppingDone: React.Dispatch<React.SetStateAction<boolean>>,
+    fieldOnChange: (file: File) => void,
+    setCropApplied: React.Dispatch<React.SetStateAction<boolean>>
+  ) {
+    setCroppedImgUrl(url)
+    setCroppingDone(true)
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const croppedFile = new File([blob], "chat-button-icon-cropped.png", {
+      type: "image/png"
+    })
+    fieldOnChange(croppedFile)
+    setCropApplied(true)
+  }
+
+  function handleSetChatButtonCroppedMeta(meta: {
+    name: string
+    width: number
+    height: number
+    size: string
+  }) {
+    setChatButtonCroppedMeta(meta)
+  }
+
+  const handleCancelChatButtonCrop =
+    (fieldOnChange: (file: File | null) => void) => () => {
+      setChatButtonIconSrc("")
+      setChatButtonCropApplied(false)
+      fieldOnChange(null)
+    }
+
+  const handleCurrentEditingTab =
+    (tab: "chat" | "chatbutton" | "welcome") => () => {
+      setCurrentEditingTab(tab)
+    }
+
   return (
     <TabsContent key="style" value="style">
       <motion.div
@@ -318,27 +502,35 @@ const ChatInterfaceStyles = ({
         animate="animate"
         exit="exit"
         transition={{ duration: 0.3 }}
-        className="space-y-4"
+        className="min-w-[630px] space-y-4"
       >
         <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
             <Form {...form}>
-              <form id="chat-interface-style" className="flex flex-col gap-4">
-                <Card>
+              <form
+                id="chat-interface-style"
+                className="flex flex-col gap-4 overflow-auto"
+              >
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
                       Brand Styling
                     </CardTitle>
+                    <CardDescription>
+                      Customize your bot’s look to match your brand. Update the
+                      bot profile image and primary color for a consistent
+                      visual identity
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-5">
                     <FormField
                       control={form.control}
                       name="brandLogo"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Brand Logo</FormLabel>
+                        <FormItem onClick={handleCurrentEditingTab("chat")}>
                           <div className="flex items-center justify-between">
-                            <div className="flex flex-col space-y-1">
+                            <div className="flex flex-col space-y-1 self-start">
+                              <FormLabel>Brand Logo</FormLabel>
                               <FormDescription>
                                 Supports JPG, PNG, and SVG
                               </FormDescription>
@@ -346,15 +538,43 @@ const ChatInterfaceStyles = ({
                             </div>
                             <FormControl>
                               <ImageCropper
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
+                                src={imgSrc}
+                                onCancel={handleBrandLogoCancelCrop(
+                                  field.onChange
+                                )}
+                                previewCanvasRef={brandLogoPreviewCanvasRef}
+                                setCroppedImgUrl={(url: string) =>
+                                  handleBrandLogoCrop(
+                                    url,
+                                    setBrandLogoCroppedImgUrl,
+                                    setBrandLogoCroppingDone,
+                                    field.onChange,
+                                    setBrandLogoCropApplied
+                                  )
+                                }
+                                setCroppedMeta={handleSetBrandLogoCroppedMeta}
+                                variant={"freeform"}
+                                setCropApplied={setBrandLogoCropApplied}
+                                accept="image/*"
                                 icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                display="icon-text"
-                                cropShape="logoCrop"
-                                setCropComplete={setBrandLogoCropCompleted}
+                                onFileChange={(file: File | null) =>
+                                  handleBrandLogoInputChange(
+                                    file,
+                                    fileToDataUrl,
+                                    setImgSrc,
+                                    setBrandLogoCroppingDone,
+                                    setBrandLogoCroppedImgUrl,
+                                    setBrandLogoCroppedMeta,
+                                    field.onChange
+                                  )
+                                }
+                                croppingDone={brandLogoCroppingDone}
+                                croppedImgUrl={brandLogoCroppedImgUrl}
+                                croppedMeta={brandLogoCroppedMeta}
+                                setImgSrc={setImgSrc}
+                                popoverTriggerText="Select Logo"
+                                backgroundColor={form.watch("brandBgColor")}
+                                resetInputOnApply={false}
                               />
                             </FormControl>
                           </div>
@@ -366,7 +586,7 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="brandBgColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem onClick={handleCurrentEditingTab("chat")}>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
                               <FormLabel>Brand color</FormLabel>
@@ -394,6 +614,7 @@ const ChatInterfaceStyles = ({
                       )}
                     />
 
+                    {/* INFO: This is a hidden input field since it's automatically calculated based on the brand background color */}
                     <FormField
                       control={form.control}
                       name="brandTextColor"
@@ -428,7 +649,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <CardTitle className="text-xl font-semibold">
                       Chat Appearance{" "}
@@ -436,13 +657,21 @@ const ChatInterfaceStyles = ({
                         (Coming Soon)
                       </span>
                     </CardTitle>
+
+                    <CardDescription>
+                      Control how your chat interface looks. Switch between
+                      light and dark themes to match your website’s style.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-6">
                     <FormField
                       control={form.control}
                       name="themes"
                       render={({ field }) => (
-                        <FormItem className="col-span-6">
+                        <FormItem
+                          className="col-span-6"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <FormLabel>Themes</FormLabel>
                           <FormControl>
                             <RadioGroup
@@ -455,7 +684,7 @@ const ChatInterfaceStyles = ({
                                 <FormControl>
                                   <FormLabel htmlFor="light">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 p-0 pt-2.5 pl-5">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 p-0 pt-2 pl-3">
                                         <LightIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -471,11 +700,14 @@ const ChatInterfaceStyles = ({
                                 </FormControl>
                               </FormItem>
 
-                              <FormItem className="flex items-center">
+                              <FormItem
+                                className="flex items-center"
+                                onClick={handleCurrentEditingTab("chat")}
+                              >
                                 <FormControl>
                                   <FormLabel htmlFor="dark">
                                     <Card className="_hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary _cursor-pointer cursor-not-allowed rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-800 p-0 pt-2.5 pl-5">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-800 p-0 pt-2 pl-3">
                                         <DarkIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -500,27 +732,29 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex flex-col space-y-1">
-                          <CardTitle className="text-xl font-semibold">
-                            Chat Button Appearance
-                          </CardTitle>
-                        </div>
-                      </div>
-                    </div>
+                    <CardTitle className="text-xl font-semibold">
+                      Chat Icon Appearance
+                    </CardTitle>
+
+                    <CardDescription>
+                      Personalize the chat launcher. Upload your own icon,
+                      choose background colors, and set its position on your
+                      site (left or right)
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-5 pt-0 pb-6">
                     <FormField
                       control={form.control}
                       name="chatButtonIcon"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Chat button icon</FormLabel>
-                          <div className="flex items-center justify-between">
+                        <FormItem
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
+                          <div className="flex items-start justify-between">
                             <div className="flex flex-col space-y-1">
+                              <FormLabel>Chat icon</FormLabel>
                               <FormDescription>
                                 Supports JPG, PNG, and SVG
                               </FormDescription>
@@ -528,15 +762,47 @@ const ChatInterfaceStyles = ({
                             </div>
                             <FormControl>
                               <ImageCropper
-                                value={field.value}
-                                onChange={field.onChange}
-                                accept="image/jpeg,image/png,image/svg+xml"
+                                src={chatButtonIconSrc}
+                                onCancel={handleCancelChatButtonCrop(
+                                  field.onChange
+                                )}
+                                previewCanvasRef={
+                                  chatButtonIconPreviewCanvasRef
+                                }
+                                setCroppedImgUrl={(url: string) =>
+                                  handleChatButtonCrop(
+                                    url,
+                                    setChatButtonCroppedImgUrl,
+                                    setChatButtonCroppingDone,
+                                    field.onChange,
+                                    setChatButtonCropApplied
+                                  )
+                                }
+                                setCroppedMeta={handleSetChatButtonCroppedMeta}
+                                variant={"circular"}
+                                setCropApplied={setChatButtonCropApplied}
+                                accept="image/*"
                                 icon={<IconUpload className="h-4 w-4" />}
-                                variant="outline"
-                                label="Upload"
-                                cropShape="circle"
-                                display="icon-text"
-                                setCropComplete={setChatButtonCropCompleted}
+                                onFileChange={(file: File | null) =>
+                                  handleChatButtonInputChange(
+                                    file,
+                                    fileToDataUrl,
+                                    setChatButtonIconSrc,
+                                    setChatButtonCroppingDone,
+                                    setChatButtonCroppedImgUrl,
+                                    setChatButtonCroppedMeta,
+                                    field.onChange
+                                  )
+                                }
+                                croppingDone={chatButtonCroppingDone}
+                                croppedImgUrl={chatButtonCroppedImgUrl}
+                                croppedMeta={chatButtonCroppedMeta}
+                                setImgSrc={setChatButtonIconSrc}
+                                popoverTriggerText="Select Icon"
+                                backgroundColor={form.watch(
+                                  "chatButtonBgColor"
+                                )}
+                                resetInputOnApply={false}
                               />
                             </FormControl>
                           </div>
@@ -548,10 +814,12 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="chatButtonBgColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat button color</FormLabel>
+                              <FormLabel>Chat icon button color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -576,7 +844,7 @@ const ChatInterfaceStyles = ({
                       )}
                     />
 
-                    {/* INFO: this is a hidden input field since it is calculated automatically */}
+                    {/* INFO: This is a hidden input field since it's automatically calculated based on the chat button background color */}
                     <FormField
                       control={form.control}
                       name="chatButtonTextColor"
@@ -584,7 +852,7 @@ const ChatInterfaceStyles = ({
                         <FormItem hidden>
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat bubble text color</FormLabel>
+                              <FormLabel>Chat icon text color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -604,10 +872,12 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="chatButtonBorderColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
                           <div className="flex items-center justify-between space-y-0">
                             <div className="flex flex-col space-y-1">
-                              <FormLabel>Chat button border color</FormLabel>
+                              <FormLabel>Chat icon border color</FormLabel>
                               <FormMessage />
                             </div>
                             <FormControl>
@@ -637,15 +907,17 @@ const ChatInterfaceStyles = ({
                       name="chatButtonPosition"
                       render={({ field }) => (
                         <FormItem className="col-span-6">
-                          <FormLabel>Aligns chat button</FormLabel>
+                          <FormLabel>Aligns chat icon</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                               value={field.value}
-                              className="mt-1 flex h-full w-full flex-col items-start space-y-1"
+                              className="mt-3 flex h-full w-full flex-col items-start space-y-1"
                             >
-                              <FormItem>
+                              <FormItem
+                                onClick={handleCurrentEditingTab("chatbutton")}
+                              >
                                 <FormControl>
                                   <div className="flex items-center space-x-3">
                                     <RadioGroupItem
@@ -660,7 +932,9 @@ const ChatInterfaceStyles = ({
                                 </FormControl>
                               </FormItem>
 
-                              <FormItem>
+                              <FormItem
+                                onClick={handleCurrentEditingTab("chatbutton")}
+                              >
                                 <FormControl>
                                   <div className="flex items-center space-x-3">
                                     <RadioGroupItem
@@ -683,7 +957,7 @@ const ChatInterfaceStyles = ({
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="w-full transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <div className="flex items-center justify-between">
                       <div className="flex w-full items-center justify-between">
@@ -708,11 +982,14 @@ const ChatInterfaceStyles = ({
                               value={field.value}
                               className="mt-1 flex h-full w-full items-center justify-start space-x-5"
                             >
-                              <FormItem className="flex items-center">
+                              <FormItem
+                                className="flex items-center"
+                                onClick={handleCurrentEditingTab("welcome")}
+                              >
                                 <FormControl>
                                   <FormLabel htmlFor="bg-half">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-6 pt-4 pb-0">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-3 pt-0 pb-0 dark:bg-slate-900">
                                         <HalfBgIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -728,11 +1005,14 @@ const ChatInterfaceStyles = ({
                                 </FormControl>
                               </FormItem>
 
-                              <FormItem className="flex items-center">
+                              <FormItem
+                                className="flex items-center"
+                                onClick={handleCurrentEditingTab("welcome")}
+                              >
                                 <FormControl>
                                   <FormLabel htmlFor="bg-full">
                                     <Card className="hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer rounded-xl duration-300 ease-in-out transform-fill">
-                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-6 pt-4 pb-0">
+                                      <CardContent className="m-0 rounded-t-[12px] bg-zinc-50 px-3 pt-0 pb-0 dark:bg-slate-900">
                                         <FullBgIcon />
                                       </CardContent>
                                       <CardFooter className="flex items-center justify-between border-t py-5">
@@ -758,7 +1038,7 @@ const ChatInterfaceStyles = ({
                       control={form.control}
                       name="welcomeButtonBgColor"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem onClick={handleCurrentEditingTab("welcome")}>
                           <div className="flex items-center justify-between">
                             <FormLabel>Submit button color</FormLabel>
                             <FormControl>
@@ -784,7 +1064,7 @@ const ChatInterfaceStyles = ({
                       )}
                     />
 
-                    {/* INFO: this is a hidden input field since it is calculated automatically */}
+                    {/* INFO: This is a hidden input field since it's automatically calculated based on the chat welcome screen background color */}
                     <FormField
                       control={form.control}
                       name="welcomeButtonTextColor"

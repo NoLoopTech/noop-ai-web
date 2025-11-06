@@ -17,10 +17,8 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { TabsContent } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   IconInfoCircle,
@@ -35,6 +33,7 @@ import RichTextEditor from "@/components/RichTextEditor"
 import { useEffect } from "react"
 import { ContentForm, ContentFormSchema } from "@/types/botSettings"
 import { useToast } from "@/lib/hooks/useToast"
+import { InputWithLength } from "@/components/InputWithLength"
 
 interface ChatInterfaceContentProps {
   tabVariants: {
@@ -44,6 +43,7 @@ interface ChatInterfaceContentProps {
   }
   setContentPreview: (data: ContentForm) => void
   contentSettings?: ContentForm | undefined
+  setCurrentEditingTab: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 const defaultContentFormValues: ContentForm = {
@@ -67,7 +67,8 @@ const defaultContentFormValues: ContentForm = {
 const ChatInterfaceContent = ({
   tabVariants,
   setContentPreview,
-  contentSettings
+  contentSettings,
+  setCurrentEditingTab
 }: ChatInterfaceContentProps) => {
   const { toast } = useToast()
 
@@ -77,7 +78,13 @@ const ChatInterfaceContent = ({
     reValidateMode: "onBlur",
     defaultValues: {
       ...defaultContentFormValues,
-      ...contentSettings
+      ...contentSettings,
+      suggestedMessages: contentSettings?.suggestedMessagesEnabled
+        ? contentSettings?.suggestedMessages
+        : [],
+      quickPrompts: contentSettings?.quickPromptsEnabled
+        ? contentSettings?.quickPrompts
+        : []
     }
   })
 
@@ -149,6 +156,11 @@ const ChatInterfaceContent = ({
     })
   }
 
+  const handleCurrentEditingTab =
+    (tab: "chat" | "chatbutton" | "welcome") => () => {
+      setCurrentEditingTab(tab)
+    }
+
   return (
     <TabsContent key="content" value="content" className="space-y-4">
       <motion.div
@@ -158,7 +170,7 @@ const ChatInterfaceContent = ({
         animate="animate"
         exit="exit"
         transition={{ duration: 0.3 }}
-        className="space-y-4"
+        className="min-w-[630px] space-y-4"
       >
         <ScrollArea scrollbarVariant="tiny" className="h-[calc(100vh-265px)]">
           <div className="flex flex-col space-y-5 pt-1 pr-3.5 pb-5">
@@ -169,7 +181,7 @@ const ChatInterfaceContent = ({
                 onError={onError}
                 className="flex flex-col gap-4"
               >
-                <Card>
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
                   <CardHeader className="px-5 pt-5">
                     <div className="flex items-center justify-between">
                       <div className="flex w-full items-center justify-between">
@@ -198,20 +210,22 @@ const ChatInterfaceContent = ({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-5 px-5 pt-0 pb-6">
+                  <CardContent className="space-y-7 px-5 pt-0 pb-6">
                     <FormField
                       control={form.control}
                       name="botName"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <FormLabel>Bot Name</FormLabel>
                           <FormControl>
-                            <Input
+                            <InputWithLength
                               {...field}
                               maxLength={10}
-                              value={field.value}
+                              showMaxLength={true}
                               placeholder="Your bot name"
-                              className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
                           </FormControl>
                           <FormMessage />
@@ -223,15 +237,21 @@ const ChatInterfaceContent = ({
                       control={form.control}
                       name="initialMessage"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <FormLabel>
                             Initial messages
                             <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
                           </FormLabel>
                           <FormControl>
-                            <Textarea
+                            <InputWithLength
                               {...field}
+                              type="textarea"
                               placeholder="Hi! What can I help you with?"
+                              maxLength={50}
+                              showMaxLength={true}
                               rows={2}
                               className="mt-1 resize-none text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
@@ -245,13 +265,17 @@ const ChatInterfaceContent = ({
                       control={form.control}
                       name="messagePlaceholder"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <FormLabel>Message placeholder</FormLabel>
                           <FormControl>
-                            <Input
+                            <InputWithLength
                               {...field}
+                              maxLength={35}
+                              showMaxLength={true}
                               placeholder="Message...."
-                              className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                             />
                           </FormControl>
                           <FormMessage />
@@ -262,20 +286,18 @@ const ChatInterfaceContent = ({
                     <FormField
                       control={form.control}
                       name="suggestedMessagesEnabled"
-                      disabled
                       render={({ field }) => (
-                        <FormItem>
-                          <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
-                            <FormLabel>
-                              Enable Suggested Messages{" "}
-                              <span className="opacity-40">(Coming Soon)</span>
-                            </FormLabel>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
+                          <div className="flex w-full items-center justify-between">
+                            <FormLabel>Enable Suggested Messages</FormLabel>
                             <FormControl>
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                disabled
-                                className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                className="mt-1 text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
                           </div>
@@ -297,14 +319,18 @@ const ChatInterfaceContent = ({
                             <FormField
                               control={form.control}
                               name={`suggestedMessages.${index}.text`}
-                              disabled={!suggestedMessagesEnabled}
                               render={({ field }) => (
-                                <FormItem className="flex-1">
+                                <FormItem
+                                  className="flex-1"
+                                  onClick={handleCurrentEditingTab("chat")}
+                                >
                                   <FormControl>
-                                    <Input
+                                    <InputWithLength
                                       {...field}
+                                      maxLength={30}
+                                      showMaxLength={true}
                                       placeholder={`Suggested message ${index + 1}`}
-                                      className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                      disabled={!suggestedMessagesEnabled}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -343,7 +369,10 @@ const ChatInterfaceContent = ({
                       control={form.control}
                       name="dismissibleNotice"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <FormLabel>
                             Dismissible notice
                             <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
@@ -353,7 +382,7 @@ const ChatInterfaceContent = ({
                               <RichTextEditor
                                 value={field.value || ""}
                                 onChange={field.onChange}
-                                className="bg-background resize-none"
+                                className="resize-none"
                               />
                               <div className="flex items-center space-x-2 px-2 py-1 text-sm text-zinc-500">
                                 <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
@@ -376,7 +405,10 @@ const ChatInterfaceContent = ({
                       control={form.control}
                       name="collectUserFeedbackEnabled"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
                             <FormLabel>
                               Collect User Feedback{" "}
@@ -401,7 +433,10 @@ const ChatInterfaceContent = ({
                       control={form.control}
                       name="regenerateMessagesEnabled"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chat")}
+                        >
                           <div className="flex w-full cursor-not-allowed items-center justify-between opacity-50">
                             <FormLabel>
                               Regenerate Messages{" "}
@@ -424,13 +459,16 @@ const ChatInterfaceContent = ({
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardContent className="space-y-5 p-5">
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
+                  <CardContent className="space-y-7 p-5">
                     <FormField
                       control={form.control}
                       name="quickPromptsEnabled"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("chatbutton")}
+                        >
                           <div className="flex w-full items-center justify-between">
                             <div className="">
                               <FormLabel className="text-foreground text-lg font-semibold">
@@ -446,7 +484,7 @@ const ChatInterfaceContent = ({
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
+                                className="mt-1 text-zinc-600/95 disabled:cursor-not-allowed disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                               />
                             </FormControl>
                           </div>
@@ -469,14 +507,19 @@ const ChatInterfaceContent = ({
                               control={form.control}
                               name={`quickPrompts.${index}.text`}
                               render={({ field }) => (
-                                <FormItem className="flex-1">
+                                <FormItem
+                                  className="flex-1"
+                                  onClick={handleCurrentEditingTab(
+                                    "chatbutton"
+                                  )}
+                                >
                                   <FormControl>
-                                    <Input
-                                      maxLength={40}
+                                    <InputWithLength
                                       {...field}
+                                      maxLength={30}
                                       disabled={!quickPromptsEnabled}
+                                      showMaxLength={true}
                                       placeholder={`Quick prompt ${index + 1}`}
-                                      className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -501,7 +544,7 @@ const ChatInterfaceContent = ({
                             variant="outline"
                             disabled={!quickPromptsEnabled}
                             onClick={() => quickPromptsAppend({ text: "" })}
-                            className="flex w-max items-center space-x-2 px-3"
+                            className="flex w-max items-center space-x-5 px-3"
                           >
                             <IconPlus className="h-4 w-4" /> Add Message
                           </Button>
@@ -511,13 +554,16 @@ const ChatInterfaceContent = ({
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardContent className="space-y-5 p-5">
+                <Card className="transition-all duration-300 ease-in-out hover:border-1 hover:border-slate-300 hover:bg-zinc-300/25 hover:shadow-lg dark:hover:border-slate-700/90 dark:hover:bg-slate-900/50">
+                  <CardContent className="space-y-7 p-5">
                     <FormField
                       control={form.control}
                       name="welcomeScreenEnabled"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem
+                          className="flex flex-col space-y-2"
+                          onClick={handleCurrentEditingTab("welcome")}
+                        >
                           <div className="flex w-full items-center justify-between">
                             <div className="">
                               <FormLabel className="text-foreground text-lg font-semibold">
@@ -543,19 +589,23 @@ const ChatInterfaceContent = ({
                     />
 
                     {welcomeScreenEnabled && (
-                      <div className="flex flex-col space-y-2">
+                      <div className="flex flex-col space-y-5">
                         <FormField
                           control={form.control}
                           name={`welcomeScreen.title`}
                           disabled={!welcomeScreenEnabled}
                           render={({ field }) => (
-                            <FormItem className="flex-1">
+                            <FormItem
+                              className="flex-1"
+                              onClick={handleCurrentEditingTab("welcome")}
+                            >
                               <FormLabel>Welcome Title</FormLabel>
                               <FormControl>
-                                <Input
+                                <InputWithLength
                                   {...field}
+                                  maxLength={40}
+                                  showMaxLength={true}
                                   placeholder={`Almost Ready to Chat!`}
-                                  className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -568,16 +618,20 @@ const ChatInterfaceContent = ({
                           name={`welcomeScreen.instructions`}
                           disabled={!welcomeScreenEnabled}
                           render={({ field }) => (
-                            <FormItem className="flex-1">
+                            <FormItem
+                              className="flex-1"
+                              onClick={handleCurrentEditingTab("welcome")}
+                            >
                               <FormLabel>
                                 Welcome Instructions
                                 <IconInfoCircle className="ml-2 inline h-4 w-4 text-zinc-400" />
                               </FormLabel>
                               <FormControl>
-                                <Input
+                                <InputWithLength
                                   {...field}
+                                  maxLength={100}
+                                  showMaxLength={true}
                                   placeholder={`Tell us who you are so noopy can assist you better`}
-                                  className="mt-1 text-zinc-600/95 disabled:cursor-default disabled:border-zinc-300 disabled:opacity-100 dark:text-zinc-400 disabled:dark:border-zinc-800"
                                 />
                               </FormControl>
                               <FormMessage />

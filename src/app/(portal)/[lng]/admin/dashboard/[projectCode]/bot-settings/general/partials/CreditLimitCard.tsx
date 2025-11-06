@@ -16,7 +16,7 @@ const CreditLimitCard = () => {
     useState(false)
 
   return (
-    <Card>
+    <Card className="opacity-50">
       <CardHeader>
         <div className="flex w-full items-center justify-between">
           <div className="flex flex-col space-y-1">

@@ -23,6 +23,11 @@ interface InterfaceSettingsProps extends InterfaceSettingsTypes {
   contentSettings?: ContentForm | undefined
   stylingSettings?: StyleFormInitial | undefined
   isBotSettingsLoading: boolean
+  brandLogoPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  chatButtonIconPreviewCanvasRef: React.RefObject<HTMLCanvasElement | null>
+  setIsChatIconCropping?: (isCropping: boolean) => void
+  setIsBrandLogoCropping?: (isCropping: boolean) => void
+  setCurrentEditingTab: (tab: "chat" | "chatbutton" | "welcome") => void
 }
 
 const InterfaceSettings = ({
@@ -32,7 +37,12 @@ const InterfaceSettings = ({
   setContentPreview,
   contentSettings,
   stylingSettings,
-  isBotSettingsLoading
+  isBotSettingsLoading,
+  setCurrentEditingTab,
+  brandLogoPreviewCanvasRef,
+  chatButtonIconPreviewCanvasRef,
+  setIsChatIconCropping,
+  setIsBrandLogoCropping
 }: InterfaceSettingsProps) => {
   const [tab, setTab] = useState("content")
   const [stylingFormUpdate, setStylingFormUpdate] = useState<
@@ -99,6 +109,7 @@ const InterfaceSettings = ({
               tabVariants={tabVariants}
               setContentPreview={setContentPreview}
               contentSettings={contentSettings}
+              setCurrentEditingTab={setCurrentEditingTab}
             />
           )}
           {tab === "style" && (
@@ -109,6 +120,11 @@ const InterfaceSettings = ({
               setChatButtonStyling={setChatButtonStyling}
               setWelcomeScreenStyling={setWelcomeScreenStyling}
               stylingSettings={stylingFormUpdate}
+              brandLogoPreviewCanvasRef={brandLogoPreviewCanvasRef}
+              chatButtonIconPreviewCanvasRef={chatButtonIconPreviewCanvasRef}
+              setIsChatIconCropping={setIsChatIconCropping}
+              setIsBrandLogoCropping={setIsBrandLogoCropping}
+              setCurrentEditingTab={setCurrentEditingTab}
             />
           )}
         </AnimatePresence>

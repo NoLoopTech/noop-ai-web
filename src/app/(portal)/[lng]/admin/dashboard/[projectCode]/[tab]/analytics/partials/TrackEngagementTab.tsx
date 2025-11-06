@@ -4,8 +4,10 @@ import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { useTrafficEngagementAnalyticsData } from "@/lib/hooks/useTrafficEngagementAnalyticsData"
 import { DashboardRange } from "@/models/dashboard"
-import Image from "next/image"
+import { CountryTrafficMap } from "@/components/charts/CountryTrafficMap"
 import {
   ResponsiveContainer,
   LineChart,
@@ -176,122 +178,72 @@ const StatCard = React.memo(function StatCard({
 
 export default function TrackEngagementTab() {
   const { dateRange, setDateRange } = useDashboardFilters()
+  const projectId = useProjectCode()
 
-  // Loading placeholder flag
-  const isLoading = false
-
-  // Dummy data for design-only charts (two series: new + returning users)
-  const trafficData = useMemo(
-    () => [
-      { day: "Week 1", new: 3800, returning: 5200 },
-      { day: "Week 2", new: 4600, returning: 7600 },
-      { day: "Week 3", new: 3200, returning: 1800 },
-      { day: "Week 4", new: 5000, returning: 4800 }
-    ],
-    []
+  // Fetch traffic and engagement data
+  const { data, isLoading } = useTrafficEngagementAnalyticsData(
+    projectId ?? 0,
+    {
+      range: dateRange,
+      enabled: !!projectId
+    }
   )
 
-  const stats = useMemo(
-    () => [
-      {
-        label: "Total Website Visitors",
-        value: 1200,
-        trend: "up",
-        percentage: 222,
-        chartData: [
-          { day: "2025-10-15", value: 20 },
-          { day: "2025-10-16", value: 15 },
-          { day: "2025-10-17", value: 25 },
-          { day: "2025-10-18", value: 25 },
-          { day: "2025-10-19", value: 25 },
-          { day: "2025-10-20", value: 25 },
-          { day: "2025-10-21", value: 25 }
-        ]
-      },
-      {
-        label: "Bot Conversations",
-        value: 650,
-        trend: "up",
-        percentage: 222,
-        chartData: [
-          { day: "2025-10-15", value: 20 },
-          { day: "2025-10-16", value: 15 },
-          { day: "2025-10-17", value: 25 },
-          { day: "2025-10-18", value: 25 },
-          { day: "2025-10-19", value: 25 },
-          { day: "2025-10-20", value: 25 },
-          { day: "2025-10-21", value: 25 }
-        ]
-      },
-      {
-        label: "Peak Visit Times",
-        value: "7-10 PM",
-        trend: "up",
-        percentage: 222,
-        chartData: [
-          { day: "2025-10-15", value: 2 },
-          { day: "2025-10-16", value: 4 },
-          { day: "2025-10-17", value: 3 },
-          { day: "2025-10-18", value: 5 }
-        ]
-      },
-      {
-        label: "Repeat Visitors in Chat",
-        value: "35%",
-        description: "users came back again",
-        trend: "down"
-      }
-    ],
-    []
-  )
+  // Transform traffic trend data for the chart
+  const trafficData = useMemo(() => {
+    if (!data?.trafficTrend?.data) return []
+    return data.trafficTrend.data.map(item => ({
+      day: item.week,
+      new: item.newVisitors,
+      returning: item.returningVisitors
+    }))
+  }, [data?.trafficTrend?.data])
 
-  const topCountries = useMemo(
-    () => [
-      {
-        rank: "01",
-        name: "United States of America",
-        percent: "16.89%",
-        code: "US",
-        growth: "12%",
-        trend: "up"
-      },
-      {
-        rank: "02",
-        name: "United Kingdom",
-        percent: "10.89%",
-        code: "GB",
-        growth: "8%",
-        trend: "up"
-      },
-      {
-        rank: "03",
-        name: "Germany",
-        percent: "6.89%",
-        code: "DE",
-        growth: "5%",
-        trend: "down"
-      },
-      {
-        rank: "04",
-        name: "Sri Lanka",
-        percent: "6.89%",
-        code: "LK",
-        growth: "4%",
-        trend: "up"
-      },
-      {
-        rank: "05",
-        name: "India",
-        percent: "2.89%",
-        code: "IN",
-        growth: "3%",
-        trend: "down"
-      }
-    ],
-    []
-  )
+  // Get key metrics from API data
+  const stats = useMemo(() => {
+    return data?.keyMetrics || []
+  }, [data?.keyMetrics])
+
+  // Transform top countries data with ranking
+  const topCountries = useMemo(() => {
+    if (!data?.topCountries) return []
+    return data.topCountries.map((country, index) => ({
+      rank: String(index + 1).padStart(2, "0"),
+      name: getCountryName(country.countryCode),
+      percent: `${Number(country.percentage || 0).toFixed(2)}%`,
+      code: country.countryCode,
+      growth: `${Math.abs(Number(country.changePercentage || 0))}%`,
+      trend: country.trend
+    }))
+  }, [data?.topCountries])
+
+  // Transform country data for the map
+  const mapData = useMemo(() => {
+    if (!data?.topCountries) return []
+    return data.topCountries.map(country => ({
+      countryCode: country.countryCode,
+      value: country.percentage
+    }))
+  }, [data?.topCountries])
 
   const getIcon = (label: string) => iconMap[label] || IconUsers
+
+  // Helper function to get country name from country code
+  function getCountryName(code: string): string {
+    const countryNames: Record<string, string> = {
+      US: "United States of America",
+      GB: "United Kingdom",
+      DE: "Germany",
+      LK: "Sri Lanka",
+      IN: "India",
+      CA: "Canada",
+      AU: "Australia",
+      FR: "France",
+      JP: "Japan",
+      CN: "China"
+    }
+    return countryNames[code] || code
+  }
 
   return (
     <div className="space-y-6">
@@ -322,8 +274,8 @@ export default function TrackEngagementTab() {
             icon={getIcon(metric.label)}
             chartData={metric.chartData}
             percentage={metric.percentage}
-            trend={"up"}
-            isLoading={false}
+            trend={metric.trend}
+            isLoading={isLoading}
           />
         ))}
       </div>
@@ -339,8 +291,16 @@ export default function TrackEngagementTab() {
                   Traffic Trend
                 </CardTitle>
                 <div className="text-muted-foreground text-sm">
-                  Trending up by
-                  <span className="font-medium text-emerald-600">5.2%</span>
+                  Trending {data?.trafficTrend?.trendDirection || "up"} by{" "}
+                  <span
+                    className={`font-medium ${
+                      data?.trafficTrend?.trendDirection === "up"
+                        ? "text-emerald-600"
+                        : "text-rose-600"
+                    }`}
+                  >
+                    {data?.trafficTrend?.trendPercentage?.toFixed(1) || "0.0"}%
+                  </span>
                 </div>
               </div>
             </div>
@@ -406,12 +366,28 @@ export default function TrackEngagementTab() {
                           Last month change
                         </div>
                         <div className="mt-2 flex items-center gap-2">
-                          <IconCaretDownFilled
-                            size={14}
-                            className="text-rose-500"
-                          />
-                          <span className="text-lg font-bold text-rose-500">
-                            4.15%
+                          {(data?.trafficTrend?.lastMonthChange || 0) >= 0 ? (
+                            <IconCaretUpFilled
+                              size={14}
+                              className="text-emerald-500"
+                            />
+                          ) : (
+                            <IconCaretDownFilled
+                              size={14}
+                              className="text-rose-500"
+                            />
+                          )}
+                          <span
+                            className={`text-lg font-bold ${
+                              (data?.trafficTrend?.lastMonthChange || 0) >= 0
+                                ? "text-emerald-500"
+                                : "text-rose-500"
+                            }`}
+                          >
+                            {Math.abs(
+                              data?.trafficTrend?.lastMonthChange || 0
+                            ).toFixed(2)}
+                            %
                           </span>
                         </div>
                       </div>
@@ -421,7 +397,9 @@ export default function TrackEngagementTab() {
                         <div className="text-muted-foreground text-sm">
                           Avg Visit Duration
                         </div>
-                        <div className="mt-1 text-lg font-bold">00:02:01</div>
+                        <div className="mt-1 text-lg font-bold">
+                          {data?.trafficTrend?.avgVisitDuration || "00:00:00"}
+                        </div>
                       </div>
 
                       {/* New vs Returning Visitors */}
@@ -440,8 +418,23 @@ export default function TrackEngagementTab() {
                               />
                               <span className="text-sm">Return users</span>
                             </div>
-                            <div className="text-sm text-emerald-500">
-                              ▲ 12%
+                            <div
+                              className={`text-sm ${
+                                (data?.trafficTrend?.newVsReturning
+                                  ?.returnUsers || 0) >= 0
+                                  ? "text-emerald-500"
+                                  : "text-rose-500"
+                              }`}
+                            >
+                              {(data?.trafficTrend?.newVsReturning
+                                ?.returnUsers || 0) >= 0
+                                ? "▲"
+                                : "▼"}{" "}
+                              {Math.abs(
+                                data?.trafficTrend?.newVsReturning
+                                  ?.returnUsers || 0
+                              )}
+                              %
                             </div>
                           </div>
 
@@ -454,8 +447,23 @@ export default function TrackEngagementTab() {
                               />
                               <span className="text-sm">New users</span>
                             </div>
-                            <div className="text-sm text-emerald-500">
-                              ▲ 12%
+                            <div
+                              className={`text-sm ${
+                                (data?.trafficTrend?.newVsReturning?.newUsers ||
+                                  0) >= 0
+                                  ? "text-emerald-500"
+                                  : "text-rose-500"
+                              }`}
+                            >
+                              {(data?.trafficTrend?.newVsReturning?.newUsers ||
+                                0) >= 0
+                                ? "▲"
+                                : "▼"}{" "}
+                              {Math.abs(
+                                data?.trafficTrend?.newVsReturning?.newUsers ||
+                                  0
+                              )}
+                              %
                             </div>
                           </div>
                         </div>
@@ -616,18 +624,18 @@ export default function TrackEngagementTab() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-1 flex-col justify-center">
-            <div className="relative h-64 w-full">
-              <h2 className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center text-lg font-semibold text-zinc-600">
-                Coming soon
-              </h2>
-              <span className="absolute z-10 h-full w-full bg-white/60 backdrop-blur-sm dark:bg-zinc-950/60"></span>
-
-              <Image
-                src="/assets/map-placeholder.svg"
-                alt="World map placeholder"
-                fill
-                style={{ objectFit: "contain" }}
-              />
+            <div className="h-64 w-full">
+              {isLoading ? (
+                <div className="shine h-64 w-full rounded-md" />
+              ) : (
+                <CountryTrafficMap
+                  data={mapData}
+                  colorScale={{
+                    min: "#E0F2FE",
+                    max: "#0369A1"
+                  }}
+                />
+              )}
             </div>
           </CardContent>
         </Card>

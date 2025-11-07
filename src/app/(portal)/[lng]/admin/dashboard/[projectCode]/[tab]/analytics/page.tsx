@@ -8,6 +8,8 @@ import {
   IconUsers,
   IconTicket
 } from "@tabler/icons-react"
+import { useSmartHighlightsData } from "@/lib/hooks/useSmartHighlightsData"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 
 const ConversationsTab = lazy(() => import("./partials/ConversationsTab"))
 const TrafficEngagementTab = lazy(
@@ -28,6 +30,15 @@ const TabSkeleton = () => (
 )
 
 export default function Analytics() {
+  const projectId = useProjectCode() ?? 0
+
+  // Fetch smart highlights once at parent level, shared across all tabs
+  const {
+    data: smartHighlightsData,
+    isLoading: isLoadingHighlights,
+    isError: isErrorHighlights
+  } = useSmartHighlightsData(projectId)
+
   return (
     <Tabs defaultValue="traffic-engagement" className="space-y-6">
       <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
@@ -66,19 +77,31 @@ export default function Analytics() {
 
       <TabsContent value="conversations" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
-          <ConversationsTab />
+          <ConversationsTab
+            smartHighlightsData={smartHighlightsData}
+            isLoadingHighlights={isLoadingHighlights}
+            isErrorHighlights={isErrorHighlights}
+          />
         </Suspense>
       </TabsContent>
 
       <TabsContent value="leads-opportunities" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
-          <LeadsOpportunitiesTab />
+          <LeadsOpportunitiesTab
+            smartHighlightsData={smartHighlightsData}
+            isLoadingHighlights={isLoadingHighlights}
+            isErrorHighlights={isErrorHighlights}
+          />
         </Suspense>
       </TabsContent>
 
       <TabsContent value="support-ticket" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
-          <SupportTicketTab />
+          <SupportTicketTab
+            smartHighlightsData={smartHighlightsData}
+            isLoadingHighlights={isLoadingHighlights}
+            isErrorHighlights={isErrorHighlights}
+          />
         </Suspense>
       </TabsContent>
     </Tabs>

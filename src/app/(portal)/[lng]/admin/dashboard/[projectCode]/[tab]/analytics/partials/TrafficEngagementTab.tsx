@@ -2,6 +2,13 @@
 
 import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { DashboardRange } from "@/models/dashboard"
@@ -551,7 +558,7 @@ export default function TrafficEngagementTab({
             ) : (
               <>
                 <div className="space-y-3">
-                  {topCountries.map(c => (
+                  {topCountries.slice(0, 5).map(c => (
                     <div
                       key={c.rank}
                       className="flex items-center justify-between"
@@ -606,12 +613,83 @@ export default function TrafficEngagementTab({
                     </div>
                   ))}
                 </div>
-                {/* See all countries button */}
-                <div className="flex justify-center pt-2">
-                  <button className="flex items-center gap-2 rounded-sm border-2 border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 transition-all hover:opacity-90 dark:text-white">
-                    <span>See all countries</span>
-                  </button>
-                </div>
+
+                {/* See all countries button - only show if more than 5 */}
+                {topCountries.length > 5 && (
+                  <div className="flex justify-center pt-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="flex items-center gap-2 rounded-sm border-2 border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 transition-all hover:opacity-90 dark:text-white">
+                          <span>See all countries</span>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>All Countries</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3 py-4">
+                          {topCountries.map(c => (
+                            <div
+                              key={c.rank}
+                              className="flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="text-muted-foreground w-8">
+                                  {c.rank}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className="flex items-center justify-center overflow-hidden rounded-full"
+                                    style={{
+                                      width: "2rem",
+                                      height: "1.5rem",
+                                      backgroundColor: "#f3f3f3"
+                                    }}
+                                  >
+                                    <ReactCountryFlag
+                                      svg
+                                      countryCode={c.code ?? ""}
+                                      style={{
+                                        width: "100%",
+                                        height: "auto"
+                                      }}
+                                      title={c.name}
+                                      aria-label={`${c.name} flag`}
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <div className="font-medium">{c.name}</div>
+                                    <div className="text-muted-foreground text-md">
+                                      {c.percent}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-shrink-0 items-center gap-1 text-sm font-semibold">
+                                <span
+                                  className="flex items-center gap-0.5"
+                                  style={{
+                                    color:
+                                      c.trend === "up" ? "#34C759" : "#EF4444"
+                                  }}
+                                >
+                                  {c.trend === "up" ? (
+                                    <IconCaretUpFilled size={14} />
+                                  ) : (
+                                    <IconCaretDownFilled size={14} />
+                                  )}
+                                  {c.growth}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
               </>
             )}
           </CardContent>

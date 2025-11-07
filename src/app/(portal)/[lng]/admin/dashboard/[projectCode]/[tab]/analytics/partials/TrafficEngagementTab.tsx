@@ -28,6 +28,7 @@ import ReactCountryFlag from "react-country-flag"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { format, parseISO } from "date-fns"
 import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
+import { getCountryName } from "@/utils/getCountryName"
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   "Total Website Visitors": IconUsers,
@@ -273,23 +274,6 @@ export default function TrafficEngagementTab({
   }, [data?.topCountries])
 
   const getIcon = (label: string) => iconMap[label] || IconUsers
-
-  // Helper function to get country name from country code
-  function getCountryName(code: string): string {
-    const countryNames: Record<string, string> = {
-      US: "United States of America",
-      GB: "United Kingdom",
-      DE: "Germany",
-      LK: "Sri Lanka",
-      IN: "India",
-      CA: "Canada",
-      AU: "Australia",
-      FR: "France",
-      JP: "Japan",
-      CN: "China"
-    }
-    return countryNames[code] || code
-  }
 
   return (
     <div className="space-y-6">

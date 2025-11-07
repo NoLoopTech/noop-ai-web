@@ -22,12 +22,12 @@ import {
   IconCaretUpFilled,
   IconClock,
   IconMessages,
-  IconUsers,
-  IconSparkles
+  IconUsers
 } from "@tabler/icons-react"
 import ReactCountryFlag from "react-country-flag"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { format, parseISO } from "date-fns"
+import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   "Total Website Visitors": IconUsers,
@@ -182,7 +182,17 @@ const StatCard = React.memo(function StatCard({
   )
 })
 
-export default function TrafficEngagementTab() {
+interface TrafficEngagementTabProps {
+  smartHighlightsData?: SmartHighlightsData | null
+  isLoadingHighlights?: boolean
+  isErrorHighlights?: boolean
+}
+
+export default function TrafficEngagementTab({
+  smartHighlightsData,
+  isLoadingHighlights,
+  isErrorHighlights
+}: TrafficEngagementTabProps) {
   const { dateRange, setDateRange } = useDashboardFilters()
   const projectId = useProjectCode()
 
@@ -539,72 +549,11 @@ export default function TrafficEngagementTab() {
         </Card>
 
         {/* Smart Highlights */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Smart Highlights
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col justify-between">
-            {isLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="shine h-12 w-full rounded-md" />
-                ))}
-              </div>
-            ) : (
-              <div className="relative flex flex-1 flex-col justify-between space-y-4 overflow-clip rounded-lg">
-                <h2 className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center text-lg font-semibold text-zinc-600">
-                  Coming soon
-                </h2>
-                <span className="absolute z-10 h-full w-full bg-white/60 backdrop-blur-sm dark:bg-zinc-950/60"></span>
-                <div className="space-y-4">
-                  {/* Bullet Points */}
-                  <ul className="space-y-2.5">
-                    <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />{" "}
-                      <span>
-                        Traffic increased by 32% compared to last week.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />
-                      <span>
-                        Returning visitors grew steadily after the product
-                        update.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />{" "}
-                      <span>
-                        Most visits came from organic search around mid-month.
-                      </span>
-                    </li>
-                  </ul>
-                  {/* Summary */}
-                  <p className="text-muted-foreground text-sm">
-                    Overall, the traffic shows a clear upward trend throughout
-                    the month, with noticeable spikes during campaign periods
-                    and product updates. The steady growth suggests that current
-                    strategies are effective.
-                  </p>
-                </div>
-                {/* Learn More Button */}
-                <div className="flex justify-end pt-2">
-                  <button
-                    className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-white transition-all hover:opacity-90"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, #63E2FF 0%, #903A7E 100%)"
-                    }}
-                  >
-                    <span>Learn more</span> <IconSparkles size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SmartHighlightsCard
+          data={smartHighlightsData}
+          isLoading={isLoadingHighlights}
+          isError={isErrorHighlights}
+        />
       </div>
 
       {/* Bottom row: Top countries + Geo map */}

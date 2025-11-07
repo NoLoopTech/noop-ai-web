@@ -71,7 +71,11 @@ export default function Analytics() {
 
       <TabsContent value="traffic-engagement" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
-          <TrafficEngagementTab />
+          <TrafficEngagementTab
+            smartHighlightsData={smartHighlightsData}
+            isLoadingHighlights={isLoadingHighlights}
+            isErrorHighlights={isErrorHighlights}
+          />
         </Suspense>
       </TabsContent>
 

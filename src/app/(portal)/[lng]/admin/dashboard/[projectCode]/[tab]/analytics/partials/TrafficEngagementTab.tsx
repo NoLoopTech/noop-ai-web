@@ -195,24 +195,14 @@ export default function TrafficEngagementTab() {
     }
   )
 
-  // Determine aggregation type based on date range
+  // Determine number of days from date range
   const days = Number(dateRange.replace(/\D/g, ""))
-  let aggregation = "daily"
-  if (days <= 7) {
-    aggregation = "daily"
-  } else if (days === 30 || days === 90) {
-    aggregation = "weekly"
-  } else if (days === 365) {
-    aggregation = "monthly"
-  } else {
-    aggregation = "monthly" // Default for other ranges
-  }
 
   // Transform traffic trend data for the chart with proper labels
   const trafficData = useMemo(() => {
     if (!data?.trafficTrend?.data) return []
 
-    return data.trafficTrend.data.map((item) => {
+    return data.trafficTrend.data.map(item => {
       let label = item.week
 
       try {
@@ -231,7 +221,7 @@ export default function TrafficEngagementTab() {
         else if (days === 365) {
           label = format(date, "MMM")
         }
-      } catch (error) {
+      } catch (_error) {
         // If parsing fails, use the original value
         label = item.week
       }
@@ -244,7 +234,6 @@ export default function TrafficEngagementTab() {
     })
   }, [data?.trafficTrend?.data, days])
 
-  // Get key metrics from API data
   const stats = useMemo(() => {
     return data?.keyMetrics || []
   }, [data?.keyMetrics])
@@ -392,10 +381,12 @@ export default function TrafficEngagementTab() {
                         tickLine={false}
                         axisLine={false}
                         tickMargin={8}
-                        domain={[0, 'auto']}
+                        domain={[0, "auto"]}
                         ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
                         tickFormatter={v =>
-                          Number.isFinite(v) && v >= 1000 ? `${Math.round(v / 1000)}k` : v
+                          Number.isFinite(v) && v >= 1000
+                            ? `${Math.round(v / 1000)}k`
+                            : v
                         }
                       />
                       <Tooltip

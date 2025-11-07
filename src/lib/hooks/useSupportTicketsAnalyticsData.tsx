@@ -11,11 +11,10 @@ export function useSupportTicketsAnalyticsData(
     `/dashboard/analytics/${projectId}/support-and-tickets?range=${options?.range ?? DashboardRange.WEEK}`,
     () => ({ method: "get" }),
     {
-      staleTime: 1000 * 60 * 2,
-      refetchInterval: 1000 * 60 * 5,
-      refetchIntervalInBackground: false,
+      staleTime: Infinity,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
       ...options
     }
   )

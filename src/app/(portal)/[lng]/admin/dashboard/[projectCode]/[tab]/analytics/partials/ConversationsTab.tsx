@@ -21,8 +21,7 @@ import {
   IconClock,
   IconTarget,
   IconCaretUpFilled,
-  IconCaretDownFilled,
-  IconSparkles
+  IconCaretDownFilled
 } from "@tabler/icons-react"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
@@ -31,6 +30,7 @@ import { useConversationsAnalyticsData } from "@/lib/hooks/useConversationsAnaly
 import { DashboardRange } from "@/models/dashboard"
 import React, { useState, useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
+import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
 const confidenceChartConfig = {
   positive: {
     label: "High",
@@ -288,7 +288,17 @@ const StatCard = React.memo(function StatCard({
   )
 })
 
-export default function ConversationsTab() {
+interface ConversationsTabProps {
+  smartHighlightsData?: SmartHighlightsData | null
+  isLoadingHighlights?: boolean
+  isErrorHighlights?: boolean
+}
+
+export default function ConversationsTab({
+  smartHighlightsData,
+  isLoadingHighlights,
+  isErrorHighlights
+}: ConversationsTabProps) {
   const { dateRange, setDateRange } = useDashboardFilters()
   const projectId = useProjectCode() ?? 0
   const { data, isLoading } = useConversationsAnalyticsData(projectId, {
@@ -693,79 +703,12 @@ export default function ConversationsTab() {
           </CardContent>
         </Card>
 
-        {/* Smart Highlights - Coming soon */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle
-              className="text-base font-semibold"
-              style={{ color: "#9F9FA1" }}
-            >
-              Smart Highlights
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col">
-            {isLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="shine h-12 w-full rounded-md" />
-                ))}
-              </div>
-            ) : (
-              <div className="relative flex flex-1 flex-col justify-between space-y-4 overflow-clip rounded-lg">
-                <h2 className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center text-lg font-semibold text-zinc-600">
-                  Coming soon
-                </h2>
-                <span className="absolute z-10 h-full w-full bg-white/60 backdrop-blur-sm"></span>
-                <div className="space-y-4">
-                  {/* Bullet Points */}
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />
-                      <span>
-                        Traffic increased by 32% compared to last week.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />
-                      <span>
-                        Returning visitors grew steadily after the product
-                        update.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2 text-sm">
-                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" />
-                      <span>
-                        Most visits came from organic search around mid-month.
-                      </span>
-                    </li>
-                  </ul>
-
-                  {/* Summary */}
-                  <p className="text-muted-foreground text-sm">
-                    Overall, the traffic shows a clear upward trend throughout
-                    the month, with noticeable spikes during campaign periods
-                    and product updates. The steady growth suggests that current
-                    strategies are effective.
-                  </p>
-                </div>
-
-                {/* Learn More Button */}
-                <div className="flex justify-end">
-                  <button
-                    className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-white transition-all hover:opacity-90"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, #63E2FF 0%, #903A7E 100%)"
-                    }}
-                  >
-                    <span>Learn More</span>
-                    <IconSparkles size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Smart Highlights */}
+        <SmartHighlightsCard
+          data={smartHighlightsData}
+          isLoading={isLoadingHighlights}
+          isError={isErrorHighlights}
+        />
       </div>
 
       {/* Emerging Intents & Intent Performance */}

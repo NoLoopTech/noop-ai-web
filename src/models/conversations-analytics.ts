@@ -33,11 +33,6 @@ export interface IntentPerformance {
   confidenceScore: number
   escalations: number
 }
-
-export interface Highlight {
-  text: string
-}
-
 export interface ConversationsAndAccuracy {
   timeRange: string
   keyMetrics: KeyMetricCard[]
@@ -48,7 +43,6 @@ export interface ConversationsAndAccuracy {
     color: string
   }>
   conversationBreakdown: ConversationBreakdown[]
-  smartHighlights: Highlight[]
   emergingIntents: EmergingIntent[]
   intentPerformance: IntentPerformance[]
 }

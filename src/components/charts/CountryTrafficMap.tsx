@@ -7,7 +7,7 @@ import {
   Geography
 } from "@vnedyalk0v/react19-simple-maps"
 import ReactCountryFlag from "react-country-flag"
-import { getCountryName } from "@/utils/getCountryName"
+import { getCountryName, getCountryCode } from "@/utils/getCountryName"
 
 interface CountryData {
   countryCode: string
@@ -58,10 +58,11 @@ export function CountryTrafficMap({
   // Fetch the GeoJSON data on mount
   useEffect(() => {
     // Use window.location.origin to get absolute path and bypass i18n routing
+    // Using world.geojson (207KB) instead of countries.geojson (14MB) for faster loading
     const geoJsonUrl =
       typeof window !== "undefined"
-        ? `${window.location.origin}/data/countries.geojson`
-        : "/data/countries.geojson"
+        ? `${window.location.origin}/data/world.geojson`
+        : "/data/world.geojson"
 
     fetch(geoJsonUrl)
       .then(res => {
@@ -227,7 +228,7 @@ export function CountryTrafficMap({
       <ComposableMap
         projection="geoEqualEarth"
         projectionConfig={{
-          scale: 130,
+          scale: 147,
           // @ts-expect-error - center type issue with branded types
           center: [0, 0]
         }}
@@ -244,38 +245,35 @@ export function CountryTrafficMap({
         <Geographies geography={geoData}>
           {({ geographies }) =>
             geographies.map((geo, index) => {
-              // Try multiple property names to find the country code
-              const possibleCodes = [
-                geo.properties?.["ISO3166-1-Alpha-2"],
-                geo.properties?.["ISO3166-1-Alpha-3"],
-                geo.properties?.iso_a2,
-                geo.properties?.ISO_A2,
-                geo.properties?.iso_a2_eh,
-                geo.id
-              ].filter(Boolean) as string[]
+              // Get country name from world.geojson properties
+              const countryName = geo.properties?.name
 
-              // Find the first code that matches our data
-              let countryData: CountryData | undefined
-              let matchedCode = ""
+              // Convert country name to ISO-2 code using our mapping
+              let countryCode = countryName ? getCountryCode(countryName) : null
 
-              for (const code of possibleCodes) {
-                if (code) {
-                  // Try the code as-is and in different cases
-                  countryData =
-                    dataMap.get(code) ||
-                    dataMap.get(code.toUpperCase()) ||
-                    dataMap.get(code.toLowerCase()) ||
-                    dataMap.get(code.slice(0, 2)) || // Try first 2 chars (ISO_A3 -> ISO_A2)
-                    dataMap.get(code.slice(0, 2).toUpperCase())
+              // If no code found from name, try other properties as fallback
+              if (!countryCode) {
+                const possibleCodes = [
+                  geo.properties?.["ISO3166-1-Alpha-2"],
+                  geo.properties?.["ISO3166-1-Alpha-3"],
+                  geo.properties?.iso_a2,
+                  geo.properties?.ISO_A2,
+                  geo.properties?.iso_a2_eh,
+                  geo.id
+                ].filter(Boolean) as string[]
 
-                  if (countryData) {
-                    matchedCode = code
-                    break
-                  }
-                }
+                countryCode = possibleCodes[0] || null
               }
 
-              const countryCode = matchedCode || possibleCodes[0] || ""
+              // Look up if we have data for this country
+              let countryData: CountryData | undefined
+              if (countryCode) {
+                countryData =
+                  dataMap.get(countryCode) ||
+                  dataMap.get(countryCode.toUpperCase()) ||
+                  dataMap.get(countryCode.toLowerCase())
+              }
+
               const isHovered = hoveredCountry?.code === countryCode
               const hasData = !!countryData
 
@@ -283,7 +281,9 @@ export function CountryTrafficMap({
                 <Geography
                   key={`geo-${index}`}
                   geography={geo}
-                  fill={hasData ? getColor(countryCode) : defaultFill}
+                  fill={
+                    hasData && countryCode ? getColor(countryCode) : defaultFill
+                  }
                   stroke={stroke}
                   strokeWidth={isHovered ? 1.5 : 0.5}
                   style={{
@@ -308,7 +308,7 @@ export function CountryTrafficMap({
                     }
                   }}
                   onMouseEnter={event => {
-                    if (hasData && countryData) {
+                    if (hasData && countryData && countryCode) {
                       handleCountryMouseEnter(event, countryCode, countryData)
                     }
                   }}

@@ -4,8 +4,6 @@ import React, { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useTrafficEngagementAnalyticsData } from "@/lib/hooks/useTrafficEngagementAnalyticsData"
 import { DashboardRange } from "@/models/dashboard"
 import { CountryTrafficMap } from "@/components/charts/CountryTrafficMap"
 import {
@@ -29,6 +27,7 @@ import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { format, parseISO } from "date-fns"
 import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
 import { getCountryName } from "@/utils/getCountryName"
+import { TrafficAndEngagement } from "@/models/traffic-engagement-analytics"
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   "Total Website Visitors": IconUsers,
@@ -184,27 +183,21 @@ const StatCard = React.memo(function StatCard({
 })
 
 interface TrafficEngagementTabProps {
+  data?: TrafficAndEngagement
+  isLoading?: boolean
   smartHighlightsData?: SmartHighlightsData | null
   isLoadingHighlights?: boolean
   isErrorHighlights?: boolean
 }
 
 export default function TrafficEngagementTab({
+  data,
+  isLoading = false,
   smartHighlightsData,
   isLoadingHighlights,
   isErrorHighlights
 }: TrafficEngagementTabProps) {
   const { dateRange, setDateRange } = useDashboardFilters()
-  const projectId = useProjectCode()
-
-  // Fetch traffic and engagement data
-  const { data, isLoading } = useTrafficEngagementAnalyticsData(
-    projectId ?? 0,
-    {
-      range: dateRange,
-      enabled: !!projectId
-    }
-  )
 
   // Determine number of days from date range
   const days = Number(dateRange.replace(/\D/g, ""))

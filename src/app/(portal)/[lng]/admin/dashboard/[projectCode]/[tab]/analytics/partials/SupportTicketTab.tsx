@@ -13,11 +13,10 @@ import {
 } from "@tabler/icons-react"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useSupportTicketsAnalyticsData } from "@/lib/hooks/useSupportTicketsAnalyticsData"
 import { DashboardRange } from "@/models/dashboard"
 import React, { useState } from "react"
 import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
+import { SupportAndTickets } from "@/models/support-tickets-analytics"
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   "Total Tickets": IconTicket,
@@ -170,21 +169,21 @@ const StatCard = React.memo(function StatCard({
 })
 
 interface SupportTicketTabProps {
+  data?: SupportAndTickets
+  isLoading?: boolean
   smartHighlightsData?: SmartHighlightsData | null
   isLoadingHighlights?: boolean
   isErrorHighlights?: boolean
 }
 
 export default function SupportTicketTab({
+  data,
+  isLoading = false,
   smartHighlightsData,
   isLoadingHighlights,
   isErrorHighlights
 }: SupportTicketTabProps) {
   const { dateRange, setDateRange } = useDashboardFilters()
-  const projectId = useProjectCode() ?? 0
-  const { data, isLoading } = useSupportTicketsAnalyticsData(projectId, {
-    range: dateRange
-  })
 
   const [visibleCategories, setVisibleCategories] = useState(4)
 

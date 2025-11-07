@@ -25,12 +25,11 @@ import {
 } from "@tabler/icons-react"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useConversationsAnalyticsData } from "@/lib/hooks/useConversationsAnalyticsData"
 import { DashboardRange } from "@/models/dashboard"
 import React, { useState, useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
 import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
+import { ConversationsAndAccuracy } from "@/models/conversations-analytics"
 const confidenceChartConfig = {
   positive: {
     label: "High",
@@ -289,21 +288,21 @@ const StatCard = React.memo(function StatCard({
 })
 
 interface ConversationsTabProps {
+  data?: ConversationsAndAccuracy
+  isLoading?: boolean
   smartHighlightsData?: SmartHighlightsData | null
   isLoadingHighlights?: boolean
   isErrorHighlights?: boolean
 }
 
 export default function ConversationsTab({
+  data,
+  isLoading = false,
   smartHighlightsData,
   isLoadingHighlights,
   isErrorHighlights
 }: ConversationsTabProps) {
   const { dateRange, setDateRange } = useDashboardFilters()
-  const projectId = useProjectCode() ?? 0
-  const { data, isLoading } = useConversationsAnalyticsData(projectId, {
-    range: dateRange
-  })
 
   // Get icon for metric label
   const getIcon = (label: string) => iconMap[label] || IconMessages

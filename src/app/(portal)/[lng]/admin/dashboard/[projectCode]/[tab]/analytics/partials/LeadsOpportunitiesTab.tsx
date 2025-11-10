@@ -29,12 +29,11 @@ import {
 } from "@tabler/icons-react"
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import { useLeadsOpportunitiesData } from "@/lib/hooks/useLeadsOpportunitiesData"
 import { DashboardRange } from "@/models/dashboard"
 import React, { useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
 import { SmartHighlightsCard, SmartHighlightsData } from "./SmartHighlightsCard"
+import { LeadsAndOpportunities } from "@/models/leads-opportunities-analytics"
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   "Total Leads": IconUsers,
@@ -185,21 +184,21 @@ const StatCard = React.memo(function StatCard({
 })
 
 interface LeadsOpportunitiesTabProps {
+  data?: LeadsAndOpportunities
+  isLoading?: boolean
   smartHighlightsData?: SmartHighlightsData | null
   isLoadingHighlights?: boolean
   isErrorHighlights?: boolean
 }
 
 export default function LeadsOpportunitiesTab({
+  data,
+  isLoading = false,
   smartHighlightsData,
   isLoadingHighlights,
   isErrorHighlights
 }: LeadsOpportunitiesTabProps) {
   const { dateRange, setDateRange } = useDashboardFilters()
-  const projectId = useProjectCode() ?? 0
-  const { data, isLoading } = useLeadsOpportunitiesData(projectId, {
-    range: dateRange
-  })
 
   const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
     undefined

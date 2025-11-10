@@ -10,9 +10,16 @@ import {
 } from "@tabler/icons-react"
 import { useSmartHighlightsData } from "@/lib/hooks/useSmartHighlightsData"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
+import { useTrafficEngagementAnalyticsData } from "@/lib/hooks/useTrafficEngagementAnalyticsData"
+import { useConversationsAnalyticsData } from "@/lib/hooks/useConversationsAnalyticsData"
+import { useLeadsOpportunitiesData } from "@/lib/hooks/useLeadsOpportunitiesData"
+import { useSupportTicketsAnalyticsData } from "@/lib/hooks/useSupportTicketsAnalyticsData"
 
 const ConversationsTab = lazy(() => import("./partials/ConversationsTab"))
-const TrackEngagementTab = lazy(() => import("./partials/TrackEngagementTab"))
+const TrafficEngagementTab = lazy(
+  () => import("./partials/TrafficEngagementTab")
+)
 const LeadsOpportunitiesTab = lazy(
   () => import("./partials/LeadsOpportunitiesTab")
 )
@@ -29,6 +36,7 @@ const TabSkeleton = () => (
 
 export default function Analytics() {
   const projectId = useProjectCode() ?? 0
+  const { dateRange } = useDashboardFilters()
 
   // Fetch smart highlights once at parent level, shared across all tabs
   const {
@@ -37,15 +45,42 @@ export default function Analytics() {
     isError: isErrorHighlights
   } = useSmartHighlightsData(projectId)
 
+  // Prefetch all tab data simultaneously for instant tab switching
+  const { data: trafficEngagementData, isLoading: isLoadingTrafficEngagement } =
+    useTrafficEngagementAnalyticsData(projectId, {
+      range: dateRange,
+      enabled: !!projectId
+    })
+
+  const { data: conversationsData, isLoading: isLoadingConversations } =
+    useConversationsAnalyticsData(projectId, {
+      range: dateRange,
+      enabled: !!projectId
+    })
+
+  const {
+    data: leadsOpportunitiesData,
+    isLoading: isLoadingLeadsOpportunities
+  } = useLeadsOpportunitiesData(projectId, {
+    range: dateRange,
+    enabled: !!projectId
+  })
+
+  const { data: supportTicketsData, isLoading: isLoadingSupportTickets } =
+    useSupportTicketsAnalyticsData(projectId, {
+      range: dateRange,
+      enabled: !!projectId
+    })
+
   return (
-    <Tabs defaultValue="conversations" className="space-y-6">
+    <Tabs defaultValue="traffic-engagement" className="space-y-6">
       <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
         <TabsTrigger
-          value="track-engagement"
+          value="traffic-engagement"
           className="flex items-center gap-2"
         >
           <IconChartBar size={16} />
-          <span className="hidden sm:inline">Track & Engagement</span>
+          <span className="hidden sm:inline">Traffic & Engagement</span>
           <span className="sm:hidden">Track</span>
         </TabsTrigger>
         <TabsTrigger value="conversations" className="flex items-center gap-2">
@@ -67,15 +102,23 @@ export default function Analytics() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="track-engagement" className="space-y-4">
+      <TabsContent value="traffic-engagement" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
-          <TrackEngagementTab />
+          <TrafficEngagementTab
+            data={trafficEngagementData}
+            isLoading={isLoadingTrafficEngagement}
+            smartHighlightsData={smartHighlightsData}
+            isLoadingHighlights={isLoadingHighlights}
+            isErrorHighlights={isErrorHighlights}
+          />
         </Suspense>
       </TabsContent>
 
       <TabsContent value="conversations" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
           <ConversationsTab
+            data={conversationsData}
+            isLoading={isLoadingConversations}
             smartHighlightsData={smartHighlightsData}
             isLoadingHighlights={isLoadingHighlights}
             isErrorHighlights={isErrorHighlights}
@@ -86,6 +129,8 @@ export default function Analytics() {
       <TabsContent value="leads-opportunities" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
           <LeadsOpportunitiesTab
+            data={leadsOpportunitiesData}
+            isLoading={isLoadingLeadsOpportunities}
             smartHighlightsData={smartHighlightsData}
             isLoadingHighlights={isLoadingHighlights}
             isErrorHighlights={isErrorHighlights}
@@ -96,6 +141,8 @@ export default function Analytics() {
       <TabsContent value="support-ticket" className="space-y-4">
         <Suspense fallback={<TabSkeleton />}>
           <SupportTicketTab
+            data={supportTicketsData}
+            isLoading={isLoadingSupportTickets}
             smartHighlightsData={smartHighlightsData}
             isLoadingHighlights={isLoadingHighlights}
             isErrorHighlights={isErrorHighlights}

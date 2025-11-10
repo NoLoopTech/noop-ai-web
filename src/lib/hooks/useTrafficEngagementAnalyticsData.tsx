@@ -1,14 +1,14 @@
 import { DashboardRange } from "@/models/dashboard"
-import { SupportAndTickets } from "@/models/support-tickets-analytics"
+import { TrafficAndEngagement } from "@/models/traffic-engagement-analytics"
 import { useApiQuery } from "@/query"
 
-export function useSupportTicketsAnalyticsData(
+export function useTrafficEngagementAnalyticsData(
   projectId: number,
   options?: { enabled?: boolean; range?: string }
 ) {
-  const query = useApiQuery<SupportAndTickets>(
-    ["support-tickets-analytics", projectId, options?.range],
-    `/dashboard/analytics/${projectId}/support-and-tickets?range=${options?.range ?? DashboardRange.WEEK}`,
+  const query = useApiQuery<TrafficAndEngagement>(
+    ["traffic-engagement-analytics", projectId, options?.range],
+    `/dashboard/analytics/${projectId}/traffic-engagement?range=${options?.range ?? DashboardRange.WEEK}`,
     () => ({ method: "get" }),
     {
       staleTime: Infinity,

@@ -12,7 +12,7 @@ import {
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { DashboardRange } from "@/models/dashboard"
-import { CountryTrafficMap } from "@/components/charts/CountryTrafficMap"
+// import { CountryTrafficMap } from "@/components/charts/CountryTrafficMap"
 import {
   ResponsiveContainer,
   LineChart,
@@ -263,15 +263,15 @@ export default function TrafficEngagementTab({
   }, [data?.topCountries])
 
   // Transform country data for the map
-  const mapData = useMemo(() => {
-    if (!data?.topCountries) return []
-    return data.topCountries.map(country => ({
-      countryCode: country.countryCode,
-      value: Number(country.percentage),
-      changePercentage: Number(country.changePercentage || 0),
-      trend: country.trend as "up" | "down"
-    }))
-  }, [data?.topCountries])
+  // const mapData = useMemo(() => {
+  //   if (!data?.topCountries) return []
+  //   return data.topCountries.map(country => ({
+  //     countryCode: country.countryCode,
+  //     value: Number(country.percentage),
+  //     changePercentage: Number(country.changePercentage || 0),
+  //     trend: country.trend as "up" | "down"
+  //   }))
+  // }, [data?.topCountries])
 
   const getIcon = (label: string) => iconMap[label] || IconUsers
 
@@ -707,13 +707,16 @@ export default function TrafficEngagementTab({
               {isLoading ? (
                 <div className="shine h-96 w-full rounded-md" />
               ) : (
-                <CountryTrafficMap
-                  data={mapData}
-                  colorScale={{
-                    min: "#E0F2FE",
-                    max: "#0369A1"
-                  }}
-                />
+                <div className="text-muted-foreground flex h-96 w-full items-center justify-center text-sm">
+                  Coming soon
+                </div>
+                // <CountryTrafficMap
+                //   data={mapData}
+                //   colorScale={{
+                //     min: "#E0F2FE",
+                //     max: "#0369A1"
+                //   }}
+                // />
               )}
             </div>
           </CardContent>

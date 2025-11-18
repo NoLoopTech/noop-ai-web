@@ -1,5 +1,6 @@
 import Image from "next/image"
 import TabContainer from "./partials/TabContainer"
+// import AgentPlayground from "./partials/AgentPlayground"
 
 export default function Home(): React.ReactNode {
   return (
@@ -24,6 +25,7 @@ export default function Home(): React.ReactNode {
       </div>
 
       <TabContainer />
+      {/* <AgentPlayground /> */}
     </main>
   )
 }

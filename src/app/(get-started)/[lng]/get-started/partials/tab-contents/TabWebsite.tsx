@@ -8,13 +8,6 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel
-} from "@/components/ui/form"
-import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
@@ -23,51 +16,27 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TabsContent } from "@/components/ui/tabs"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { IconFilter2Question, IconWorld } from "@tabler/icons-react"
 // import { IconAlertTriangle } from "@tabler/icons-react"
 import { AlertTriangleIcon, ChevronDownIcon, FileText } from "lucide-react"
 import { motion, Variants } from "motion/react"
 // import Image from "next/image"
 import { useState } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
+import { useOnboardingStore } from "../../store/onboarding.store"
 
 interface TabWebsiteProps {
   motionVariants: Variants
 }
 
-const linkSchema = z.object({
-  links: z.array(
-    z.object({
-      url: z.string().url(),
-      selected: z.boolean()
-    })
-  )
-})
-
-const defaultLinks = [
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true }
-]
-
 const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const [protocol, setProtocol] = useState("https://")
 
-  // Handler for protocol selection
+  const websiteLinks = useOnboardingStore(s => s.websiteLinks)
+  const toggleWebsiteLink = useOnboardingStore(s => s.toggleWebsiteLink)
+
   const handleProtocolSelect = (selected: string) => () => {
     setProtocol(selected)
   }
-
-  const form = useForm({
-    defaultValues: { links: defaultLinks },
-    resolver: zodResolver(linkSchema)
-  })
-  const { fields } = useFieldArray({ control: form.control, name: "links" })
 
   return (
     <TabsContent
@@ -94,7 +63,9 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
 
         <Card className="relative border-zinc-300 bg-white">
           <CardHeader>
-            <CardTitle className="text-zinc-950">Card Title</CardTitle>
+            <CardTitle className="text-lg font-semibold text-zinc-950">
+              Add links
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col space-y-1">
@@ -162,18 +133,14 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
             </div> */}
         </Card>
 
-        {/* INFO: temporary experiment. change or remove when adding the functionality */}
+        {/* TODO: Update this section's UI */}
         <div className="mt-6">
           <h2 className="text-lg font-semibold text-zinc-950">Link sources</h2>
 
           <div className="mb-2 flex items-center justify-between">
             <p>
-              {
-                form
-                  .watch("links")
-                  .filter((link: { selected: boolean }) => link.selected).length
-              }
-              /{fields.length} links
+              {websiteLinks.filter(link => link.selected).length}/
+              {websiteLinks.length} links
             </p>
 
             <div className="flex items-center space-x-2 text-xs font-medium">
@@ -183,36 +150,20 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
           </div>
 
           <ScrollArea className="h-20 w-full">
-            <Form {...form}>
-              <form>
-                <div className="flex flex-col space-y-2">
-                  {fields.map((field, idx) => (
-                    <FormField
-                      key={field.id}
-                      control={form.control}
-                      name={`links.${idx}.selected`}
-                      render={({ field: checkboxField }) => (
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <Checkbox
-                              checked={checkboxField.value}
-                              onCheckedChange={checkboxField.onChange}
-                              onBlur={checkboxField.onBlur}
-                              name={checkboxField.name}
-                              ref={checkboxField.ref}
-                              disabled={checkboxField.disabled}
-                            />
-                          </FormControl>
-                          <FormLabel className="text-sm font-normal">
-                            {field.url}
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
-                  ))}
+            <div className="flex flex-col space-y-2">
+              {websiteLinks.map((link, idx) => (
+                <div
+                  key={link.url + idx}
+                  className="flex items-center space-x-2"
+                >
+                  <Checkbox
+                    checked={link.selected}
+                    onCheckedChange={() => toggleWebsiteLink(idx)}
+                  />
+                  <span className="text-sm font-normal">{link.url}</span>
                 </div>
-              </form>
-            </Form>
+              ))}
+            </div>
           </ScrollArea>
         </div>
       </motion.div>
@@ -266,11 +217,18 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
                   <div className="flex items-center space-x-2">
                     <IconWorld className="size-4 stroke-zinc-600" />
-                    <p className="text-sm font-normal text-zinc-600">Website</p>
+
+                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                      <p className="text-left text-sm font-normal text-zinc-600">
+                        14
+                      </p>
+
+                      <p className="text-sm font-normal text-zinc-600">Links</p>
+                    </div>
                   </div>
 
                   <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                    <p>0</p>
+                    <p>25</p>
                     <p>KB</p>
                   </div>
                 </div>
@@ -278,7 +236,14 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
                   <div className="flex items-center space-x-2">
                     <FileText className="size-4 stroke-zinc-600" />
-                    <p className="text-sm font-normal text-zinc-600">Website</p>
+
+                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                      <p className="text-left text-sm font-normal text-zinc-600">
+                        1
+                      </p>
+
+                      <p className="text-sm font-normal text-zinc-600">Text</p>
+                    </div>
                   </div>
 
                   <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
@@ -290,7 +255,14 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
                   <div className="flex items-center space-x-2">
                     <IconFilter2Question className="size-4 stroke-zinc-600" />
-                    <p className="text-sm font-normal text-zinc-600">Website</p>
+
+                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                      <p className="text-left text-sm font-normal text-zinc-600">
+                        1
+                      </p>
+
+                      <p className="text-sm font-normal text-zinc-600">Q&A</p>
+                    </div>
                   </div>
 
                   <div className="flex space-x-1 text-xs font-semibold text-zinc-700">

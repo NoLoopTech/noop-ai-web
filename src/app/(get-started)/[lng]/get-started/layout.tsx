@@ -2,7 +2,7 @@ import "@/app/globals.css"
 import "@/styles/typography.css"
 import { dir } from "i18next"
 import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/layout/ThemeProvider"
+// import { ThemeProvider } from "@/components/layout/ThemeProvider"
 import NextAuthProvider from "@/components/layout/NextAuthProvider"
 import { JSX } from "react"
 
@@ -28,14 +28,14 @@ export default async function RootLayout({
   return (
     <html lang={lng} dir={dir(lng)} suppressHydrationWarning>
       <body className={`${inter.className}`}>
-        <ThemeProvider
+        {/* <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
-        >
-          <NextAuthProvider>{children}</NextAuthProvider>
-        </ThemeProvider>
+        > */}
+        <NextAuthProvider>{children}</NextAuthProvider>
+        {/* </ThemeProvider> */}
       </body>
     </html>
   )

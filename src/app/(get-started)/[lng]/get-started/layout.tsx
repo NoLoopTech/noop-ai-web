@@ -28,6 +28,7 @@ export default async function RootLayout({
   return (
     <html lang={lng} dir={dir(lng)} suppressHydrationWarning>
       <body className={`${inter.className}`}>
+        {/* INFO: ThemeProvider is commented out because we don't have a proper dark theme design for this section yet */}
         {/* <ThemeProvider
           attribute="class"
           defaultTheme="light"

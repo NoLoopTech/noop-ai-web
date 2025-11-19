@@ -46,12 +46,12 @@ const AgentPreview = () => {
         >
           <div className="flex h-20 w-full flex-col justify-between rounded-3xl border-2 border-zinc-200 bg-white px-3 pt-2.5 pb-1.5">
             <p className="w-full text-xs wrap-anywhere text-zinc-900">
-              `How do I register to Noopy
+              How do I register to Noopy
             </p>
             <div className="flex items-center justify-between">
               <Smile className="h-3.5 w-3.5 text-zinc-500" />
               <div className="rounded-full p-1">
-                <IconArrowUp className="h-3.5 w-3.5 text-zinc-50" />
+                <IconArrowUp className="h-3.5 w-3.5 text-black" />
               </div>
             </div>
           </div>

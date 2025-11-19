@@ -30,6 +30,18 @@ const defaultLinks: WebsiteLink[] = [
   { url: "https://medium.com/ai-ux-designers/", selected: true },
   { url: "https://medium.com/ai-ux-designers/", selected: true },
   { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
+  { url: "https://medium.com/ai-ux-designers/", selected: true },
   { url: "https://medium.com/ai-ux-designers/", selected: true }
 ]
 

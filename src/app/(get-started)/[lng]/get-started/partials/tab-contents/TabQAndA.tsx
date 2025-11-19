@@ -7,16 +7,17 @@ interface TabQAndAProps {
 
 const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
   return (
-    <TabsContent value="qanda" className="mt-10 h-96 bg-zinc-200">
+    <TabsContent value="qanda" className="mt-4 h-96 rounded-md bg-zinc-200">
       <motion.div
         key="qanda-content"
         initial="hidden"
         animate="visible"
         exit="exit"
         variants={motionVariants}
-        className="flex h-full items-center justify-center"
+        className="flex h-full flex-col items-center justify-center"
       >
-        <p className="text-2xl text-zinc-500">Q&A</p>
+        <p className="text-2xl font-bold text-zinc-500">Q&A</p>
+        <p className="text-base text-zinc-500">(Coming Soon)</p>
       </motion.div>
     </TabsContent>
   )

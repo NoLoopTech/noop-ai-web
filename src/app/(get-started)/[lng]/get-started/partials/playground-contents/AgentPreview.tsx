@@ -50,8 +50,8 @@ const AgentPreview = () => {
             </p>
             <div className="flex items-center justify-between">
               <Smile className="h-3.5 w-3.5 text-zinc-500" />
-              <div className="rounded-full p-1">
-                <IconArrowUp className="h-3.5 w-3.5 text-black" />
+              <div className="rounded-full bg-black p-1">
+                <IconArrowUp className="h-3.5 w-3.5 text-zinc-50" />
               </div>
             </div>
           </div>

@@ -2,10 +2,11 @@
  * WorldMap Component
  * ------------------
  * Renders an interactive world map using D3, TopoJSON, and SVG.
+ * Note: This file is a backup of a React component (.tsx).
  *
  * Features:
  * - Loads country shapes from TopoJSON (Natural Earth dataset)
- * - Uses D3's geoNaturalEarth1 projection for accurate world rendering
+ * - Uses D3's geoMercator projection for accurate world rendering
  * - Colors countries based on provided data (countryData prop)
  * - Supports smooth zoom and pan, limited to the SVG area
  * - Shows tooltips on hover with country names
@@ -18,6 +19,7 @@
  *   defaultFillColor="#D1D5DB"
  *   borderColor="#9CA3AF"
  *   hoverColor="#60A5FA"
+ *   tooltipRenderer={(name, value) => <div>{name}: {value}</div>}
  * />
  *
  * Props:
@@ -34,6 +36,8 @@
  *   Stroke color for country borders. Defaults to "#374151".
  * - hoverColor?: string
  *   Fill color on hover. If not provided, lightens the original color.
+ * - tooltipRenderer?: (countryName: string, value?: number) => React.ReactNode
+ *   Optional function to render custom tooltip content.
  *
  * Styling:
  * - Uses TailwindCSS for base styles (can be customized)
@@ -382,7 +386,7 @@ export default function WorldMap({
         onPointerLeave={() => setIsDragging(false)}
       />
 
-      {/* Tooltip: renders the custom tooltip */}
+      {/* Tooltip: renders the custom React content */}
       {tooltip && (
         <div
           style={{
@@ -392,7 +396,7 @@ export default function WorldMap({
             pointerEvents: "none",
             zIndex: 1000
           }}
-          className="flex min-w-max items-center space-x-2.5 rounded-lg bg-white px-2 py-1 dark:bg-zinc-900"
+          className="flex min-w-max items-center space-x-2.5 rounded-lg bg-white px-2 py-1 shadow-lg dark:bg-zinc-900"
         >
           {tooltip.content}
         </div>

@@ -12,7 +12,7 @@ import {
 import { DateRangeDropdown } from "@/components/DateRangeDropdown"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { DashboardRange } from "@/models/dashboard"
-// import { CountryTrafficMap } from "@/components/charts/CountryTrafficMap"
+import { CountryTrafficMap } from "@/components/charts/CountryTrafficMap"
 import {
   ResponsiveContainer,
   LineChart,
@@ -263,15 +263,15 @@ export default function TrafficEngagementTab({
   }, [data?.topCountries])
 
   // Transform country data for the map
-  // const mapData = useMemo(() => {
-  //   if (!data?.topCountries) return []
-  //   return data.topCountries.map(country => ({
-  //     countryCode: country.countryCode,
-  //     value: Number(country.percentage),
-  //     changePercentage: Number(country.changePercentage || 0),
-  //     trend: country.trend as "up" | "down"
-  //   }))
-  // }, [data?.topCountries])
+  const mapData = useMemo(() => {
+    if (!data?.topCountries) return []
+    return data.topCountries.map(country => ({
+      countryCode: country.countryCode,
+      value: Number(country.percentage),
+      changePercentage: Number(country.changePercentage || 0),
+      trend: country.trend as "up" | "down"
+    }))
+  }, [data?.topCountries])
 
   const getIcon = (label: string) => iconMap[label] || IconUsers
 
@@ -541,8 +541,8 @@ export default function TrafficEngagementTab({
       </div>
 
       {/* Bottom row: Top countries + Geo map */}
-      <div className="grid gap-4 lg:grid-cols-[2fr_5fr]">
-        <Card>
+      <div className="flex w-full space-x-3.5">
+        <Card className="w-[300px]">
           <CardHeader>
             <CardTitle className="text-base font-semibold">
               Top Countries
@@ -557,58 +557,61 @@ export default function TrafficEngagementTab({
               </div>
             ) : (
               <>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {topCountries.slice(0, 5).map(c => (
                     <div
                       key={c.rank}
-                      className="flex items-center justify-between"
+                      className="flex items-center space-x-4 border-b border-zinc-400/20 pb-2.5"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="text-muted-foreground">{c.rank}</div>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="flex items-center justify-center overflow-hidden rounded-full"
-                            style={{
-                              width: "2rem",
-                              height: "1.5rem",
-                              backgroundColor: "#f3f3f3"
-                            }}
-                          >
-                            <ReactCountryFlag
-                              svg
-                              countryCode={c.code ?? ""}
-                              style={{
-                                width: "100%",
-                                height: "auto"
-                              }}
-                              title={c.name}
-                              aria-label={`${c.name} flag`}
-                            />
-                          </div>
+                      <p className="text-muted-foreground">{c.rank}</p>
 
-                          <div>
-                            <div className="font-medium">{c.name}</div>
-                            <div className="text-muted-foreground text-md">
+                      <div className="flex w-full min-w-52 items-center space-x-2.5 rounded-lg bg-transparent">
+                        <div className="min-h-8 min-w-8 overflow-hidden rounded-full">
+                          <ReactCountryFlag
+                            svg
+                            countryCode={c.code ?? ""}
+                            style={{
+                              width: "100%",
+                              height: "100%"
+                            }}
+                            className="min-h-8 max-w-8 object-cover"
+                            title={c.name}
+                            aria-label={`${c.name} flag`}
+                          />
+                        </div>
+
+                        <div className="flex w-full flex-col items-start">
+                          <p className="max-w-[80%] min-w-full text-sm font-normal wrap-anywhere text-zinc-600 dark:text-zinc-500">
+                            {c.name}
+                          </p>
+
+                          <div className="flex w-full items-center justify-between">
+                            <div className="text-base text-zinc-900 dark:text-zinc-400">
                               {c.percent}
+                            </div>
+
+                            <div
+                              className="flex items-end space-x-1 text-xs"
+                              style={{
+                                color: c.trend === "up" ? "#34C759" : "#EF4444"
+                              }}
+                            >
+                              {c.trend === "up" ? (
+                                <IconCaretUpFilled
+                                  size={14}
+                                  className="text-inherit"
+                                />
+                              ) : (
+                                <IconCaretDownFilled
+                                  size={14}
+                                  className="text-inherit"
+                                />
+                              )}
+
+                              <p className="text-inherit">{c.growth}</p>
                             </div>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex flex-shrink-0 items-center gap-1 text-sm font-semibold">
-                        <span
-                          className="flex items-center gap-0.5"
-                          style={{
-                            color: c.trend === "up" ? "#34C759" : "#EF4444"
-                          }}
-                        >
-                          {c.trend === "up" ? (
-                            <IconCaretUpFilled size={14} />
-                          ) : (
-                            <IconCaretDownFilled size={14} />
-                          )}
-                          {c.growth}
-                        </span>
                       </div>
                     </div>
                   ))}
@@ -696,27 +699,20 @@ export default function TrafficEngagementTab({
         </Card>
 
         {/* Bot Traffic By Country */}
-        <Card className="flex flex-col">
+        <Card className="3xl:min-h-[600px] min-h-[450px] max-w-[calc(100%-314px)] flex-1">
           <CardHeader>
             <CardTitle className="text-base font-semibold">
               Bot Traffic by Country
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-1 flex-col justify-center">
-            <div className="h-96 w-full">
+          <CardContent className="flex flex-col justify-center">
+            <div className="h-auto w-full">
               {isLoading ? (
                 <div className="shine h-96 w-full rounded-md" />
               ) : (
-                <div className="text-muted-foreground flex h-96 w-full items-center justify-center text-sm">
-                  Coming soon
+                <div className="h-full w-full overflow-hidden rounded-md">
+                  <CountryTrafficMap data={mapData} />
                 </div>
-                // <CountryTrafficMap
-                //   data={mapData}
-                //   colorScale={{
-                //     min: "#E0F2FE",
-                //     max: "#0369A1"
-                //   }}
-                // />
               )}
             </div>
           </CardContent>

@@ -1,6 +1,10 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SlidingNumber } from "@/components/ui/sliding-number"
+import { motion } from "motion/react"
+import { useEffect, useState } from "react"
 
 interface Feature {
   name: string
@@ -25,6 +29,7 @@ interface PricingCardProps {
     iconWidth?: number
     iconHeight?: number
   }
+  billingPeriod: "monthly" | "yearly"
   highlighted?: boolean
   highlightText?: string
   currency?: Currency
@@ -42,10 +47,27 @@ const PricingCard = ({
   currency,
   monthlyPrice,
   yearlyPrice,
+  billingPeriod,
   features,
   buttonText,
   onButtonClick
 }: PricingCardProps) => {
+  const [animatedText, setAnimatedText] = useState(
+    billingPeriod === "monthly" ? "month" : "year"
+  )
+
+  useEffect(() => {
+    const target = billingPeriod === "monthly" ? "month" : "year"
+    setAnimatedText("") // Start with empty string
+    let timeout: NodeJS.Timeout
+    target.split("").forEach((char, i) => {
+      timeout = setTimeout(() => {
+        setAnimatedText(prev => prev + char)
+      }, i * 30)
+    })
+    return () => clearTimeout(timeout)
+  }, [billingPeriod])
+
   return (
     <div className="flex w-72 flex-col">
       {highlighted && highlightText && (
@@ -83,9 +105,22 @@ const PricingCard = ({
             />
           </h1>
 
-          <p className="text-xs font-normal text-zinc-500">
-            per {monthlyPrice ? "month" : "year"}
-          </p>
+          <div className="flex space-x-1 text-xs font-normal text-zinc-500">
+            <p>per</p>
+            <div className="">
+              {animatedText.split("").map((char, i) => (
+                <motion.span
+                  key={char + i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15, delay: i * 0.03 }}
+                  style={{ display: "inline-block" }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </div>
+          </div>
         </div>
 
         <Separator className="mt-8 mb-6 w-full" />

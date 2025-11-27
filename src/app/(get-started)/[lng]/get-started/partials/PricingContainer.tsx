@@ -410,6 +410,7 @@ const PricingContainer = () => {
                 monthlyPrice={
                   activeTab === "monthly" ? plan.monthlyPrice : plan.yearlyPrice
                 }
+                billingPeriod={activeTab}
               />
             ))}
           </div>

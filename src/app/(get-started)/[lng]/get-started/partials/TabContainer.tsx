@@ -24,6 +24,7 @@ import {
   AlertDialogContent
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
+import { AlertDialogTitle } from "@radix-ui/react-alert-dialog"
 
 const tabContentVariants = {
   hidden: { opacity: 0, y: -30 },
@@ -260,6 +261,11 @@ const TabContainer = () => {
       {/* Bot is learning dialog (no buttons) */}
       <AlertDialog open={loadingOpen} onOpenChange={setLoadingOpen}>
         <AlertDialogContent>
+          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="hidden">
+            <AlertDialogTitle>Bot is learning dialog</AlertDialogTitle>
+          </div>
+
           <div className="flex flex-col items-center justify-center space-y-4">
             <Image
               src="/assets/icons/onboarding-bot-is-learning-dialog-icon.png"
@@ -284,6 +290,11 @@ const TabContainer = () => {
       {/* Agent is alive dialog (single "Go to Playground" button) */}
       <AlertDialog open={loadedOpen} onOpenChange={setLoadedOpen}>
         <AlertDialogContent className="py-5">
+          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="hidden">
+            <AlertDialogTitle>Bot is alive dialog</AlertDialogTitle>
+          </div>
+
           <div className="flex flex-col items-center justify-center space-y-4">
             <Image
               src="/assets/icons/onboarding-bot-is-live-dialog-icon.png"

@@ -116,7 +116,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
             {/* INFO: to use when functionality is implemented */}
             {/* <div className="absolute bottom-0 left-0 flex h-full w-full flex-col items-center justify-center rounded-xl bg-white/60 backdrop-blur-[2px]">
               <Image
-                src="/assets/images/onboarding-max-links-warning-icon.png"
+                src="/assets/icons/onboarding-max-links-warning-icon.png"
                 alt="onboarding max links warning icon"
                 width={57}
                 height={27}

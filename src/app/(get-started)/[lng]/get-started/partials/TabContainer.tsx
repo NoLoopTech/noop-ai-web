@@ -21,10 +21,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle
+  AlertDialogContent
 } from "@/components/ui/alert-dialog"
+import Image from "next/image"
 
 const tabContentVariants = {
   hidden: { opacity: 0, y: -30 },
@@ -56,7 +55,7 @@ const TabContainer = () => {
     }, 2000)
   }
 
-  const handleGo = () => {
+  const handleGoToPlayground = () => {
     setLoadedOpen(false)
     setStep(OnboardingSteps.PLAYGROUND)
   }
@@ -258,24 +257,58 @@ const TabContainer = () => {
         </div>
       </div>
 
-      {/* Loading dialog (no buttons) */}
+      {/* Bot is learning dialog (no buttons) */}
       <AlertDialog open={loadingOpen} onOpenChange={setLoadingOpen}>
         <AlertDialogContent>
-          <AlertDialogTitle>Loading</AlertDialogTitle>
-          <AlertDialogDescription>
-            Training agent… please wait
-          </AlertDialogDescription>
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Image
+              src="/assets/icons/onboarding-bot-is-learning-dialog-icon.png"
+              alt="loading icon"
+              width={95}
+              height={96}
+            />
+
+            <div className="flex flex-col items-center justify-center space-y-3 text-center">
+              <h3 className="text-lg font-semibold text-zinc-950">
+                Your agent is learning right now.
+              </h3>
+              <p className="text-sm font-medium text-zinc-500">
+                Your agent is being trained on the knowledge you provided—this
+                usually takes just a moment.
+              </p>
+            </div>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Loaded dialog (single "Go" button) */}
+      {/* Agent is alive dialog (single "Go to Playground" button) */}
       <AlertDialog open={loadedOpen} onOpenChange={setLoadedOpen}>
-        <AlertDialogContent>
-          <AlertDialogTitle>Loaded</AlertDialogTitle>
-          <AlertDialogDescription>Your agent is ready.</AlertDialogDescription>
+        <AlertDialogContent className="py-5">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Image
+              src="/assets/icons/onboarding-bot-is-live-dialog-icon.png"
+              alt="loading icon"
+              width={84}
+              height={74}
+            />
 
-          <div className="mt-4 flex justify-end">
-            <AlertDialogAction onClick={handleGo}>Go</AlertDialogAction>
+            <div className="flex flex-col items-center justify-center space-y-1 text-center">
+              <h3 className="text-lg font-semibold text-zinc-950">
+                Your intelligent agent is live in the playground
+              </h3>
+              <p className="text-sm font-medium text-zinc-500">
+                Test it out, ask questions, and shape its personality
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <AlertDialogAction
+              onClick={handleGoToPlayground}
+              className="w-max bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
+            >
+              Go to Playground
+            </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>

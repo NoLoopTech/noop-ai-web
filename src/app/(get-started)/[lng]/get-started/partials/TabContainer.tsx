@@ -16,8 +16,15 @@ import TabQAndA from "./tab-contents/TabQAndA"
 import TabSocialMedia from "./tab-contents/TabSocialMedia"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useOnboardingStore } from "../store/onboarding.store"
+import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 
 const tabContentVariants = {
   hidden: { opacity: 0, y: -30 },
@@ -29,9 +36,33 @@ const TabContainer = () => {
   const [activeTab, setActiveTab] = useState("website")
 
   const websiteLinks = useOnboardingStore(s => s.websiteLinks)
+  const setStep = useOnboardingStore(s => s.setStep)
+
+  // dialog states
+  const [loadingOpen, setLoadingOpen] = useState(false)
+  const [loadedOpen, setLoadedOpen] = useState(false)
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false)
+
+  const handleTrainClick = () => {
+    if (isButtonDisabled) return
+    setIsButtonDisabled(true)
+    setLoadingOpen(true)
+
+    // simulate API call
+    setTimeout(() => {
+      setLoadingOpen(false)
+      setLoadedOpen(true)
+      setIsButtonDisabled(false)
+    }, 2000)
+  }
+
+  const handleGo = () => {
+    setLoadedOpen(false)
+    setStep(OnboardingSteps.PLAYGROUND)
+  }
 
   return (
-    <div className="relative flex w-full items-start justify-between space-x-12">
+    <div className="relative flex h-[calc(100vh-12.2rem)] w-full items-start justify-between space-x-12">
       <div className="w-full">
         <Tabs
           className="w-full"
@@ -217,11 +248,37 @@ const TabContainer = () => {
         </Card>
 
         <div className="mt-4 flex w-full">
-          <Button className="w-full bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80">
+          <Button
+            onClick={handleTrainClick}
+            className="w-full bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
+            disabled={isButtonDisabled}
+          >
             Train agent
           </Button>
         </div>
       </div>
+
+      {/* Loading dialog (no buttons) */}
+      <AlertDialog open={loadingOpen} onOpenChange={setLoadingOpen}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Loading</AlertDialogTitle>
+          <AlertDialogDescription>
+            Training agent… please wait
+          </AlertDialogDescription>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Loaded dialog (single "Go" button) */}
+      <AlertDialog open={loadedOpen} onOpenChange={setLoadedOpen}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Loaded</AlertDialogTitle>
+          <AlertDialogDescription>Your agent is ready.</AlertDialogDescription>
+
+          <div className="mt-4 flex justify-end">
+            <AlertDialogAction onClick={handleGo}>Go</AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

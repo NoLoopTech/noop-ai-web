@@ -78,8 +78,7 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
   socialMedia: [],
   setSocialMedia: sm => set({ socialMedia: sm }),
 
-  // step: OnboardingSteps.TAB,
-  step: OnboardingSteps.PRICING,
+  step: OnboardingSteps.TAB,
   setStep: s => set({ step: s }),
   nextStep: () =>
     set(state => {

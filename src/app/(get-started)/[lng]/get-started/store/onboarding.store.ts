@@ -1,5 +1,12 @@
 import { create } from "zustand"
 
+export enum OnboardingSteps {
+  TAB = "tab",
+  PLAYGROUND = "playground",
+  REGISTER = "register",
+  PRICING = "pricing"
+}
+
 type WebsiteLink = { url: string; selected: boolean }
 type File = { name: string; size: number }
 type TextSource = { content: string }
@@ -22,6 +29,10 @@ interface OnboardingState {
 
   socialMedia: SocialMedia[]
   setSocialMedia: (sm: SocialMedia[]) => void
+
+  step: OnboardingSteps
+  setStep: (s: OnboardingSteps) => void
+  nextStep: () => void
 }
 
 const defaultLinks: WebsiteLink[] = [
@@ -65,5 +76,20 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
   setQAndAs: qas => set({ qandas: qas }),
 
   socialMedia: [],
-  setSocialMedia: sm => set({ socialMedia: sm })
+  setSocialMedia: sm => set({ socialMedia: sm }),
+
+  step: OnboardingSteps.TAB,
+  setStep: s => set({ step: s }),
+  nextStep: () =>
+    set(state => {
+      const order: OnboardingSteps[] = [
+        OnboardingSteps.TAB,
+        OnboardingSteps.PLAYGROUND,
+        OnboardingSteps.REGISTER,
+        OnboardingSteps.PRICING
+      ]
+      const idx = order.indexOf(state.step)
+      const next = order[Math.min(idx + 1, order.length - 1)]
+      return { step: next }
+    })
 }))

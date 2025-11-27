@@ -27,15 +27,12 @@ const AgentDetails = () => {
   const [toneType, setToneType] = useState<string>("")
 
   return (
-    <div className="h-full min-w-80 rounded-[10px] bg-white py-2.5 pr-2 pl-2.5 shadow-md">
+    <div className="flex h-full min-w-80 flex-col space-y-2.5 rounded-[10px] bg-white py-2.5 pr-2 pl-2.5 shadow-md">
       <h2 className="pl-1 text-lg font-semibold text-zinc-950">
         Agent Details
       </h2>
 
-      <ScrollArea
-        className="mt-2 flex h-[calc(100vh-18.3rem)] w-full pr-2.5"
-        scrollbarVariant="tiny"
-      >
+      <ScrollArea className="flex h-full w-full pr-2.5" scrollbarVariant="tiny">
         <div className="flex flex-col items-center space-y-4 p-1">
           <InputGroup className="flex h-9 items-center justify-between rounded-md px-2">
             <InputGroupAddon className="p-0 text-sm font-medium text-zinc-950">

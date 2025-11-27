@@ -16,8 +16,15 @@ import TabQAndA from "./tab-contents/TabQAndA"
 import TabSocialMedia from "./tab-contents/TabSocialMedia"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useOnboardingStore } from "../store/onboarding.store"
+import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent
+} from "@/components/ui/alert-dialog"
+import Image from "next/image"
+import { AlertDialogTitle } from "@radix-ui/react-alert-dialog"
 
 const tabContentVariants = {
   hidden: { opacity: 0, y: -30 },
@@ -29,9 +36,33 @@ const TabContainer = () => {
   const [activeTab, setActiveTab] = useState("website")
 
   const websiteLinks = useOnboardingStore(s => s.websiteLinks)
+  const setStep = useOnboardingStore(s => s.setStep)
+
+  // dialog states
+  const [loadingOpen, setLoadingOpen] = useState(false)
+  const [loadedOpen, setLoadedOpen] = useState(false)
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false)
+
+  const handleTrainClick = () => {
+    if (isButtonDisabled) return
+    setIsButtonDisabled(true)
+    setLoadingOpen(true)
+
+    // simulate API call
+    setTimeout(() => {
+      setLoadingOpen(false)
+      setLoadedOpen(true)
+      setIsButtonDisabled(false)
+    }, 2000)
+  }
+
+  const handleGoToPlayground = () => {
+    setLoadedOpen(false)
+    setStep(OnboardingSteps.PLAYGROUND)
+  }
 
   return (
-    <div className="relative flex w-full items-start justify-between space-x-12">
+    <div className="relative flex h-[calc(100vh-12.2rem)] w-full items-start justify-between space-x-12">
       <div className="w-full">
         <Tabs
           className="w-full"
@@ -217,11 +248,81 @@ const TabContainer = () => {
         </Card>
 
         <div className="mt-4 flex w-full">
-          <Button className="w-full bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80">
+          <Button
+            onClick={handleTrainClick}
+            className="w-full bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
+            disabled={isButtonDisabled}
+          >
             Train agent
           </Button>
         </div>
       </div>
+
+      {/* Bot is learning dialog (no buttons) */}
+      <AlertDialog open={loadingOpen} onOpenChange={setLoadingOpen}>
+        <AlertDialogContent>
+          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="hidden">
+            <AlertDialogTitle>Bot is learning dialog</AlertDialogTitle>
+          </div>
+
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Image
+              src="/assets/icons/onboarding-bot-is-learning-dialog-icon.png"
+              alt="loading icon"
+              width={95}
+              height={96}
+            />
+
+            <div className="flex flex-col items-center justify-center space-y-3 text-center">
+              <h3 className="text-lg font-semibold text-zinc-950">
+                Your agent is learning right now.
+              </h3>
+              <p className="text-sm font-medium text-zinc-500">
+                Your agent is being trained on the knowledge you provided—this
+                usually takes just a moment.
+              </p>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Agent is alive dialog (single "Go to Playground" button) */}
+      <AlertDialog open={loadedOpen} onOpenChange={setLoadedOpen}>
+        <AlertDialogContent className="py-5">
+          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="hidden">
+            <AlertDialogTitle>Bot is alive dialog</AlertDialogTitle>
+          </div>
+
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Image
+              src="/assets/icons/onboarding-bot-is-live-dialog-icon.png"
+              alt="loading icon"
+              width={84}
+              height={74}
+            />
+
+            <div className="flex flex-col items-center justify-center space-y-1 text-center">
+              <h3 className="text-lg font-semibold text-zinc-950">
+                Your intelligent agent is live in the playground
+              </h3>
+              <p className="text-sm font-medium text-zinc-500">
+                Test it out, ask questions, and shape its personality
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <AlertDialogAction
+              onClick={handleGoToPlayground}
+              className="w-max bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
+            >
+              Go to Playground
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

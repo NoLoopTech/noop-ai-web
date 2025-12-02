@@ -147,7 +147,7 @@ const TabContainer = () => {
           </CardHeader>
           <CardContent className="p-3 pt-2">
             <div className="flex flex-col space-y-4">
-              {/* INFO: to use when functionality is implemented */}
+              {/* TODO: to use when functionality is implemented */}
               {/* <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border border-zinc-200 px-2.5 py-3 shadow-xs">
                 <IconAlertTriangle className="size-5 stroke-zinc-500" />
 

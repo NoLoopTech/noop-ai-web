@@ -19,22 +19,94 @@ import { TabsContent } from "@/components/ui/tabs"
 // import { IconAlertTriangle } from "@tabler/icons-react"
 import { AlertTriangleIcon, ChevronDownIcon } from "lucide-react"
 import { motion, Variants } from "motion/react"
-// import Image from "next/image"
-import { useState } from "react"
+import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
+import { z } from "zod"
+import { useApiQuery } from "@/query"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
+import { IconLoader } from "@tabler/icons-react"
 
 interface TabWebsiteProps {
   motionVariants: Variants
 }
 
 const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
+  const urlSchema = z.string().url({ message: "Please enter a valid URL" })
   const [protocol, setProtocol] = useState("https://")
+  const [url, setUrl] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [fetchUrl, setFetchUrl] = useState<string | null>(null)
 
-  const websiteLinks = useOnboardingStore(s => s.websiteLinks)
-  const toggleWebsiteLink = useOnboardingStore(s => s.toggleWebsiteLink)
+  const [showSelectWarning, setShowSelectWarning] = useState(false)
+  const apiLinksRef = useRef<string[]>([])
 
   const handleProtocolSelect = (selected: string) => () => {
     setProtocol(selected)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value)
+    const result = urlSchema.safeParse(protocol + e.target.value)
+    setError(result.success ? null : result.error.errors[0].message)
+  }
+
+  const {
+    data,
+    isLoading,
+    error: apiError
+  } = useApiQuery<{ child_urls: string[]; base_url: string }>(
+    ["fetch-website-links", fetchUrl],
+    `/onboarding/scrape?url=${encodeURIComponent(fetchUrl || "")}`,
+    () => ({
+      method: "post"
+    }),
+    {
+      enabled: !!fetchUrl,
+      staleTime: 0
+    }
+  )
+
+  const handleFetchLinks = () => {
+    const result = urlSchema.safeParse(protocol + url)
+    if (!result.success) {
+      setError(result.error.errors[0].message)
+      return
+    }
+    setError(null)
+    setFetchUrl(protocol + url)
+  }
+
+  const websiteLinks = useOnboardingStore(s => s.websiteLinks)
+  const setWebsiteLinks = useOnboardingStore(s => s.setWebsiteLinks)
+  const toggleWebsiteLink = useOnboardingStore(s => s.toggleWebsiteLink)
+
+  useEffect(() => {
+    if (data?.child_urls) {
+      apiLinksRef.current = data.child_urls
+      if (data.child_urls.length > 10) {
+        setShowSelectWarning(true)
+        setWebsiteLinks(data.child_urls.map(url => ({ url, selected: false })))
+      } else {
+        setShowSelectWarning(false)
+        setWebsiteLinks(data.child_urls.map(url => ({ url, selected: false })))
+      }
+    }
+  }, [data, setWebsiteLinks])
+
+  const handleSelectFirst10 = () => {
+    setWebsiteLinks(
+      apiLinksRef.current.map((url, idx) => ({
+        url,
+        selected: idx < 10
+      }))
+    )
+    setShowSelectWarning(false)
   }
 
   return (
@@ -72,7 +144,13 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 <p className="text-sm font-medium text-zinc-900">URL</p>
 
                 <InputGroup className="rounded-md border-zinc-200 bg-white">
-                  <InputGroupInput placeholder="www.example.com" />
+                  <InputGroupInput
+                    placeholder="www.example.com"
+                    value={url}
+                    onChange={handleInputChange}
+                    aria-invalid={!!error}
+                  />
+
                   <InputGroupAddon align="inline-start">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -108,32 +186,34 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 </InputGroup>
               </div>
 
-              <div className="mt-4 flex justify-end">
-                <Button>Fetch Links</Button>
+              <div className="flex w-full justify-between">
+                <p className="mt-1.5 ml-3 text-xs text-red-500">
+                  {error ?? ""}
+                </p>
+
+                <div className="mt-4 flex items-center justify-end space-x-4">
+                  {apiError && (
+                    <p className="mt-1 text-xs text-red-500">
+                      Failed to fetch links
+                    </p>
+                  )}
+
+                  <Button
+                    onClick={handleFetchLinks}
+                    disabled={!url || !!error || isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <IconLoader className="inline-block size-4 animate-spin" />
+                        <p>Fetching...</p>
+                      </div>
+                    ) : (
+                      <p>Fetch Links</p>
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardContent>
-
-            {/* INFO: to use when functionality is implemented */}
-            {/* <div className="absolute bottom-0 left-0 flex h-full w-full flex-col items-center justify-center rounded-xl bg-white/60 backdrop-blur-[2px]">
-              <Image
-                src="/assets/icons/onboarding-max-links-warning-icon.png"
-                alt="onboarding max links warning icon"
-                width={57}
-                height={27}
-              />
-
-              <p className="mb-0.5 text-xl font-semibold text-zinc-950">
-                Looks like your site is big!
-              </p>
-              <p className="max-w-md text-base font-medium text-zinc-600">
-                Your website has more than 10 links. The free plan allows only
-                10. Do you want to select the first 10 links in order?
-              </p>
-
-              <Button className="mt-2 h-9 w-20 bg-[#1E50EF] hover:bg-[#1E50EF]/80">
-                Select
-              </Button>
-            </div> */}
           </Card>
 
           {/* TODO: Update this section's UI */}
@@ -165,14 +245,62 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 >
                   <Checkbox
                     checked={link.selected}
+                    disabled={
+                      !link.selected &&
+                      websiteLinks.filter(l => l.selected).length >= 10
+                    }
                     onCheckedChange={() => toggleWebsiteLink(idx)}
                   />
+
                   <span className="text-sm font-normal">{link.url}</span>
                 </div>
               ))}
             </div>
           </div>
         </ScrollArea>
+
+        {/* Alert dialog for confirming first 10 links selection */}
+        <AlertDialog
+          open={showSelectWarning}
+          onOpenChange={setShowSelectWarning}
+        >
+          <AlertDialogContent className="py-5">
+            {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
+            <div className="hidden">
+              <AlertDialogTitle>
+                Confirm first 10 links selection
+              </AlertDialogTitle>
+            </div>
+
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <Image
+                src="/assets/icons/onboarding-max-links-warning-icon.png"
+                alt="onboarding max links warning icon"
+                width={57}
+                height={27}
+              />
+
+              <div className="flex flex-col items-center justify-center space-y-1 text-center">
+                <h3 className="text-lg font-semibold text-zinc-950">
+                  Looks like your site is big!
+                </h3>
+                <p className="text-sm font-medium text-zinc-500">
+                  Your website has more than 10 links. The free plan allows only
+                  10. Do you want to select the first 10 links in order?
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <AlertDialogAction
+                onClick={handleSelectFirst10}
+                className="w-max bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
+              >
+                Select
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </motion.div>
     </TabsContent>
   )

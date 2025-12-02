@@ -5,6 +5,7 @@ import { AnimatePresence } from "motion/react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   IconFilter2Question,
+  IconInfoCircle,
   IconWorld,
   IconWorldHeart
 } from "@tabler/icons-react"
@@ -188,9 +189,9 @@ const TabContainer = () => {
                       </div>
                     </div>
 
-                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                      <p>25</p>
-                      <p>KB</p>
+                    <div className="flex items-center space-x-1 text-xs font-semibold text-zinc-700">
+                      <p>TBD</p>
+                      <IconInfoCircle className="mt-0.5 size-3.5 stroke-zinc-400" />
                     </div>
                   </div>
 

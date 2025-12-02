@@ -35,29 +35,8 @@ interface OnboardingState {
   nextStep: () => void
 }
 
-const defaultLinks: WebsiteLink[] = [
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true }
-]
-
 export const useOnboardingStore = create<OnboardingState>(set => ({
-  websiteLinks: defaultLinks,
+  websiteLinks: [],
   setWebsiteLinks: links => set({ websiteLinks: links }),
   toggleWebsiteLink: idx =>
     set(state => ({

@@ -16,11 +16,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TabsContent } from "@/components/ui/tabs"
-// import { IconAlertTriangle } from "@tabler/icons-react"
-import { AlertTriangleIcon, ChevronDownIcon } from "lucide-react"
+import { ChevronDownIcon } from "lucide-react"
 import { motion, Variants } from "motion/react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
 import { z } from "zod"
 import { useApiMutation } from "@/query"
@@ -62,9 +61,11 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     onSuccess: data => {
       if (data.childUrls.length > 10) {
         setShowSelectWarning(true)
+        setShowUrlWarning(true)
         setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
       } else {
         setShowSelectWarning(false)
+        setShowUrlWarning(false)
         setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
       }
     }
@@ -87,30 +88,6 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setShowUrlWarning,
     showUrlWarning
   } = useOnboardingStore()
-
-  useEffect(() => {
-    if (fetchLinksMutation.data?.childUrls) {
-      if (fetchLinksMutation.data.childUrls.length > 10) {
-        setShowSelectWarning(true)
-        setShowUrlWarning(true)
-        setWebsiteLinks(
-          fetchLinksMutation.data.childUrls.map(url => ({
-            url,
-            selected: false
-          }))
-        )
-      } else {
-        setShowSelectWarning(false)
-        setShowUrlWarning(false)
-        setWebsiteLinks(
-          fetchLinksMutation.data.childUrls.map(url => ({
-            url,
-            selected: false
-          }))
-        )
-      }
-    }
-  }, [fetchLinksMutation.data, setWebsiteLinks])
 
   const handleSelectFirst10 = () => {
     setWebsiteLinks(
@@ -258,12 +235,13 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 {websiteLinks.length} links
               </p>
 
-              <div className="flex items-center space-x-2 text-xs font-medium">
+              {/* TODO: remove this later */}
+              {/* <div className="flex items-center space-x-2 text-xs font-medium">
                 <AlertTriangleIcon className="size-3.5" />
                 <p>
                   10000<span className="px-0.5">/</span>10000
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex flex-col">

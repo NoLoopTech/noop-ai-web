@@ -5,6 +5,7 @@ import { Inter } from "next/font/google"
 // import { ThemeProvider } from "@/components/layout/ThemeProvider"
 import NextAuthProvider from "@/components/layout/NextAuthProvider"
 import { JSX } from "react"
+import ReactQueryWrapper from "@/components/layout/ReactQueryWrapper"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -35,7 +36,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         > */}
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <NextAuthProvider>
+          <ReactQueryWrapper>{children}</ReactQueryWrapper>
+        </NextAuthProvider>
         {/* </ThemeProvider> */}
       </body>
     </html>

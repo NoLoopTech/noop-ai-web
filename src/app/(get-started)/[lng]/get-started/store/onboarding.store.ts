@@ -33,31 +33,13 @@ interface OnboardingState {
   step: OnboardingSteps
   setStep: (s: OnboardingSteps) => void
   nextStep: () => void
+
+  showUrlWarning: boolean
+  setShowUrlWarning: (show: boolean) => void
 }
 
-const defaultLinks: WebsiteLink[] = [
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true },
-  { url: "https://medium.com/ai-ux-designers/", selected: true }
-]
-
 export const useOnboardingStore = create<OnboardingState>(set => ({
-  websiteLinks: defaultLinks,
+  websiteLinks: [],
   setWebsiteLinks: links => set({ websiteLinks: links }),
   toggleWebsiteLink: idx =>
     set(state => ({
@@ -91,5 +73,8 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
       const idx = order.indexOf(state.step)
       const next = order[Math.min(idx + 1, order.length - 1)]
       return { step: next }
-    })
+    }),
+
+  showUrlWarning: false,
+  setShowUrlWarning: show => set({ showUrlWarning: show })
 }))

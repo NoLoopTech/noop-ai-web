@@ -5,6 +5,7 @@ import { AnimatePresence } from "motion/react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   IconFilter2Question,
+  IconInfoCircle,
   IconWorld,
   IconWorldHeart
 } from "@tabler/icons-react"
@@ -33,6 +34,7 @@ const tabContentVariants = {
 }
 
 const TabContainer = () => {
+  const { showUrlWarning } = useOnboardingStore()
   const [activeTab, setActiveTab] = useState("website")
 
   const websiteLinks = useOnboardingStore(s => s.websiteLinks)
@@ -146,7 +148,7 @@ const TabContainer = () => {
           </CardHeader>
           <CardContent className="p-3 pt-2">
             <div className="flex flex-col space-y-4">
-              {/* INFO: to use when functionality is implemented */}
+              {/* TODO: to use when functionality is implemented */}
               {/* <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border border-zinc-200 px-2.5 py-3 shadow-xs">
                 <IconAlertTriangle className="size-5 stroke-zinc-500" />
 
@@ -158,13 +160,15 @@ const TabContainer = () => {
 
               <div className="flex w-full flex-col space-y-2">
                 {/* INFO: warning version */}
-                {/* <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
-                  <span className="flex h-full w-5/12 bg-gradient-to-r from-[#DA0000] to-[#FF0101]"></span>
-                </div> */}
-
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
-                  <span className="flex h-full w-8/12 bg-gradient-to-r from-[#0736F0] to-[#0088FF]"></span>
-                </div>
+                {showUrlWarning ? (
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+                    <span className="flex h-full w-5/12 bg-gradient-to-r from-[#DA0000] to-[#FF0101] transition-all duration-700 ease-in-out"></span>
+                  </div>
+                ) : (
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+                    <span className="flex h-full w-8/12 bg-gradient-to-r from-[#0736F0] to-[#0088FF] transition-all duration-700 ease-in-out"></span>
+                  </div>
+                )}
 
                 <p className="shine-text text-xs font-medium">
                   Your agent is getting smarter…
@@ -188,9 +192,9 @@ const TabContainer = () => {
                       </div>
                     </div>
 
-                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                      <p>25</p>
-                      <p>KB</p>
+                    <div className="flex items-center space-x-1 text-xs font-semibold text-zinc-700">
+                      <p>TBD</p>
+                      <IconInfoCircle className="mt-0.5 size-3.5 stroke-zinc-400" />
                     </div>
                   </div>
 

@@ -34,6 +34,7 @@ const tabContentVariants = {
 }
 
 const TabContainer = () => {
+  const { showUrlWarning } = useOnboardingStore()
   const [activeTab, setActiveTab] = useState("website")
 
   const websiteLinks = useOnboardingStore(s => s.websiteLinks)
@@ -159,13 +160,15 @@ const TabContainer = () => {
 
               <div className="flex w-full flex-col space-y-2">
                 {/* INFO: warning version */}
-                {/* <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
-                  <span className="flex h-full w-5/12 bg-gradient-to-r from-[#DA0000] to-[#FF0101]"></span>
-                </div> */}
-
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
-                  <span className="flex h-full w-8/12 bg-gradient-to-r from-[#0736F0] to-[#0088FF]"></span>
-                </div>
+                {showUrlWarning ? (
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+                    <span className="flex h-full w-5/12 bg-gradient-to-r from-[#DA0000] to-[#FF0101] transition-all duration-700 ease-in-out"></span>
+                  </div>
+                ) : (
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+                    <span className="flex h-full w-8/12 bg-gradient-to-r from-[#0736F0] to-[#0088FF] transition-all duration-700 ease-in-out"></span>
+                  </div>
+                )}
 
                 <p className="shine-text text-xs font-medium">
                   Your agent is getting smarter…

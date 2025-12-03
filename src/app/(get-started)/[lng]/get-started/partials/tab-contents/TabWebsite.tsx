@@ -20,13 +20,14 @@ import { TabsContent } from "@/components/ui/tabs"
 import { AlertTriangleIcon, ChevronDownIcon } from "lucide-react"
 import { motion, Variants } from "motion/react"
 import Image from "next/image"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
 import { z } from "zod"
-import { useApiQuery } from "@/query"
+import { useApiMutation } from "@/query"
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
@@ -41,10 +42,8 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const [protocol, setProtocol] = useState("https://")
   const [url, setUrl] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [fetchUrl, setFetchUrl] = useState<string | null>(null)
 
   const [showSelectWarning, setShowSelectWarning] = useState(false)
-  const apiLinksRef = useRef<string[]>([])
 
   const handleProtocolSelect = (selected: string) => () => {
     setProtocol(selected)
@@ -56,21 +55,20 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setError(result.success ? null : result.error.errors[0].message)
   }
 
-  const {
-    data,
-    isLoading,
-    error: apiError
-  } = useApiQuery<{ child_urls: string[]; base_url: string }>(
-    ["fetch-website-links", fetchUrl],
-    `/onboarding/scrape?url=${encodeURIComponent(fetchUrl || "")}`,
-    () => ({
-      method: "post"
-    }),
-    {
-      enabled: !!fetchUrl,
-      staleTime: 0
+  const fetchLinksMutation = useApiMutation<
+    { childUrls: string[]; baseUrl: string },
+    { url: string }
+  >("/onboarding/scrape", "post", {
+    onSuccess: data => {
+      if (data.childUrls.length > 10) {
+        setShowSelectWarning(true)
+        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
+      } else {
+        setShowSelectWarning(false)
+        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
+      }
     }
-  )
+  })
 
   const handleFetchLinks = () => {
     const result = urlSchema.safeParse(protocol + url)
@@ -79,34 +77,63 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
       return
     }
     setError(null)
-    setFetchUrl(protocol + url)
+    fetchLinksMutation.mutate({ url: protocol + url })
   }
 
-  const websiteLinks = useOnboardingStore(s => s.websiteLinks)
-  const setWebsiteLinks = useOnboardingStore(s => s.setWebsiteLinks)
-  const toggleWebsiteLink = useOnboardingStore(s => s.toggleWebsiteLink)
+  const {
+    websiteLinks,
+    setWebsiteLinks,
+    toggleWebsiteLink,
+    setShowUrlWarning,
+    showUrlWarning
+  } = useOnboardingStore()
 
   useEffect(() => {
-    if (data?.child_urls) {
-      apiLinksRef.current = data.child_urls
-      if (data.child_urls.length > 10) {
+    if (fetchLinksMutation.data?.childUrls) {
+      if (fetchLinksMutation.data.childUrls.length > 10) {
         setShowSelectWarning(true)
-        setWebsiteLinks(data.child_urls.map(url => ({ url, selected: false })))
+        setShowUrlWarning(true)
+        setWebsiteLinks(
+          fetchLinksMutation.data.childUrls.map(url => ({
+            url,
+            selected: false
+          }))
+        )
       } else {
         setShowSelectWarning(false)
-        setWebsiteLinks(data.child_urls.map(url => ({ url, selected: false })))
+        setShowUrlWarning(false)
+        setWebsiteLinks(
+          fetchLinksMutation.data.childUrls.map(url => ({
+            url,
+            selected: false
+          }))
+        )
       }
     }
-  }, [data, setWebsiteLinks])
+  }, [fetchLinksMutation.data, setWebsiteLinks])
 
   const handleSelectFirst10 = () => {
     setWebsiteLinks(
-      apiLinksRef.current.map((url, idx) => ({
-        url,
+      websiteLinks.map((link, idx) => ({
+        url: link.url,
         selected: idx < 10
       }))
     )
     setShowSelectWarning(false)
+    setShowUrlWarning(false)
+  }
+
+  const handleToggleWebsiteLink = (idx: number) => () => {
+    // Calculate what the next selection state will be
+    const nextLinks = websiteLinks.map((l, i) =>
+      i === idx ? { ...l, selected: !l.selected } : l
+    )
+    toggleWebsiteLink(idx)
+    setShowUrlWarning(false)
+
+    if (showSelectWarning && nextLinks.some(l => l.selected)) {
+      setShowSelectWarning(false)
+    }
   }
 
   return (
@@ -192,17 +219,17 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 </p>
 
                 <div className="mt-4 flex items-center justify-end space-x-4">
-                  {apiError && (
+                  {/* {fetchLinksMutation.error && (
                     <p className="mt-1 text-xs text-red-500">
                       Failed to fetch links
                     </p>
-                  )}
+                  )} */}
 
                   <Button
                     onClick={handleFetchLinks}
-                    disabled={!url || !!error || isLoading}
+                    disabled={!url || !!error || fetchLinksMutation.isPending}
                   >
-                    {isLoading ? (
+                    {fetchLinksMutation.isPending ? (
                       <div className="flex items-center space-x-2">
                         <IconLoader className="inline-block size-4 animate-spin" />
                         <p>Fetching...</p>
@@ -222,7 +249,9 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
               Link sources
             </h2>
 
-            <div className="mt-1 mb-2 flex h-10 items-center justify-between rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-3.5 text-sm font-normal text-zinc-500">
+            <div
+              className={`mt-1 mb-2 flex h-10 items-center justify-between rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-3.5 text-sm font-normal ${showUrlWarning ? "text-[#FF383C]" : "text-zinc-500"}`}
+            >
               <p>
                 {websiteLinks.filter(link => link.selected).length}
                 <span className="px-0.5">/</span>
@@ -249,7 +278,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                       !link.selected &&
                       websiteLinks.filter(l => l.selected).length >= 10
                     }
-                    onCheckedChange={() => toggleWebsiteLink(idx)}
+                    onCheckedChange={handleToggleWebsiteLink(idx)}
                   />
 
                   <span className="text-sm font-normal">{link.url}</span>
@@ -291,7 +320,10 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
               </div>
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center space-x-3">
+              <AlertDialogCancel className="border-none shadow-none">
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleSelectFirst10}
                 className="w-max bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"

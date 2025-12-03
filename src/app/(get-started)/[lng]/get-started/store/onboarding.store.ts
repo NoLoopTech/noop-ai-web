@@ -33,6 +33,9 @@ interface OnboardingState {
   step: OnboardingSteps
   setStep: (s: OnboardingSteps) => void
   nextStep: () => void
+
+  showUrlWarning: boolean
+  setShowUrlWarning: (show: boolean) => void
 }
 
 export const useOnboardingStore = create<OnboardingState>(set => ({
@@ -70,5 +73,8 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
       const idx = order.indexOf(state.step)
       const next = order[Math.min(idx + 1, order.length - 1)]
       return { step: next }
-    })
+    }),
+
+  showUrlWarning: false,
+  setShowUrlWarning: show => set({ showUrlWarning: show })
 }))

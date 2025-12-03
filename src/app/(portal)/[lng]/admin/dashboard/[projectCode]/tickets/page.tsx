@@ -2,6 +2,8 @@
 
 import { lazy, Suspense, useMemo } from "react"
 import { columns } from "./partials/TicketsColumns"
+import { FeatureGate } from "@/components/FeatureGate"
+import { Feature } from "@/types/subscription"
 
 const TicketsTable = lazy(() =>
   import("./partials/TicketsTable").then(module => ({
@@ -21,7 +23,7 @@ export default function TicketsPage() {
   const memoizedColumns = useMemo(() => columns, [])
 
   return (
-    <>
+    <FeatureGate feature={Feature.TICKETS_PAGE}>
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Tickets</h2>
@@ -32,6 +34,6 @@ export default function TicketsPage() {
           <TicketsTable columns={memoizedColumns} />
         </Suspense>
       </div>
-    </>
+    </FeatureGate>
   )
 }

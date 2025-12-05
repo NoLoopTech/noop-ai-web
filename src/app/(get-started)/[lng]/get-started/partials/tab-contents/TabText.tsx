@@ -21,7 +21,7 @@ interface TabTextProps {
 }
 
 const TabText = ({ motionVariants }: TabTextProps) => {
-  const textSources = useOnboardingStore(state => state.textSources)
+  const { textSources, setTextSources } = useOnboardingStore()
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -38,21 +38,13 @@ const TabText = ({ motionVariants }: TabTextProps) => {
 
   const handleAddText = () => {
     const size = calculateTextSizeFromLength(description).bytes
-    useOnboardingStore
-      .getState()
-      .setTextSources([
-        ...useOnboardingStore.getState().textSources,
-        { title, description, size }
-      ])
+    setTextSources([...textSources, { title, description, size }])
     setTitle("")
     setDescription("")
   }
 
   const handleDeleteText = (idx: number) => {
-    const currentSources = useOnboardingStore.getState().textSources
-    useOnboardingStore
-      .getState()
-      .setTextSources(currentSources.filter((_, i) => i !== idx))
+    setTextSources(textSources.filter((_, i) => i !== idx))
   }
 
   return (
@@ -134,9 +126,11 @@ const TabText = ({ motionVariants }: TabTextProps) => {
               className={`mt-1 mb-2 flex h-10 items-center justify-between space-x-2 rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-4 text-sm font-normal text-zinc-500`}
             >
               <p className="w-9/12 text-left">Title</p>
+
               <p className="w-2/12 text-left">
                 Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
               </p>
+
               <p className="w-1/12 cursor-pointer text-left">Action</p>
             </div>
 
@@ -147,8 +141,9 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                   className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal"
                 >
                   <p className="w-9/12 text-left">{text.title}</p>
+
                   <p className="w-2/12 text-left">{text.size} bytes</p>
-                  {/* <div className="flex w-1/12 cursor-pointer items-center justify-center"> */}
+
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">
                       <IconDotsVertical className="h-4 w-4 text-zinc-500" />
@@ -161,7 +156,6 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  {/* </div> */}
                 </div>
               ))}
             </div>

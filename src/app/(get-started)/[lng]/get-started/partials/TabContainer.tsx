@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AnimatePresence } from "motion/react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  IconAlertTriangle,
   IconFilter2Question,
   IconInfoCircle,
   IconWorld,
@@ -34,32 +35,79 @@ const tabContentVariants = {
 }
 
 const TabContainer = () => {
-  const { showUrlWarning } = useOnboardingStore()
   const [activeTab, setActiveTab] = useState("website")
+  const {
+    setStep,
+    showUrlWarning,
+    websiteLinks,
+    files,
+    textSources,
+    qandas,
+    socialMedia
+  } = useOnboardingStore()
 
-  const websiteLinks = useOnboardingStore(s => s.websiteLinks)
-  const setStep = useOnboardingStore(s => s.setStep)
+  const [isTrainingDialogOpen, setIsTrainingDialogOpen] = useState(false)
+  const [isTrainedDialogOpen, setIsTrainedDialogOpen] = useState(false)
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true)
 
-  // dialog states
-  const [loadingOpen, setLoadingOpen] = useState(false)
-  const [loadedOpen, setLoadedOpen] = useState(false)
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false)
+  const hasSources =
+    websiteLinks.length > 0 ||
+    files.length > 0 ||
+    textSources.length > 0 ||
+    qandas.length > 0 ||
+    socialMedia.length > 0
+
+  useEffect(() => {
+    const hasOtherSources =
+      files.length > 0 ||
+      textSources.length > 0 ||
+      qandas.length > 0 ||
+      socialMedia.length > 0
+
+    const requiresWebsiteLinkSelection =
+      websiteLinks.length > 0 && !hasOtherSources
+
+    const hasValidWebsiteLinksSelection =
+      !requiresWebsiteLinkSelection || websiteLinks.some(link => link.selected)
+
+    const urlWarningBlocksTraining =
+      showUrlWarning && !hasOtherSources && websiteLinks.length > 0
+
+    if (
+      hasSources &&
+      hasValidWebsiteLinksSelection &&
+      !urlWarningBlocksTraining
+    ) {
+      setIsButtonDisabled(false)
+    } else {
+      setIsButtonDisabled(true)
+    }
+  }, [
+    hasSources,
+    showUrlWarning,
+    websiteLinks,
+    files,
+    textSources,
+    qandas,
+    socialMedia
+  ])
 
   const handleTrainClick = () => {
     if (isButtonDisabled) return
-    setIsButtonDisabled(true)
-    setLoadingOpen(true)
 
-    // simulate API call
+    setIsButtonDisabled(true)
+    setIsTrainingDialogOpen(true)
+
+    // TODO: remove this. simulate API call
     setTimeout(() => {
-      setLoadingOpen(false)
-      setLoadedOpen(true)
+      setIsTrainingDialogOpen(false)
+      setIsTrainedDialogOpen(true)
       setIsButtonDisabled(false)
     }, 2000)
   }
 
   const handleGoToPlayground = () => {
-    setLoadedOpen(false)
+    setIsTrainedDialogOpen(false)
     setStep(OnboardingSteps.PLAYGROUND)
   }
 
@@ -74,7 +122,7 @@ const TabContainer = () => {
           <TabsList className="absolute flex w-full space-x-6 bg-white">
             <TabsTrigger
               value="website"
-              className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#52525B] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
+              className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#FFB700] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <IconWorld className="size-4 stroke-inherit" />
               <p>Website</p>
@@ -82,6 +130,7 @@ const TabContainer = () => {
 
             <TabsTrigger
               value="files"
+              disabled
               className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#5400AE] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <FileText className="size-4 stroke-inherit" />
@@ -98,6 +147,7 @@ const TabContainer = () => {
 
             <TabsTrigger
               value="qanda"
+              disabled
               className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#0606B3] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <IconFilter2Question className="size-4 stroke-inherit" />
@@ -106,6 +156,7 @@ const TabContainer = () => {
 
             <TabsTrigger
               value="socialmedia"
+              disabled
               className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#B319A9] px-4 py-1.5 text-[#52525B] data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <IconWorldHeart className="size-4 stroke-inherit" />
@@ -148,103 +199,190 @@ const TabContainer = () => {
           </CardHeader>
           <CardContent className="p-3 pt-2">
             <div className="flex flex-col space-y-4">
-              {/* TODO: to use when functionality is implemented */}
-              {/* <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border border-zinc-200 px-2.5 py-3 shadow-xs">
-                <IconAlertTriangle className="size-5 stroke-zinc-500" />
+              {/* Show empty state if no sources are selected */}
+              {!hasSources ? (
+                <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border border-zinc-200 px-2.5 py-3 shadow-xs">
+                  <IconAlertTriangle className="size-5 stroke-zinc-500" />
 
-                <p className="text-center text-xs font-normal text-zinc-500">
-                  Your sources will show up here—try pasting a link or uploading
-                  a file to begin.
-                </p>
-              </div> */}
-
-              <div className="flex w-full flex-col space-y-2">
-                {/* INFO: warning version */}
-                {showUrlWarning ? (
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
-                    <span className="flex h-full w-5/12 bg-gradient-to-r from-[#DA0000] to-[#FF0101] transition-all duration-700 ease-in-out"></span>
-                  </div>
-                ) : (
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
-                    <span className="flex h-full w-8/12 bg-gradient-to-r from-[#0736F0] to-[#0088FF] transition-all duration-700 ease-in-out"></span>
-                  </div>
-                )}
-
-                <p className="shine-text text-xs font-medium">
-                  Your agent is getting smarter…
-                </p>
-              </div>
-
-              <ScrollArea className="h-[130px] w-full pr-2.5">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
-                    <div className="flex items-center space-x-2">
-                      <IconWorld className="size-4 stroke-zinc-600" />
-
-                      <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                        <p className="text-left text-sm font-normal text-zinc-600">
-                          {websiteLinks.filter(link => link.selected).length}
-                        </p>
-
-                        <p className="text-sm font-normal text-zinc-600">
-                          Links
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-1 text-xs font-semibold text-zinc-700">
-                      <p>TBD</p>
-                      <IconInfoCircle className="mt-0.5 size-3.5 stroke-zinc-400" />
-                    </div>
-                  </div>
-
-                  <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="size-4 stroke-zinc-600" />
-
-                      <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                        <p className="text-left text-sm font-normal text-zinc-600">
-                          0
-                        </p>
-
-                        <p className="text-sm font-normal text-zinc-600">
-                          Text
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                      <p>25</p>
-                      <p>KB</p>
-                    </div>
-                  </div>
-
-                  <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
-                    <div className="flex items-center space-x-2">
-                      <IconFilter2Question className="size-4 stroke-zinc-600" />
-
-                      <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                        <p className="text-left text-sm font-normal text-zinc-600">
-                          0
-                        </p>
-
-                        <p className="text-sm font-normal text-zinc-600">Q&A</p>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                      <p>25</p>
-                      <p>KB</p>
-                    </div>
-                  </div>
+                  <p className="text-center text-xs font-normal text-zinc-500">
+                    Your sources will show up here—try pasting a link or
+                    uploading a file to begin.
+                  </p>
                 </div>
-              </ScrollArea>
+              ) : (
+                <>
+                  <div className="flex w-full flex-col space-y-2">
+                    {showUrlWarning ? (
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+                        <span className="flex h-full w-5/12 bg-gradient-to-r from-[#DA0000] to-[#FF0101] transition-all duration-700 ease-in-out"></span>
+                      </div>
+                    ) : (
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-200">
+                        <span className="flex h-full w-8/12 bg-gradient-to-r from-[#0736F0] to-[#0088FF] transition-all duration-700 ease-in-out"></span>
+                      </div>
+                    )}
+
+                    {showUrlWarning ? (
+                      <p className="shine-text text-xs font-medium">
+                        Training unavailable
+                      </p>
+                    ) : (
+                      <p className="shine-text text-xs font-medium">
+                        Your agent is getting smarter…
+                      </p>
+                    )}
+                  </div>
+
+                  <ScrollArea className="h-[130px] w-full pr-2.5">
+                    <div className="flex flex-col space-y-2">
+                      {/* Website Links */}
+                      {websiteLinks.length > 0 && (
+                        <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
+                          <div className="flex items-center space-x-2">
+                            <IconWorld className="size-4 stroke-zinc-600" />
+
+                            <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                              <p className="text-left text-sm font-normal text-zinc-600">
+                                {
+                                  websiteLinks.filter(link => link.selected)
+                                    .length
+                                }
+                              </p>
+
+                              <p className="text-sm font-normal text-zinc-600">
+                                Links
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-1 text-xs font-semibold text-zinc-700">
+                            <p>TBD</p>
+                            <IconInfoCircle className="mt-0.5 size-3.5 stroke-zinc-400" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Files */}
+                      {files.length > 0 && (
+                        <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
+                          <div className="flex items-center space-x-2">
+                            <FileText className="size-4 stroke-zinc-600" />
+
+                            <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                              <p className="text-left text-sm font-normal text-zinc-600">
+                                0
+                              </p>
+
+                              <p className="text-sm font-normal text-zinc-600">
+                                Links
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                            <p>25</p>
+                            <p>KB</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Text Sources */}
+                      {textSources.length > 0 && (
+                        <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
+                          <div className="flex items-center space-x-2">
+                            <FileText className="size-4 stroke-zinc-600" />
+
+                            <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                              <p className="text-left text-sm font-normal text-zinc-600">
+                                {textSources.length}
+                              </p>
+
+                              <p className="text-sm font-normal text-zinc-600">
+                                Text
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                            <p>
+                              {textSources
+                                .reduce(
+                                  (acc, curr) => acc + curr.size / 1024,
+                                  0
+                                )
+                                .toFixed(3)}
+                            </p>
+                            <p>KB</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Q&A */}
+                      {qandas.length > 0 && (
+                        <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
+                          <div className="flex items-center space-x-2">
+                            <IconFilter2Question className="size-4 stroke-zinc-600" />
+
+                            <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                              <p className="text-left text-sm font-normal text-zinc-600">
+                                0
+                              </p>
+
+                              <p className="text-sm font-normal text-zinc-600">
+                                Q&A
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                            <p>25</p>
+                            <p>KB</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Social Media */}
+                      {socialMedia.length > 0 && (
+                        <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
+                          <div className="flex items-center space-x-2">
+                            <IconWorldHeart className="size-4 stroke-zinc-600" />
+
+                            <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                              <p className="text-left text-sm font-normal text-zinc-600">
+                                0
+                              </p>
+
+                              <p className="text-sm font-normal text-zinc-600">
+                                Social Media
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
+                            <p>25</p>
+                            <p>KB</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </>
+              )}
 
               <div className="flex justify-between rounded-lg border border-zinc-200/90 bg-zinc-50 px-3 py-2">
                 <p className="text-sm font-normal text-zinc-700">Total size</p>
-                <div className="flex space-x-1 text-sm font-semibold text-zinc-700">
-                  <p>0</p>
-                  <p>KB</p>
+                <div className="flex items-center space-x-0.5 text-sm font-semibold text-zinc-700">
+                  <div className="flex items-center">
+                    <p>0</p>
+                    <p>KB</p>
+                  </div>
+
+                  <p>/</p>
+
+                  <div className="flex items-center">
+                    <p>400</p>
+                    <p>KB</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,7 +401,10 @@ const TabContainer = () => {
       </div>
 
       {/* Bot is learning dialog (no buttons) */}
-      <AlertDialog open={loadingOpen} onOpenChange={setLoadingOpen}>
+      <AlertDialog
+        open={isTrainingDialogOpen}
+        onOpenChange={setIsTrainingDialogOpen}
+      >
         <AlertDialogContent>
           {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
           <div className="hidden">
@@ -292,7 +433,10 @@ const TabContainer = () => {
       </AlertDialog>
 
       {/* Agent is alive dialog (single "Go to Playground" button) */}
-      <AlertDialog open={loadedOpen} onOpenChange={setLoadedOpen}>
+      <AlertDialog
+        open={isTrainedDialogOpen}
+        onOpenChange={setIsTrainedDialogOpen}
+      >
         <AlertDialogContent className="py-5">
           {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
           <div className="hidden">

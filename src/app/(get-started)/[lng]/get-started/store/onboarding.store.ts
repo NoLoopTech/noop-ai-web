@@ -9,7 +9,7 @@ export enum OnboardingSteps {
 
 type WebsiteLink = { url: string; selected: boolean }
 type File = { name: string; size: number }
-type TextSource = { content: string }
+type TextSource = { title: string; description: string; size: number }
 type QAndA = { question: string; answer: string }
 type SocialMedia = { platform: string; url: string }
 

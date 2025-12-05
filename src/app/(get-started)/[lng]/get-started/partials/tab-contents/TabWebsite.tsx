@@ -265,53 +265,50 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
             </div>
           </div>
         </ScrollArea>
-
-        {/* Alert dialog for confirming first 10 links selection */}
-        <AlertDialog
-          open={showSelectWarning}
-          onOpenChange={setShowSelectWarning}
-        >
-          <AlertDialogContent className="py-5">
-            {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
-            <div className="hidden">
-              <AlertDialogTitle>
-                Confirm first 10 links selection
-              </AlertDialogTitle>
-            </div>
-
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <Image
-                src="/assets/icons/onboarding-max-links-warning-icon.png"
-                alt="onboarding max links warning icon"
-                width={57}
-                height={27}
-              />
-
-              <div className="flex flex-col items-center justify-center space-y-1 text-center">
-                <h3 className="text-lg font-semibold text-zinc-950">
-                  Looks like your site is big!
-                </h3>
-                <p className="text-sm font-medium text-zinc-500">
-                  Your website has more than 10 links. The free plan allows only
-                  10. Do you want to select the first 10 links in order?
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-center space-x-3">
-              <AlertDialogCancel className="border-none shadow-none">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleSelectFirst10}
-                className="w-max bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
-              >
-                Select
-              </AlertDialogAction>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
       </motion.div>
+
+      {/* Alert dialog for confirming first 10 links selection */}
+      <AlertDialog open={showSelectWarning} onOpenChange={setShowSelectWarning}>
+        <AlertDialogContent className="py-5">
+          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="hidden">
+            <AlertDialogTitle>
+              Confirm first 10 links selection
+            </AlertDialogTitle>
+          </div>
+
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Image
+              src="/assets/icons/onboarding-max-links-warning-icon.png"
+              alt="onboarding max links warning icon"
+              width={57}
+              height={27}
+            />
+
+            <div className="flex flex-col items-center justify-center space-y-1 text-center">
+              <h3 className="text-lg font-semibold text-zinc-950">
+                Looks like your site is big!
+              </h3>
+              <p className="text-sm font-medium text-zinc-500">
+                Your website has more than 10 links. The free plan allows only
+                10. Do you want to select the first 10 links in order?
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-center space-x-3">
+            <AlertDialogCancel className="border-none shadow-none">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSelectFirst10}
+              className="w-max bg-[#1E50EF] p-3 hover:bg-[#1E50EF]/80"
+            >
+              Select
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </TabsContent>
   )
 }

@@ -7,6 +7,7 @@ import {
   InputGroupText,
   InputGroupTextarea
 } from "@/components/ui/input-group"
+import { calculateTextSizeFromLength } from "@/utils"
 
 interface InputWithLengthProps {
   value: string
@@ -17,11 +18,22 @@ interface InputWithLengthProps {
   name?: string
   maxLength?: number
   showMaxLength?: boolean
+  lengthType?: "characters" | "bytes" | "KB" | "MB"
   placeholder?: string
   type?: "text" | "textarea"
   rows?: number
   className?: string
   disabled?: boolean
+  inputAddonAlignment?:
+    | "inline-end"
+    | "block-end"
+    | "inline-start"
+    | "block-start"
+  textareaAddonAlignment?:
+    | "inline-end"
+    | "block-end"
+    | "inline-start"
+    | "block-start"
 }
 
 export function InputWithLength({
@@ -29,14 +41,48 @@ export function InputWithLength({
   onChange,
   onFocus,
   name,
-  maxLength = 20,
-  showMaxLength = true,
+  maxLength,
+  showMaxLength,
   placeholder = "Type here...",
   type = "text",
   rows = 2,
   className,
-  disabled
+  disabled,
+  lengthType = "characters",
+  inputAddonAlignment = "inline-end",
+  textareaAddonAlignment = "block-end"
 }: InputWithLengthProps) {
+  const sizeInfo = calculateTextSizeFromLength(value)
+
+  const getLengthDisplay = () => {
+    switch (lengthType) {
+      case "bytes":
+        return sizeInfo.bytes
+      case "KB":
+        return sizeInfo.kb.toFixed(5)
+      case "MB":
+        return sizeInfo.mb.toFixed(5)
+      case "characters":
+      default:
+        return value.length
+    }
+  }
+
+  const getMaxLengthDisplay = () => {
+    if (!maxLength) return null
+    switch (lengthType) {
+      case "bytes":
+        return calculateTextSizeFromLength("a".repeat(maxLength)).bytes
+      case "KB":
+        return calculateTextSizeFromLength("a".repeat(maxLength)).kb.toFixed(5)
+      case "MB":
+        return calculateTextSizeFromLength("a".repeat(maxLength)).mb.toFixed(5)
+      case "characters":
+      default:
+        return maxLength
+    }
+  }
+
   const renderInput = () => {
     switch (type) {
       case "text":
@@ -51,17 +97,25 @@ export function InputWithLength({
               disabled={disabled}
               onFocus={onFocus}
             />
-            <InputGroupAddon align="inline-end">
+            <InputGroupAddon align={inputAddonAlignment}>
               <InputGroupText className="ml-auto text-xs">
                 <p>
                   {showMaxLength ? (
                     <span>
-                      {value.length}
+                      {getLengthDisplay()}
                       <span className="mx-0.5">/</span>
-                      {maxLength}
+                      {getMaxLengthDisplay()}
+                      {lengthType !== "characters" && (
+                        <span className="ml-1">{lengthType}</span>
+                      )}
                     </span>
                   ) : (
-                    <span>{value.length}</span>
+                    <span>
+                      {getLengthDisplay()}
+                      {lengthType !== "characters" && (
+                        <span className="ml-1">{lengthType}</span>
+                      )}
+                    </span>
                   )}
                 </p>
               </InputGroupText>
@@ -81,16 +135,24 @@ export function InputWithLength({
               className={className}
               disabled={disabled}
             />
-            <InputGroupAddon align="block-end">
+            <InputGroupAddon align={textareaAddonAlignment}>
               <InputGroupText className="ml-auto text-xs">
                 {showMaxLength ? (
                   <span>
-                    {value.length}
+                    {getLengthDisplay()}
                     <span className="mx-0.5">/</span>
-                    {maxLength}
+                    {getMaxLengthDisplay()}
+                    {lengthType !== "characters" && (
+                      <span className="ml-1">{lengthType}</span>
+                    )}
                   </span>
                 ) : (
-                  <span>{value.length}</span>
+                  <span>
+                    {getLengthDisplay()}
+                    {lengthType !== "characters" && (
+                      <span className="ml-1">{lengthType}</span>
+                    )}
+                  </span>
                 )}
               </InputGroupText>
             </InputGroupAddon>

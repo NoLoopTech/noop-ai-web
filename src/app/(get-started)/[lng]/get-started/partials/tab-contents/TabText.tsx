@@ -50,7 +50,7 @@ const TabText = ({ motionVariants }: TabTextProps) => {
   return (
     <TabsContent value="text" className="mt-4 h-96 rounded-md">
       <motion.div
-        key="website-content"
+        key="text-content"
         initial="hidden"
         animate="visible"
         exit="exit"

@@ -101,7 +101,6 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   }
 
   const handleToggleWebsiteLink = (idx: number) => () => {
-    // Calculate what the next selection state will be
     const nextLinks = websiteLinks.map((l, i) =>
       i === idx ? { ...l, selected: !l.selected } : l
     )
@@ -245,23 +244,29 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
             </div>
 
             <div className="flex flex-col">
-              {websiteLinks.map((link, idx) => (
-                <div
-                  key={link.url + idx}
-                  className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4"
-                >
-                  <Checkbox
-                    checked={link.selected}
-                    disabled={
-                      !link.selected &&
-                      websiteLinks.filter(l => l.selected).length >= 10
-                    }
-                    onCheckedChange={handleToggleWebsiteLink(idx)}
-                  />
+              {websiteLinks.map((link, idx) => {
+                const isDisabled =
+                  !link.selected &&
+                  websiteLinks.filter(l => l.selected).length >= 10
 
-                  <span className="text-sm font-normal">{link.url}</span>
-                </div>
-              ))}
+                return (
+                  <label
+                    key={link.url + idx}
+                    className={`flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                  >
+                    <Checkbox
+                      id={`link-${idx}`}
+                      checked={link.selected}
+                      disabled={isDisabled}
+                      onCheckedChange={handleToggleWebsiteLink(idx)}
+                    />
+
+                    <span className="text-sm font-normal select-none">
+                      {link.url}
+                    </span>
+                  </label>
+                )
+              })}
             </div>
           </div>
         </ScrollArea>

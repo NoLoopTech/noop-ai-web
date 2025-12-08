@@ -1,6 +1,13 @@
-import React from "react"
+import React, { lazy, Suspense } from "react"
 import { Feature } from "@/types/subscription"
 import { useFeatureAccess } from "@/lib/hooks/useSubscription"
+
+// Dynamic import to avoid circular dependencies
+const UpgradePrompt = lazy(() =>
+  import("./UpgradePrompt").then(module => ({
+    default: module.UpgradePrompt
+  }))
+)
 
 export interface FeatureGateProps {
   feature: Feature
@@ -41,16 +48,10 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
   if (!hasAccess) {
     if (fallback) return <>{fallback}</>
     if (showUpgradePrompt) {
-      // Dynamic import to avoid circular dependencies
-      const UpgradePrompt = React.lazy(() =>
-        import("./UpgradePrompt").then(module => ({
-          default: module.UpgradePrompt
-        }))
-      )
       return (
-        <React.Suspense fallback={null}>
+        <Suspense fallback={null}>
           <UpgradePrompt feature={feature} />
-        </React.Suspense>
+        </Suspense>
       )
     }
     return null

@@ -10,8 +10,9 @@ import { useMemo } from "react"
 
 export default function BotRatings() {
   const { dateRange: range } = useDashboardFilters()
-  const projectId = useProjectCode() ?? 0
 
+  const projectCode = useProjectCode()
+  const projectId = typeof projectCode === "number" ? projectCode : 0
   const { data, isLoading } = useOverviewStatsData(projectId, { range })
 
   const statsData = useMemo(() => data ?? [], [data])

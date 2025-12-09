@@ -35,7 +35,9 @@ const TabSkeleton = () => (
 )
 
 export default function Analytics() {
-  const projectId = useProjectCode() ?? 0
+  const projectCode = useProjectCode()
+  const projectId = typeof projectCode === "number" ? projectCode : 0
+
   const { dateRange } = useDashboardFilters()
 
   // Fetch smart highlights once at parent level, shared across all tabs

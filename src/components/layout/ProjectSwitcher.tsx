@@ -145,7 +145,7 @@ export function ProjectSwitcher() {
                   <Plus className="size-4" />
                 </div>
                 <div className="text-muted-foreground font-medium">
-                  Add team
+                  Add Project
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>

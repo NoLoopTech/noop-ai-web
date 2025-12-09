@@ -6,8 +6,11 @@ import Stats from "./partials/Stats"
 import { useDashboardFilters } from "@/lib/hooks/useDashboardFilters"
 import { DashboardRange } from "@/models/dashboard"
 import ComingSoon from "./partials/ComingSoon"
-import { IconUserCheck } from "@tabler/icons-react"
+import { IconPlus, IconUserCheck } from "@tabler/icons-react"
 import LazyInView from "@/components/LazyInView"
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { redirect } from "next/navigation"
+import { Button } from "@/components/ui/button"
 
 const UsageGraph = lazy(() => import("./partials/UsageGraph"))
 const BotRatings = lazy(() => import("./partials/BotRatings"))
@@ -19,8 +22,36 @@ const LeadsAndTicketsGraph = lazy(
 const LoadingCard = ({ className = "h-96" }: { className?: string }) => (
   <div className={`shine w-full rounded-md ${className}`} />
 )
+
 export default function Overview() {
+  const projectId = useProjectCode()
   const { dateRange, setDateRange } = useDashboardFilters()
+
+  const handleCreateProject = () => {
+    redirect(`/get-started/`)
+  }
+
+  if (projectId === "no-project") {
+    return (
+      <div className="bg-background flex h-96 w-full flex-col items-center justify-center space-y-10">
+        <div className="flex flex-col items-center space-y-5 text-center">
+          <h2 className="text-foreground text-3xl font-semibold">
+            Let’s get your first agent ready
+          </h2>
+
+          <p className="text-muted-foreground max-w-[700px] text-center">
+            You haven’t set up an agent yet. Create one to unlock your
+            dashboard, connect data, and start automating conversations.
+          </p>
+        </div>
+
+        <Button onClick={handleCreateProject}>
+          <IconPlus className="mr-1 h-4 w-4" />
+          <span>Create New Agent</span>
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <>

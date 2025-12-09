@@ -18,6 +18,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams()
 
   const projectId = useProjectCode()
+  const isNoProject = projectId === "no-project" || projectId === null
 
   // INFO: Get the projectCode from route params (could be chatbotCode or numeric id)
   const projectCodeFromParams = params.projectCode as string | undefined
@@ -34,7 +35,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarHeader>
           <ProjectSwitcher />
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent
+          className={
+            isNoProject
+              ? "pointer-events-none cursor-not-allowed opacity-50"
+              : undefined
+          }
+        >
           {sidebarData.navGroups.map(props => (
             <NavGroup key={props.title} {...props} prefix={prefix} />
           ))}

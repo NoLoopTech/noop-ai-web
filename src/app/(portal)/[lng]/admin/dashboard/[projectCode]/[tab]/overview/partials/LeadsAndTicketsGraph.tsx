@@ -58,7 +58,8 @@ export default function LeadsAndTicketsGraph() {
   const projectCode = useProjectCode()
   const projectId = typeof projectCode === "number" ? projectCode : 0
   const { data: statsData, isLoading } = useOverviewStatsData(projectId, {
-    range
+    range,
+    enabled: typeof projectCode === "number"
   })
 
   const { data, combinedStat } = useMemo<{

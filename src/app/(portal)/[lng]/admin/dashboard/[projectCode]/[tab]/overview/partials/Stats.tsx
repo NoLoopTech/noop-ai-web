@@ -24,7 +24,10 @@ export default function Stats({
 
   const projectCode = useProjectCode()
   const projectId = typeof projectCode === "number" ? projectCode : 0
-  const { data, isLoading } = useOverviewStatsData(projectId, { range })
+  const { data, isLoading } = useOverviewStatsData(projectId, {
+    range,
+    enabled: typeof projectCode === "number"
+  })
 
   const statsData = useMemo(() => data ?? [], [data])
 

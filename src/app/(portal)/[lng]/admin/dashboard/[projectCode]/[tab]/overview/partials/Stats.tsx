@@ -21,8 +21,13 @@ export default function Stats({
   isPercentage
 }: StatsProps) {
   const { dateRange: range } = useDashboardFilters()
-  const projectId = useProjectCode() ?? 0
-  const { data, isLoading } = useOverviewStatsData(projectId, { range })
+
+  const projectCode = useProjectCode()
+  const projectId = typeof projectCode === "number" ? projectCode : 0
+  const { data, isLoading } = useOverviewStatsData(projectId, {
+    range,
+    enabled: typeof projectCode === "number"
+  })
 
   const statsData = useMemo(() => data ?? [], [data])
 

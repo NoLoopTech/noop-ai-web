@@ -6,11 +6,12 @@ export function useProjectCodeString(): string | null {
   return (params as { projectCode?: string }).projectCode ?? null
 }
 
-export function useProjectCode(): number | null {
+export function useProjectCode(): number | "no-project" | null {
   const code = useProjectCodeString()
+  const isNoProject = code === "no-project"
   const parsed = code ? parseInt(code, 10) : NaN
 
-  const shouldEnable = !!code && isNaN(parsed)
+  const shouldEnable = !!code && !isNoProject && isNaN(parsed)
   const query = useApiQuery<number>(
     ["project-id", code],
     `user/me/project-id/${encodeURIComponent(code ?? "")}`,
@@ -19,5 +20,9 @@ export function useProjectCode(): number | null {
   )
 
   // INFO: If numeric in URL, return it synchronously; otherwise return resolved id
-  return !isNaN(parsed) ? parsed : (query.data ?? null)
+  // INFO: If user has no projects, return "no-project"
+  if (isNoProject) return "no-project"
+  if (!code) return null
+  if (!isNaN(parsed)) return parsed
+  return query.data ?? null
 }

@@ -9,5 +9,12 @@ export default async function AdminPage(): Promise<JSX.Element> {
     method: "GET"
   })
 
-  redirect(`/admin/dashboard/${userData[0].chatbotCode}/overview`)
+  const first = userData[0]
+  const fallbackCode = "no-project"
+
+  if (!first?.chatbotCode) {
+    return redirect(`/admin/dashboard/${fallbackCode}/overview`)
+  }
+
+  redirect(`/admin/dashboard/${first.chatbotCode}/overview`)
 }

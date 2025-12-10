@@ -1,15 +1,9 @@
 import type { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 import type { JWT } from "next-auth/jwt"
 
 import { authenticate, emailVerify, gauth } from "@/services/authService"
-import { jwtDecode } from "jwt-decode"
-
-interface GoogleJwt {
-  email: string
-  picture: string
-  name: string
-}
 
 export const authOptions: AuthOptions = {
   pages: {
@@ -57,41 +51,22 @@ export const authOptions: AuthOptions = {
         }
       }
     }),
-    CredentialsProvider({
-      name: "GoogleSignIn",
-      id: "googlesignin",
-      credentials: {
-        credential: { type: "text" }
-      },
-      async authorize(credentials) {
-        try {
-          if (typeof credentials !== "undefined") {
-            const decodedJwt = jwtDecode<GoogleJwt>(credentials.credential)
-            const res = await gauth(decodedJwt.email, credentials.credential)
-            if (typeof res !== "undefined") {
-              return { ...res.user, apiToken: res.access_token }
-            } else {
-              // eslint-disable-next-line no-console
-              console.log("failed")
-              return null
-            }
-          } else {
-            return null
-          }
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.log("Error during sign in", err)
-          return null
+    GoogleProvider({
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
         }
       }
     })
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async session({ session, token, user }) {
+    async session({ session, token }) {
       const sanitizedToken = Object.keys(token).reduce((p, c) => {
-        // strip unnecessary properties
         if (c !== "iat" && c !== "exp" && c !== "jti" && c !== "apiToken") {
           return { ...p, [c]: token[c] }
         } else {
@@ -100,12 +75,30 @@ export const authOptions: AuthOptions = {
       }, {})
       return { ...session, user: sanitizedToken, apiToken: token.apiToken }
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async jwt({ token, user, account, profile }) {
-      if (typeof user !== "undefined") {
-        // user has just signed in so the user object is populated
+      if (account?.provider === "google" && account.id_token) {
+        const email =
+          (profile as { email?: string } | null | undefined)?.email ??
+          (token.email as string | undefined) ??
+          ""
+
+        if (!email) {
+          throw new Error(
+            "Google login: no email available from profile or token; cannot proceed with gauth."
+          )
+        }
+
+        const res = await gauth(email, account.id_token as string)
+        if (res) {
+          return { ...res.user, apiToken: res.access_token } as JWT
+        }
+        return token
+      }
+
+      if (user) {
         return user as JWT
       }
+
       return token
     }
   }

@@ -55,9 +55,12 @@ const valueToLabelMap = {
 
 export default function UsageGraph() {
   const { dateRange: range } = useDashboardFilters()
-  const projectId = useProjectCode() ?? 0
+  const projectCode = useProjectCode()
+  const projectId = typeof projectCode === "number" ? projectCode : 0
+
   const { data: statsData, isLoading } = useOverviewStatsData(projectId, {
-    range
+    range,
+    enabled: typeof projectCode === "number"
   })
 
   const { data, botStat } = useMemo<{

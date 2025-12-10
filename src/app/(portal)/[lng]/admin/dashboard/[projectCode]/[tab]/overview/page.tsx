@@ -27,6 +27,7 @@ export default function Overview() {
   const projectId = useProjectCode()
   const { dateRange, setDateRange } = useDashboardFilters()
 
+  // TODO: keeping redirect for now. we might change page.tsx to a server component later.
   const handleCreateProject = () => {
     redirect(`/get-started/`)
   }

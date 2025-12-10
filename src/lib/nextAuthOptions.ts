@@ -83,11 +83,9 @@ export const authOptions: AuthOptions = {
           ""
 
         if (!email) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            "Google login: no email available from profile or token; skipping gauth."
+          throw new Error(
+            "Google login: no email available from profile or token; cannot proceed with gauth."
           )
-          return token
         }
 
         const res = await gauth(email, account.id_token as string)

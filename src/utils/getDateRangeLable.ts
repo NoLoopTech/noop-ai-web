@@ -1,8 +1,5 @@
 import { DashboardRange } from "@/models/dashboard"
 
-/**
- * Returns a human-readable label for a given date range
- */
 export default function getRangeLabel(range: string) {
   switch (range) {
     case DashboardRange.WEEK:

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { z } from "zod"
@@ -37,6 +37,31 @@ const formSchema = z.object({
   confirmPassword: z.string().optional()
 })
 
+const internalFormSchema = formSchema
+  .extend({
+    mode: z.enum(["signin", "signup"])
+  })
+  .superRefine((data, ctx) => {
+    if (data.mode !== "signup") return
+
+    if (!data.confirmPassword || data.confirmPassword.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: "Please confirm your password"
+      })
+      return
+    }
+
+    if (data.confirmPassword !== data.password) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: "Passwords do not match"
+      })
+    }
+  })
+
 type AuthMode = "signin" | "signup"
 
 type AuthFormProps = {
@@ -49,6 +74,8 @@ type AuthFormProps = {
   showGoogle?: boolean
   dark?: boolean
 }
+
+type InternalFormValues = z.infer<typeof internalFormSchema>
 
 const AuthForm: React.FC<AuthFormProps> = ({
   mode = "signin",
@@ -64,19 +91,24 @@ const AuthForm: React.FC<AuthFormProps> = ({
   const isSignIn = activeMode === "signin"
   const [loading, setLoading] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const hasRedirectedRef = useRef(false)
+
+  const form = useForm<InternalFormValues>({
+    resolver: zodResolver(internalFormSchema),
     mode: "onBlur",
-    defaultValues: { email: "", password: "", confirmPassword: "" }
+    reValidateMode: "onChange",
+    defaultValues: { mode, email: "", password: "", confirmPassword: "" }
   })
 
   useEffect(() => {
     setActiveMode(mode)
-  }, [mode])
+    form.setValue("mode", mode, { shouldValidate: true })
+  }, [mode, form])
 
   const toggleMode = () => {
-    setActiveMode(prev => (prev === "signin" ? "signup" : "signin"))
-    form.reset({ email: "", password: "", confirmPassword: "" })
+    const nextMode: AuthMode = activeMode === "signin" ? "signup" : "signin"
+    setActiveMode(nextMode)
+    form.reset({ mode: nextMode, email: "", password: "", confirmPassword: "" })
   }
 
   const searchParams = useSearchParams()
@@ -85,41 +117,29 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
   useEffect(() => {
     if (!enableSessionRedirect || !session) return
+    if (hasRedirectedRef.current) return
+
     const closePage = Boolean(searchParams.get("close"))
     if (closePage) {
+      hasRedirectedRef.current = true
       triggerNextAuthSessionRefresh()
       window.close()
       return
     }
+
     const target = redirectTo ?? roleRedirectMap[session.user.role]
-    if (target) router.replace(target)
+    if (target) {
+      hasRedirectedRef.current = true
+      router.replace(target)
+    }
   }, [enableSessionRedirect, session, router, searchParams, redirectTo])
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: InternalFormValues) => {
     if (loading) return
     setLoading(true)
 
-    if (!isSignIn) {
-      if (!values.confirmPassword) {
-        form.setError("confirmPassword", {
-          type: "manual",
-          message: "Please confirm your password"
-        })
-        setLoading(false)
-        return
-      }
-      if (values.confirmPassword !== values.password) {
-        form.setError("confirmPassword", {
-          type: "manual",
-          message: "Passwords do not match"
-        })
-        setLoading(false)
-        return
-      }
-    }
-
     try {
-      if (isSignIn) {
+      if (values.mode === "signin") {
         const res = await signIn("credentials", {
           redirect: false,
           email: values.email,
@@ -134,7 +154,8 @@ const AuthForm: React.FC<AuthFormProps> = ({
         }
       } else {
         if (!onSignUp) throw new Error("Sign-up handler not provided")
-        await onSignUp(values)
+        const { mode: _mode, ...payload } = values
+        await onSignUp(payload)
       }
 
       toast({
@@ -145,7 +166,11 @@ const AuthForm: React.FC<AuthFormProps> = ({
         variant: "success"
       })
 
-      if (redirectTo) router.replace(redirectTo)
+      if (redirectTo) {
+        hasRedirectedRef.current = true
+        router.replace(redirectTo)
+      }
+
       onSuccess?.()
     } catch (err) {
       const message =
@@ -175,7 +200,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
             src={isSignIn ? signInImage : signUpImage}
             alt="Register Page Background"
             fill
-            className={`object-cover object-left-top`}
+            className="object-cover object-left-top"
           />
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent from-[29%] to-black/50 to-[100%]" />
@@ -192,7 +217,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
         <div className="absolute inset-x-0 bottom-10 h-max w-full bg-transparent px-7">
           <h1
-            className={`drop-black/25 w-full text-left text-5xl font-medium ${dark ? "text-foreground" : "text-white"} drop-shadow-md`}
+            className={`w-full text-left text-5xl font-medium drop-shadow-black/25 ${dark ? "text-foreground" : "text-white"} drop-shadow-md`}
           >
             Your Gateway to Smarter Conversations
           </h1>

@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 interface Feature {
   name: string
   textColor?: string
-  icon?: React.ElementType // INFO: Compatible with icons from or @tabler/icons lucide-react
+  icon?: React.ElementType // INFO: Compatible with icons from @tabler/icons or lucide-react
   iconColor?: string
   iconWidth?: number
   iconHeight?: number
@@ -24,7 +24,7 @@ export enum Currency {
 interface PricingCardProps {
   title: {
     text: string
-    icon?: React.ElementType // INFO: Compatible with icons from or @tabler/icons lucide-react
+    icon?: React.ElementType // INFO: Compatible with icons from @tabler/icons or lucide-react
     iconColor?: string
     iconWidth?: number
     iconHeight?: number
@@ -58,18 +58,22 @@ const PricingCard = ({
 
   useEffect(() => {
     const target = billingPeriod === "monthly" ? "month" : "year"
-    setAnimatedText("") // Start with empty string
-    let timeout: NodeJS.Timeout
+    setAnimatedText("")
+    const timeouts: NodeJS.Timeout[] = []
     target.split("").forEach((char, i) => {
-      timeout = setTimeout(() => {
+      const timeout = setTimeout(() => {
         setAnimatedText(prev => prev + char)
       }, i * 30)
+      timeouts.push(timeout)
     })
-    return () => clearTimeout(timeout)
+    return () => {
+      timeouts.forEach(clearTimeout)
+    }
   }, [billingPeriod])
 
   return (
     <div className="flex w-72 flex-col">
+      {/* Pricing Card highlight. add highlighting like "Popular" */}
       {highlighted && highlightText && (
         <div className="-mb-2.5 flex w-full items-center justify-center rounded-t-xl bg-gradient-to-r from-[#093AD7] to-[#0072F4] pt-1 pb-4">
           <p className="text-sm font-bold text-white">{highlightText}</p>
@@ -105,6 +109,7 @@ const PricingCard = ({
             />
           </h1>
 
+          {/* payment period */}
           <div className="flex space-x-1 text-xs font-normal text-zinc-500">
             <p>per</p>
             <div className="">

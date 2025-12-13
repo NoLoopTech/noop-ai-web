@@ -27,6 +27,11 @@ const Register = () => {
         mode="signup"
         onSuccess={handleNextStep}
         redirectTo={pathname}
+        googleLoginProps={{
+          postAuthStep: OnboardingSteps.PRICING,
+          postAuthStorageKey: "onboarding:postAuthStep",
+          appendPostAuthStepToCallbackUrl: true
+        }}
       />
     </div>
   )

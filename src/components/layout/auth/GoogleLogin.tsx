@@ -5,22 +5,52 @@ import { signIn } from "next-auth/react"
 import { JSX, useState } from "react"
 import GoogleIcon from "@/../public/assets/icons/google-logo-icon.svg"
 
-interface GoogleLoginProps {
+export interface GoogleLoginProps {
   type?: "signin" | "signup"
   callbackUrl?: string
+  postAuthStep?: string
+  postAuthStorageKey?: string
+  appendPostAuthStepToCallbackUrl?: boolean
+  onBeforeRedirect?: () => void
 }
 
 export default function GoogleLogin({
   type = "signin",
-  callbackUrl
+  callbackUrl,
+  postAuthStep,
+  postAuthStorageKey = "onboarding:postAuthStep",
+  appendPostAuthStepToCallbackUrl = true,
+  onBeforeRedirect
 }: GoogleLoginProps): JSX.Element {
   const [loading, setLoading] = useState(false)
 
   const handleGoogleLogin = async (): Promise<void> => {
     if (loading) return
     setLoading(true)
+
     try {
-      await signIn("google", { callbackUrl })
+      if (typeof window !== "undefined" && postAuthStep) {
+        sessionStorage.setItem(postAuthStorageKey, postAuthStep)
+      }
+
+      const baseCallbackUrl =
+        callbackUrl ??
+        (typeof window !== "undefined" ? window.location.href : "/")
+
+      const resolvedCallbackUrl =
+        typeof window !== "undefined" &&
+        postAuthStep &&
+        appendPostAuthStepToCallbackUrl
+          ? (() => {
+              const url = new URL(baseCallbackUrl, window.location.origin)
+              url.searchParams.set("postAuthStep", postAuthStep)
+              return url.toString()
+            })()
+          : baseCallbackUrl
+
+      onBeforeRedirect?.()
+
+      await signIn("google", { callbackUrl: resolvedCallbackUrl })
     } finally {
       setLoading(false)
     }

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import { signIn, useSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -115,10 +115,17 @@ const AuthForm: React.FC<AuthFormProps> = ({
   }
 
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const { data: session } = useSession()
   const router = useRouter()
 
   const didRedirectRef = useRef(false)
+
+  const normalizePath = (p: string) => {
+    if (!p) return "/"
+    const trimmed = p.length > 1 ? p.replace(/\/+$/, "") : p
+    return trimmed || "/"
+  }
 
   useEffect(() => {
     if (didRedirectRef.current) return
@@ -133,11 +140,32 @@ const AuthForm: React.FC<AuthFormProps> = ({
     }
 
     const target = redirectTo ?? roleRedirectMap[session.user.role]
-    if (target) {
-      didRedirectRef.current = true
-      router.replace(target)
-    }
-  }, [enableSessionRedirect, session, router, searchParams, redirectTo])
+    if (!target) return
+
+    try {
+      const currentUrl = new URL(window.location.href)
+      const targetUrl = new URL(target, window.location.origin)
+
+      const samePath =
+        normalizePath(currentUrl.pathname) === normalizePath(targetUrl.pathname)
+      const sameQuery = currentUrl.search === targetUrl.search
+
+      if (samePath && sameQuery) {
+        didRedirectRef.current = true
+        return
+      }
+    } catch {}
+
+    didRedirectRef.current = true
+    router.replace(target)
+  }, [
+    enableSessionRedirect,
+    session,
+    router,
+    searchParams,
+    redirectTo,
+    pathname
+  ])
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     if (loading) return

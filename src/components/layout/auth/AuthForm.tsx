@@ -171,25 +171,6 @@ const AuthForm: React.FC<AuthFormProps> = ({
     if (loading) return
     setLoading(true)
 
-    if (!isSignIn) {
-      if (!values.confirmPassword) {
-        form.setError("confirmPassword", {
-          type: "manual",
-          message: "Please confirm your password"
-        })
-        setLoading(false)
-        return
-      }
-      if (values.confirmPassword !== values.password) {
-        form.setError("confirmPassword", {
-          type: "manual",
-          message: "Passwords do not match"
-        })
-        setLoading(false)
-        return
-      }
-    }
-
     try {
       if (isSignIn) {
         const res = await signIn("credentials", {
@@ -197,6 +178,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
           email: values.email,
           password: values.password
         })
+
         if (res?.error) {
           const msg =
             res.error === "CredentialsSignin"
@@ -228,11 +210,13 @@ const AuthForm: React.FC<AuthFormProps> = ({
         err instanceof Error
           ? err.message
           : "Unexpected error. Please try again"
+
       toast({
         title: isSignIn ? "Sign In Failed" : "Sign Up Failed",
         description: message,
         variant: "destructive"
       })
+
       onError?.(message)
     } finally {
       setLoading(false)

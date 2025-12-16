@@ -79,8 +79,19 @@ function getContrastTextColor(hex: string): string {
 const FALLBACK_IMAGE_MIME = "image/png"
 
 function mimeTypeToExtension(mimeType: string) {
-  const [, ext] = mimeType.split("/")
-  return ext || "png"
+  const mimeToExtMap: Record<string, string> = {
+    "image/svg+xml": "svg",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp"
+  }
+
+  return (
+    mimeToExtMap[mimeType] ||
+    mimeType.split("/")[1]?.replace(/\+.*$/, "") ||
+    "png"
+  )
 }
 
 const ChatInterfaceStyles = ({
@@ -162,7 +173,7 @@ const ChatInterfaceStyles = ({
     blobName: string
     expiresOn: string
   }>(
-    ["get-brand-logo-upload-url", brandLogoMimeType],
+    ["get-brand-logo-upload-url", brandLogoMimeType, currentProjectName],
     "/botsettings/image/upload",
     () => ({
       method: "post",
@@ -189,7 +200,7 @@ const ChatInterfaceStyles = ({
     blobName: string
     expiresOn: string
   }>(
-    ["get-chat-button-icon-upload-url", chatButtonMimeType],
+    ["get-chat-button-icon-upload-url", chatButtonMimeType, currentProjectName],
     "/botsettings/image/upload",
     () => ({
       method: "post",
@@ -251,21 +262,16 @@ const ChatInterfaceStyles = ({
     if (
       brandLogoFile instanceof File &&
       brandLogoCropApplied &&
-      brandLogoFile.name.includes("cropped")
+      brandLogoFile.name.includes("cropped") &&
+      getBrandLogoUploadUrl?.uploadUrl
     ) {
-      fileToDataUrl(brandLogoFile).then(dataUrl => {
-        setBrandLogoUrl(dataUrl)
-        if (getBrandLogoUploadUrl?.uploadUrl) {
-          uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
-            .then(() => {
-              setBrandLogoUrl(getBrandLogoUploadUrl.publicUrl)
-            })
-            .catch(err => {
-              // eslint-disable-next-line no-console
-              console.error("Azure upload failed:", err)
-            })
-        }
-      })
+      uploadImageToAzure(getBrandLogoUploadUrl.uploadUrl, brandLogoFile)
+        .then(() => {
+          setBrandLogoUrl(getBrandLogoUploadUrl.publicUrl)
+        })
+        .catch(() => {
+          setBrandLogoUrl(null)
+        })
     } else if (typeof brandLogoFile === "string") {
       setBrandLogoUrl(brandLogoFile)
     } else {
@@ -296,24 +302,19 @@ const ChatInterfaceStyles = ({
     if (
       chatButtonIconFile instanceof File &&
       chatButtonCropApplied &&
-      chatButtonIconFile.name.includes("cropped")
+      chatButtonIconFile.name.includes("cropped") &&
+      getChatButtonIconUploadUrl?.uploadUrl
     ) {
-      fileToDataUrl(chatButtonIconFile).then(dataUrl => {
-        setChatButtonIconUrl(dataUrl)
-        if (getChatButtonIconUploadUrl?.uploadUrl) {
-          uploadImageToAzure(
-            getChatButtonIconUploadUrl.uploadUrl,
-            chatButtonIconFile
-          )
-            .then(() => {
-              setChatButtonIconUrl(getChatButtonIconUploadUrl.publicUrl)
-            })
-            .catch(err => {
-              // eslint-disable-next-line no-console
-              console.error("Azure upload failed:", err)
-            })
-        }
-      })
+      uploadImageToAzure(
+        getChatButtonIconUploadUrl.uploadUrl,
+        chatButtonIconFile
+      )
+        .then(() => {
+          setChatButtonIconUrl(getChatButtonIconUploadUrl.publicUrl)
+        })
+        .catch(() => {
+          setChatButtonIconUrl(null)
+        })
     } else if (typeof chatButtonIconFile === "string") {
       setChatButtonIconUrl(chatButtonIconFile)
     } else {

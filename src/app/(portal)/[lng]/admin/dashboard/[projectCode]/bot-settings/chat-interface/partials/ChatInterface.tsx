@@ -31,11 +31,14 @@ const ChatInterface = () => {
 
   const { data: botSettingsApiResponse, isLoading: isBotSettingsLoading } =
     useApiQuery<botSettingsResponse>(
-      ["bot-settings-data"],
+      ["bot-settings-data", projectId],
       `/botsettings/${projectId}`,
       () => ({
         method: "get"
-      })
+      }),
+      {
+        enabled: typeof projectId === "number"
+      }
     )
 
   const stylingSettings = useMemo(() => {
@@ -183,7 +186,7 @@ const ChatInterface = () => {
   }, [chatButtonStyling.chatButtonIcon])
 
   const saveBotInterfaceSettings = useApiMutation(
-    projectId ? `/botsettings/save/${projectId}` : "",
+    typeof projectId === "number" ? `/botsettings/save/${projectId}` : "",
     "post",
     {
       onSuccess: () => {

@@ -6,9 +6,34 @@ import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import Register from "./Register"
 import PricingContainer from "./PricingContainer"
 import Image from "next/image"
+import usePostAuthStepHydrator from "./usePostAuthStepHydrator"
+import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 const MainContainer = () => {
   const step = useOnboardingStore(s => s.step)
+
+  const searchParams = useSearchParams()
+  const { status } = useSession()
+
+  usePostAuthStepHydrator()
+
+  const postAuthStep = searchParams.get("postAuthStep")
+  const isPostAuthRedirect = Boolean(postAuthStep)
+
+  if (
+    isPostAuthRedirect &&
+    step !== OnboardingSteps.PRICING &&
+    status !== "unauthenticated"
+  ) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <h2 className="text-center text-2xl font-semibold text-zinc-950">
+          Redirecting...
+        </h2>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full w-full">

@@ -23,7 +23,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogContent
+  AlertDialogContent,
+  AlertDialogDescription
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog"
@@ -406,9 +407,13 @@ const TabContainer = () => {
         onOpenChange={setIsTrainingDialogOpen}
       >
         <AlertDialogContent>
-          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
-          <div className="hidden">
+          {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="sr-only">
             <AlertDialogTitle>Bot is learning dialog</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your agent is being trained on the knowledge you provided—this
+              usually takes just a moment.
+            </AlertDialogDescription>
           </div>
 
           <div className="flex flex-col items-center justify-center space-y-4">
@@ -438,9 +443,12 @@ const TabContainer = () => {
         onOpenChange={setIsTrainedDialogOpen}
       >
         <AlertDialogContent className="py-5">
-          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
-          <div className="hidden">
+          {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="sr-only">
             <AlertDialogTitle>Bot is alive dialog</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your intelligent agent is live in the playground.
+            </AlertDialogDescription>
           </div>
 
           <div className="flex flex-col items-center justify-center space-y-4">

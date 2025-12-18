@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button"
 import { signIn } from "next-auth/react"
 import { JSX, useState } from "react"
 import GoogleIcon from "@/../public/assets/icons/google-logo-icon.svg"
+import {
+  POST_AUTH_STEP_QUERY_PARAM,
+  POST_AUTH_STEP_STORAGE_KEY
+} from "@/app/(get-started)/[lng]/get-started/partials/usePostAuthStepHydrator"
 
 export interface GoogleLoginProps {
   type?: "signin" | "signup"
   callbackUrl?: string
   postAuthStep?: string
-  postAuthStorageKey?: string
   appendPostAuthStepToCallbackUrl?: boolean
   onBeforeRedirect?: () => void
 }
@@ -18,7 +21,6 @@ export default function GoogleLogin({
   type = "signin",
   callbackUrl,
   postAuthStep,
-  postAuthStorageKey = "onboarding:postAuthStep",
   appendPostAuthStepToCallbackUrl = true,
   onBeforeRedirect
 }: GoogleLoginProps): JSX.Element {
@@ -30,7 +32,7 @@ export default function GoogleLogin({
 
     try {
       if (typeof window !== "undefined" && postAuthStep) {
-        sessionStorage.setItem(postAuthStorageKey, postAuthStep)
+        sessionStorage.setItem(POST_AUTH_STEP_STORAGE_KEY, postAuthStep)
       }
 
       const baseCallbackUrl =
@@ -43,7 +45,7 @@ export default function GoogleLogin({
         appendPostAuthStepToCallbackUrl
           ? (() => {
               const url = new URL(baseCallbackUrl, window.location.origin)
-              url.searchParams.set("postAuthStep", postAuthStep)
+              url.searchParams.set(POST_AUTH_STEP_QUERY_PARAM, postAuthStep)
               return url.toString()
             })()
           : baseCallbackUrl

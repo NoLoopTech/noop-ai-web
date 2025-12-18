@@ -3,11 +3,12 @@
 import { useLayoutEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { OnboardingSteps, useOnboardingStore } from "./onboarding.store"
+import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 
-const POST_AUTH_STEP_KEY = "onboarding:postAuthStep"
+export const POST_AUTH_STEP_STORAGE_KEY = "onboarding:postAuthStep"
+export const POST_AUTH_STEP_QUERY_PARAM = "postAuthStep"
 
-export default function PostAuthStepHydrator() {
+export default function usePostAuthStepHydrator() {
   const { status } = useSession()
   const setStep = useOnboardingStore(s => s.setStep)
 
@@ -21,10 +22,10 @@ export default function PostAuthStepHydrator() {
     if (ranRef.current) return
     if (status !== "authenticated") return
 
-    const fromUrl = searchParams.get("postAuthStep")
+    const fromUrl = searchParams.get(POST_AUTH_STEP_QUERY_PARAM)
     const fromStorage =
       typeof window !== "undefined"
-        ? sessionStorage.getItem(POST_AUTH_STEP_KEY)
+        ? sessionStorage.getItem(POST_AUTH_STEP_STORAGE_KEY)
         : null
 
     const next = fromUrl ?? fromStorage
@@ -33,16 +34,17 @@ export default function PostAuthStepHydrator() {
     ranRef.current = true
 
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem(POST_AUTH_STEP_KEY)
+      sessionStorage.removeItem(POST_AUTH_STEP_STORAGE_KEY)
     }
+
     if (fromUrl) {
       const params = new URLSearchParams(searchParams.toString())
-      params.delete("postAuthStep")
+      params.delete(POST_AUTH_STEP_QUERY_PARAM)
       const qs = params.toString()
       router.replace(qs ? `${pathname}?${qs}` : pathname)
     }
 
-    if (next === OnboardingSteps.PRICING || next === "pricing") {
+    if (next === OnboardingSteps.PRICING) {
       setStep(OnboardingSteps.PRICING)
     }
   }, [status, searchParams, pathname, router, setStep])

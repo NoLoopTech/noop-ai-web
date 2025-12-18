@@ -6,7 +6,7 @@ import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import Register from "./Register"
 import PricingContainer from "./PricingContainer"
 import Image from "next/image"
-import PostAuthStepHydrator from "../store/postAuthStepHydrator"
+import usePostAuthStepHydrator from "./usePostAuthStepHydrator"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 
@@ -15,6 +15,8 @@ const MainContainer = () => {
 
   const searchParams = useSearchParams()
   const { status } = useSession()
+
+  usePostAuthStepHydrator()
 
   const postAuthStep = searchParams.get("postAuthStep")
   const isPostAuthRedirect = Boolean(postAuthStep)
@@ -29,15 +31,12 @@ const MainContainer = () => {
         <h2 className="text-center text-2xl font-semibold text-zinc-950">
           Redirecting...
         </h2>
-        <PostAuthStepHydrator />
       </div>
     )
   }
 
   return (
     <div className="h-full w-full">
-      <PostAuthStepHydrator />
-
       <div className="w-full">
         {step !== OnboardingSteps.REGISTER && (
           <div className="mt-6 flex w-full justify-start">

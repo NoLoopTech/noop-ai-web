@@ -1,12 +1,22 @@
 "use client"
 
-import { useLayoutEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
+import {
+  OnboardingSteps,
+  useOnboardingStore
+} from "../../store/onboarding.store"
 
 export const POST_AUTH_STEP_STORAGE_KEY = "onboarding:postAuthStep"
 export const POST_AUTH_STEP_QUERY_PARAM = "postAuthStep"
+
+const isOnboardingStep = (value: unknown): value is OnboardingSteps =>
+  typeof value === "string" &&
+  (Object.values(OnboardingSteps) as string[]).includes(value)
+
+const isSupportedPostAuthStep = (step: OnboardingSteps): boolean =>
+  step === OnboardingSteps.PRICING
 
 export default function usePostAuthStepHydrator() {
   const { status } = useSession()
@@ -18,18 +28,26 @@ export default function usePostAuthStepHydrator() {
 
   const ranRef = useRef(false)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (ranRef.current) return
     if (status !== "authenticated") return
-
     const fromUrl = searchParams.get(POST_AUTH_STEP_QUERY_PARAM)
     const fromStorage =
       typeof window !== "undefined"
         ? sessionStorage.getItem(POST_AUTH_STEP_STORAGE_KEY)
         : null
 
-    const next = fromUrl ?? fromStorage
-    if (!next) return
+    const fromUrlStep = isOnboardingStep(fromUrl) ? fromUrl : null
+    const fromStorageStep = isOnboardingStep(fromStorage) ? fromStorage : null
+    const next = fromUrlStep ?? fromStorageStep
+
+    if (!next) {
+      return
+    }
+
+    if (!isSupportedPostAuthStep(next)) {
+      return
+    }
 
     ranRef.current = true
 
@@ -44,9 +62,7 @@ export default function usePostAuthStepHydrator() {
       router.replace(qs ? `${pathname}?${qs}` : pathname)
     }
 
-    if (next === OnboardingSteps.PRICING) {
-      setStep(OnboardingSteps.PRICING)
-    }
+    setStep(next)
   }, [status, searchParams, pathname, router, setStep])
 
   return null

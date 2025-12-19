@@ -8,8 +8,11 @@ import {
 } from "@tabler/icons-react"
 import { Smile } from "lucide-react"
 import Image from "next/image"
+import { useOnboardingStore } from "../../store/onboarding.store"
 
 const AgentPreview = () => {
+  const agentName = useOnboardingStore(s => s.agentName)
+
   return (
     <div className="relative h-[500px] min-w-[360px] rounded-[10px] bg-white shadow-md">
       <div className="flex h-14 w-full items-center justify-between rounded-t-md border-b border-zinc-300 bg-zinc-100">
@@ -19,7 +22,7 @@ const AgentPreview = () => {
           </h2>
 
           <h2 className="text-xl font-semibold text-zinc-950">
-            Nolooptech.com
+            {agentName ?? "—"}
           </h2>
         </div>
 

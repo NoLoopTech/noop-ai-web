@@ -36,6 +36,12 @@ interface OnboardingState {
 
   showUrlWarning: boolean
   setShowUrlWarning: (show: boolean) => void
+
+  chatBotCode: string | null
+  setChatBotCode: (code: string | null) => void
+
+  agentName: string | null
+  setAgentName: (name: string | null) => void
 }
 
 export const useOnboardingStore = create<OnboardingState>(set => ({
@@ -76,5 +82,11 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
     }),
 
   showUrlWarning: false,
-  setShowUrlWarning: show => set({ showUrlWarning: show })
+  setShowUrlWarning: show => set({ showUrlWarning: show }),
+
+  chatBotCode: null,
+  setChatBotCode: code => set({ chatBotCode: code }),
+
+  agentName: null,
+  setAgentName: name => set({ agentName: name })
 }))

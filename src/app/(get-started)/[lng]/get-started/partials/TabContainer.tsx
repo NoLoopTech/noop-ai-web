@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { AnimatePresence } from "motion/react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -28,12 +28,38 @@ import {
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog"
+import { useApiMutation, useApiQuery } from "@/query"
+import { ONBOARDING_CHATBOT_CODE_KEY } from "./hooks/useClaimAgentAfterAuth"
 
 const tabContentVariants = {
   hidden: { opacity: 0, y: -30 },
   visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.15 } },
   exit: { opacity: 0, y: 30 }
 }
+
+type TrainAgentRequest = {
+  webUrls?: string[]
+  filePaths?: string[]
+  cleanText?: string
+  qaPairs?: Array<{ question: string; answer: string }>
+  textTitleTextPairs?: Array<{ textTitle: string; text: string }>
+}
+
+type TrainAgentResponse = {
+  chatBotCode: string
+  projectName: string
+  projectCode: string
+  status: string
+}
+
+type AgentStatusResponse = {
+  status: string
+}
+
+const normalizeStatus = (s: unknown) =>
+  String(s ?? "")
+    .trim()
+    .toLowerCase()
 
 const TabContainer = () => {
   const [activeTab, setActiveTab] = useState("website")
@@ -44,12 +70,16 @@ const TabContainer = () => {
     files,
     textSources,
     qandas,
-    socialMedia
+    socialMedia,
+    chatBotCode,
+    setChatBotCode,
+    setAgentName
   } = useOnboardingStore()
 
   const [isTrainingDialogOpen, setIsTrainingDialogOpen] = useState(false)
   const [isTrainedDialogOpen, setIsTrainedDialogOpen] = useState(false)
   const [isButtonDisabled, setIsButtonDisabled] = useState(true)
+  const [isPollingStatus, setIsPollingStatus] = useState(false)
 
   const hasSources =
     websiteLinks.length > 0 ||
@@ -57,6 +87,11 @@ const TabContainer = () => {
     textSources.length > 0 ||
     qandas.length > 0 ||
     socialMedia.length > 0
+
+  const selectedWebUrls = useMemo(
+    () => websiteLinks.filter(l => l.selected).map(l => l.url),
+    [websiteLinks]
+  )
 
   useEffect(() => {
     const hasOtherSources =
@@ -93,23 +128,108 @@ const TabContainer = () => {
     socialMedia
   ])
 
+  const trainAgentMutation = useApiMutation<
+    TrainAgentResponse,
+    TrainAgentRequest
+  >("/onboarding/train-agent", "post", {
+    onSuccess: data => {
+      setChatBotCode(data.chatBotCode)
+      setAgentName(data.projectName)
+
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(ONBOARDING_CHATBOT_CODE_KEY, data.chatBotCode)
+      }
+
+      setIsPollingStatus(true)
+      setIsTrainingDialogOpen(true)
+    },
+    onError: () => {
+      setIsPollingStatus(false)
+      setIsTrainingDialogOpen(false)
+      setIsButtonDisabled(false)
+    }
+  })
+
+  const agentStatusQuery = useApiQuery<AgentStatusResponse>(
+    ["onboarding-agent-status", chatBotCode],
+    "/onboarding/agent-status",
+    () => ({
+      method: "get",
+      params: { chatBotCode }
+    }),
+    {
+      enabled: Boolean(chatBotCode) && isPollingStatus,
+      retry: 0,
+      refetchInterval: query => {
+        const status = normalizeStatus(query.state.data?.status)
+        if (!status) return 2000
+        if (status === "completed") return false
+        if (status === "failed") return false
+        return 2000
+      },
+      refetchIntervalInBackground: true
+    }
+  )
+
+  useEffect(() => {
+    const status = normalizeStatus(agentStatusQuery.data?.status)
+    if (!status) return
+
+    if (status === "completed") {
+      setIsPollingStatus(false)
+      setIsTrainingDialogOpen(false)
+      setIsTrainedDialogOpen(true)
+      setIsButtonDisabled(false)
+      return
+    }
+
+    if (status === "failed") {
+      setIsPollingStatus(false)
+      setIsTrainingDialogOpen(false)
+      setIsButtonDisabled(false)
+      setChatBotCode(null)
+
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
+      }
+    }
+  }, [agentStatusQuery.data?.status, setChatBotCode])
+
   const handleTrainClick = () => {
     if (isButtonDisabled) return
 
     setIsButtonDisabled(true)
+    setIsTrainedDialogOpen(false)
     setIsTrainingDialogOpen(true)
+    setIsPollingStatus(false)
+    setChatBotCode(null)
 
-    // TODO: remove this. simulate API call
-    setTimeout(() => {
-      setIsTrainingDialogOpen(false)
-      setIsTrainedDialogOpen(true)
-      setIsButtonDisabled(false)
-    }, 2000)
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
+    }
+
+    const payload: TrainAgentRequest = {
+      webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
+      textTitleTextPairs:
+        textSources.length > 0
+          ? textSources.map(t => ({ textTitle: t.title, text: t.description }))
+          : undefined
+    }
+
+    trainAgentMutation.mutate(payload)
   }
 
   const handleGoToPlayground = () => {
     setIsTrainedDialogOpen(false)
     setStep(OnboardingSteps.PLAYGROUND)
+  }
+
+  const handleTrainingDialogOpenChange = (open: boolean) => {
+    setIsTrainingDialogOpen(open)
+
+    if (!open) {
+      setIsPollingStatus(false)
+    }
   }
 
   return (
@@ -271,17 +391,24 @@ const TabContainer = () => {
 
                             <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                               <p className="text-left text-sm font-normal text-zinc-600">
-                                0
+                                {files.length}
                               </p>
 
                               <p className="text-sm font-normal text-zinc-600">
-                                Links
+                                Files
                               </p>
                             </div>
                           </div>
 
                           <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                            <p>25</p>
+                            <p>
+                              {files
+                                .reduce(
+                                  (acc, curr) => acc + curr.size / 1024,
+                                  0
+                                )
+                                .toFixed(3)}
+                            </p>
                             <p>KB</p>
                           </div>
                         </div>
@@ -404,7 +531,7 @@ const TabContainer = () => {
       {/* Bot is learning dialog (no buttons) */}
       <AlertDialog
         open={isTrainingDialogOpen}
-        onOpenChange={setIsTrainingDialogOpen}
+        onOpenChange={handleTrainingDialogOpenChange}
       >
         <AlertDialogContent>
           {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}

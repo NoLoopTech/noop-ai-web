@@ -6,9 +6,10 @@ import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import Register from "./Register"
 import PricingContainer from "./PricingContainer"
 import Image from "next/image"
-import usePostAuthStepHydrator from "./usePostAuthStepHydrator"
+import usePostAuthStepHydrator from "./hooks/usePostAuthStepHydrator"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import useClaimAgentAfterAuth from "./hooks/useClaimAgentAfterAuth"
 
 const MainContainer = () => {
   const step = useOnboardingStore(s => s.step)
@@ -17,6 +18,7 @@ const MainContainer = () => {
   const { status } = useSession()
 
   usePostAuthStepHydrator()
+  useClaimAgentAfterAuth()
 
   const postAuthStep = searchParams.get("postAuthStep")
   const isPostAuthRedirect = Boolean(postAuthStep)

@@ -1,11 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput
-} from "@/components/ui/input-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -21,10 +16,13 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { IconRefresh } from "@tabler/icons-react"
 import { useState } from "react"
+import { useOnboardingStore } from "../../store/onboarding.store"
 
 const AgentDetails = () => {
   const [agentType, setAgentType] = useState<string>("")
   const [toneType, setToneType] = useState<string>("")
+
+  const agentName = useOnboardingStore(s => s.agentName)
 
   return (
     <div className="flex h-full min-w-80 flex-col space-y-2.5 rounded-[10px] bg-white py-2.5 pr-2 pl-2.5 shadow-md">
@@ -34,13 +32,13 @@ const AgentDetails = () => {
 
       <ScrollArea className="flex h-full w-full pr-2.5" scrollbarVariant="tiny">
         <div className="flex flex-col items-center space-y-4 p-1">
-          <InputGroup className="flex h-9 items-center justify-between rounded-md px-2">
-            <InputGroupAddon className="p-0 text-sm font-medium text-zinc-950">
-              Agent name:
-            </InputGroupAddon>
+          <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2">
+            <p className="text-sm font-medium text-zinc-950">Agent name:</p>
 
-            <InputGroupInput className="text-right text-sm font-normal text-zinc-500" />
-          </InputGroup>
+            <p className="text-right text-sm font-normal text-zinc-500">
+              {agentName ?? "—"}
+            </p>
+          </div>
 
           <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2">
             <p className="text-sm font-medium text-zinc-950">Agent status:</p>

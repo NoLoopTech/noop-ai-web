@@ -214,7 +214,7 @@ const AgentDetails = () => {
             <Textarea
               placeholder="### Role
 - Primary Function: You are an AI chatbot who helps users with their inquiries, issues and requests. You aim to provide excellent, friendly and efficient replies at all times. Your role is to listen attentively to the user, understand their needs, "
-              className="h-32 resize-none"
+              className="h-40 resize-none"
             />
           </div>
         </div>

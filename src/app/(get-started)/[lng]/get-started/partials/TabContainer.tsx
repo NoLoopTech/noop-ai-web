@@ -552,7 +552,7 @@ const TabContainer = () => {
             />
 
             <div className="flex flex-col items-center justify-center space-y-3 text-center">
-              <h3 className="text-lg font-semibold text-zinc-950">
+              <h3 className="shine-text text-lg font-semibold text-zinc-950">
                 Your agent is learning right now.
               </h3>
               <p className="text-sm font-medium text-zinc-500">

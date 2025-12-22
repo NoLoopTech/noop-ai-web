@@ -1,9 +1,12 @@
+"use client"
+
 import { IconCheck, IconCircleFilled } from "@tabler/icons-react"
 import PricingCard, { Currency } from "./pricing-content/PricingCard"
 import { Button } from "@/components/ui/button"
 import { motion } from "motion/react"
-import { useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useLayoutEffect, useRef, useState } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useRouter } from "next/navigation"
 
 const pricingPlans = [
   {
@@ -85,8 +88,9 @@ const pricingPlans = [
         iconHeight: 18
       }
     ],
-    buttonText: "Subscribe",
-    onButtonClick: () => {}
+    buttonText: "Get Started",
+    onButtonClick: () => {},
+    comingSoon: false
   },
   {
     title: {
@@ -168,7 +172,8 @@ const pricingPlans = [
       }
     ],
     buttonText: "Subscribe",
-    onButtonClick: () => {}
+    onButtonClick: () => {},
+    comingSoon: true
   },
   {
     title: {
@@ -250,7 +255,8 @@ const pricingPlans = [
       }
     ],
     buttonText: "Subscribe",
-    onButtonClick: () => {}
+    onButtonClick: () => {},
+    comingSoon: true
   },
   {
     title: {
@@ -332,11 +338,13 @@ const pricingPlans = [
       }
     ],
     buttonText: "Subscribe",
-    onButtonClick: () => {}
+    onButtonClick: () => {},
+    comingSoon: true
   }
 ]
 
 const PricingContainer = () => {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<"monthly" | "yearly">("monthly")
   const monthlyRef = useRef<HTMLButtonElement>(null)
   const yearlyRef = useRef<HTMLButtonElement>(null)
@@ -351,6 +359,10 @@ const PricingContainer = () => {
       })
     }
   }, [activeTab])
+
+  const handleFreeClick = useCallback(() => {
+    router.push("/admin")
+  }, [router])
 
   return (
     <div className="mb-3 flex w-full flex-col items-center">
@@ -411,6 +423,11 @@ const PricingContainer = () => {
                   activeTab === "monthly" ? plan.monthlyPrice : plan.yearlyPrice
                 }
                 billingPeriod={activeTab}
+                onButtonClick={
+                  plan.title?.text?.trim() === "Free"
+                    ? handleFreeClick
+                    : plan.onButtonClick
+                }
               />
             ))}
           </div>

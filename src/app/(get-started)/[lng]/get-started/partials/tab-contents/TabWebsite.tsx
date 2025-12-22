@@ -28,7 +28,8 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogTitle
+  AlertDialogTitle,
+  AlertDialogDescription
 } from "@/components/ui/alert-dialog"
 import { IconLoader } from "@tabler/icons-react"
 
@@ -275,11 +276,14 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
       {/* Alert dialog for confirming first 10 links selection */}
       <AlertDialog open={showSelectWarning} onOpenChange={setShowSelectWarning}>
         <AlertDialogContent className="py-5">
-          {/* Add visually hidden title for accessibility. without AlertDialogTitle it shows a error */}
-          <div className="hidden">
+          {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="sr-only">
             <AlertDialogTitle>
               Confirm first 10 links selection
             </AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm selecting the first 10 links from the website.
+            </AlertDialogDescription>
           </div>
 
           <div className="flex flex-col items-center justify-center space-y-4">

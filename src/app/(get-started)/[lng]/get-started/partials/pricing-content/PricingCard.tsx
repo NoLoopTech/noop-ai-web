@@ -38,6 +38,7 @@ interface PricingCardProps {
   features: readonly Feature[]
   buttonText: string
   onButtonClick: () => void
+  comingSoon: boolean
 }
 
 const PricingCard = ({
@@ -50,7 +51,8 @@ const PricingCard = ({
   billingPeriod,
   features,
   buttonText,
-  onButtonClick
+  onButtonClick,
+  comingSoon = false
 }: PricingCardProps) => {
   const [animatedText, setAnimatedText] = useState(
     billingPeriod === "monthly" ? "month" : "year"
@@ -161,8 +163,9 @@ const PricingCard = ({
         <Button
           onClick={onButtonClick}
           className="h-11 w-full bg-gradient-to-r from-[#093AD7] to-[#0072F4] text-sm font-medium text-zinc-50 hover:from-[#093AD7]/85 hover:to-[#0072F4]/85"
+          disabled={comingSoon}
         >
-          {buttonText}
+          {comingSoon ? "Coming Soon" : buttonText}
         </Button>
       </div>
     </div>

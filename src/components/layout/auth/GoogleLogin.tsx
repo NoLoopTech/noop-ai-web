@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button"
 import { signIn } from "next-auth/react"
 import { JSX, useState } from "react"
 import GoogleIcon from "@/../public/assets/icons/google-logo-icon.svg"
+import { toast } from "@/lib/hooks/useToast"
 import {
   POST_AUTH_STEP_QUERY_PARAM,
   POST_AUTH_STEP_STORAGE_KEY
-} from "@/app/(get-started)/[lng]/get-started/partials/usePostAuthStepHydrator"
+} from "@/app/(get-started)/[lng]/get-started/partials/hooks/usePostAuthStepHydrator"
 
 export interface GoogleLoginProps {
   type?: "signin" | "signup"
@@ -52,7 +53,29 @@ export default function GoogleLogin({
 
       onBeforeRedirect?.()
 
-      await signIn("google", { callbackUrl: resolvedCallbackUrl })
+      const result = await signIn("google", {
+        callbackUrl: resolvedCallbackUrl,
+        redirect: false
+      })
+
+      if (result?.error || result?.ok === false) {
+        toast({
+          variant: "error",
+          title: "Google sign-in failed",
+          description: "Please try again."
+        })
+        return
+      }
+
+      if (result?.url) {
+        window.location.href = result.url
+      }
+    } catch (_error) {
+      toast({
+        variant: "error",
+        title: "Could not sign in",
+        description: "Please check your connection and try again."
+      })
     } finally {
       setLoading(false)
     }

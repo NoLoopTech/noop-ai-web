@@ -64,6 +64,4 @@ export default function usePostAuthStepHydrator() {
 
     setStep(next)
   }, [status, searchParams, pathname, router, setStep])
-
-  return null
 }

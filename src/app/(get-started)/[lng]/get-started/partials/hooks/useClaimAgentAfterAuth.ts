@@ -14,7 +14,7 @@ type ClaimAgentResponse = {
 
 export const ONBOARDING_CHATBOT_CODE_KEY = "onboarding:chatBotCode"
 
-export default function useClaimAgentAfterAuth(): null {
+export default function useClaimAgentAfterAuth() {
   const { status, data: session } = useSession()
   const ranRef = useRef(false)
 
@@ -42,6 +42,4 @@ export default function useClaimAgentAfterAuth(): null {
     ranRef.current = true
     claimAgentMutation.mutate({ chatBotCode: code })
   }, [status, session?.apiToken, claimAgentMutation])
-
-  return null
 }

@@ -10,7 +10,7 @@ export enum OnboardingSteps {
 type WebsiteLink = { url: string; selected: boolean }
 type File = { name: string; size: number }
 type TextSource = { title: string; description: string; size: number }
-type QAndA = { question: string; answer: string }
+type QAndA = { title: string; question: string; answer: string; size: number }
 type SocialMedia = { platform: string; url: string }
 
 interface OnboardingState {
@@ -24,7 +24,7 @@ interface OnboardingState {
   textSources: TextSource[]
   setTextSources: (texts: TextSource[]) => void
 
-  qandas: QAndA[]
+  qAndAs: QAndA[]
   setQAndAs: (qas: QAndA[]) => void
 
   socialMedia: SocialMedia[]
@@ -60,8 +60,8 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
   textSources: [],
   setTextSources: texts => set({ textSources: texts }),
 
-  qandas: [],
-  setQAndAs: qas => set({ qandas: qas }),
+  qAndAs: [],
+  setQAndAs: qas => set({ qAndAs: qas }),
 
   socialMedia: [],
   setSocialMedia: sm => set({ socialMedia: sm }),

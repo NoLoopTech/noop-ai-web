@@ -69,7 +69,7 @@ const TabContainer = () => {
     websiteLinks,
     files,
     textSources,
-    qandas,
+    qAndAs,
     socialMedia,
     chatBotCode,
     setChatBotCode,
@@ -85,7 +85,7 @@ const TabContainer = () => {
     websiteLinks.length > 0 ||
     files.length > 0 ||
     textSources.length > 0 ||
-    qandas.length > 0 ||
+    qAndAs.length > 0 ||
     socialMedia.length > 0
 
   const selectedWebUrls = useMemo(
@@ -97,7 +97,7 @@ const TabContainer = () => {
     const hasOtherSources =
       files.length > 0 ||
       textSources.length > 0 ||
-      qandas.length > 0 ||
+      qAndAs.length > 0 ||
       socialMedia.length > 0
 
     const requiresWebsiteLinkSelection =
@@ -124,7 +124,7 @@ const TabContainer = () => {
     websiteLinks,
     files,
     textSources,
-    qandas,
+    qAndAs,
     socialMedia
   ])
 
@@ -213,6 +213,10 @@ const TabContainer = () => {
       textTitleTextPairs:
         textSources.length > 0
           ? textSources.map(t => ({ textTitle: t.title, text: t.description }))
+          : undefined,
+      qaPairs:
+        qAndAs.length > 0
+          ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
           : undefined
     }
 
@@ -268,7 +272,6 @@ const TabContainer = () => {
 
             <TabsTrigger
               value="qanda"
-              disabled
               className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#0606B3] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <IconFilter2Question className="size-4 stroke-inherit" />
@@ -446,7 +449,7 @@ const TabContainer = () => {
                       )}
 
                       {/* Q&A */}
-                      {qandas.length > 0 && (
+                      {qAndAs.length > 0 && (
                         <div className="flex w-full items-center justify-between rounded-lg border border-zinc-200 px-3 py-2">
                           <div className="flex items-center space-x-2">
                             <IconFilter2Question className="size-4 stroke-zinc-600" />

@@ -1,4 +1,3 @@
-// Option types for dropdowns
 export type DateRangeType =
   | "today"
   | "yesterday"

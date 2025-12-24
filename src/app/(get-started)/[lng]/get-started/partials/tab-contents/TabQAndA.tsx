@@ -134,9 +134,7 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
 
           {/* TODO: Update this section's UI. need to confirm what we show here */}
           <div className="mt-5">
-            <h2 className="text-lg font-semibold text-zinc-950">
-              Text sources
-            </h2>
+            <h2 className="text-lg font-semibold text-zinc-950">Q&A sources</h2>
 
             <div
               className={`mt-1 mb-2 flex h-10 items-center justify-between space-x-2 rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-4 text-sm font-normal text-zinc-500`}

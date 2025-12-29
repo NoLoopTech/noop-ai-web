@@ -19,6 +19,8 @@ import TabSocialMedia from "./tab-contents/TabSocialMedia"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
+import axios from "axios"
+import axiosInstance from "@/query/axios.instance"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   AlertDialog,
@@ -197,30 +199,100 @@ const TabContainer = () => {
 
   const handleTrainClick = () => {
     if (isButtonDisabled) return
+    ;(async () => {
+      try {
+        setIsButtonDisabled(true)
+        setIsTrainedDialogOpen(false)
+        setIsTrainingDialogOpen(true)
+        setIsPollingStatus(false)
 
-    setIsButtonDisabled(true)
-    setIsTrainedDialogOpen(false)
-    setIsTrainingDialogOpen(true)
-    setIsPollingStatus(false)
-    setChatBotCode(null)
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
+        }
 
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
-    }
+        // Prepare payload without filePaths to create the agent first
+        const basePayload: TrainAgentRequest = {
+          webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
+          textTitleTextPairs:
+            textSources.length > 0
+              ? textSources.map(t => ({
+                  textTitle: t.title,
+                  text: t.description
+                }))
+              : undefined,
+          qaPairs:
+            qAndAs.length > 0
+              ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
+              : undefined
+        }
 
-    const payload: TrainAgentRequest = {
-      webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
-      textTitleTextPairs:
-        textSources.length > 0
-          ? textSources.map(t => ({ textTitle: t.title, text: t.description }))
-          : undefined,
-      qaPairs:
-        qAndAs.length > 0
-          ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
-          : undefined
-    }
+        // Create agent (this should return chatBotCode without requiring uploaded files)
+        const createResp = await trainAgentMutation.mutateAsync(basePayload)
+        const createdCode = createResp?.chatBotCode
 
-    trainAgentMutation.mutate(payload)
+        if (!createdCode) {
+          throw new Error("Failed to obtain chatBotCode from server")
+        }
+
+        setChatBotCode(createdCode)
+
+        // Upload files only to the folder matching chatBotCode
+        const storeFiles = useOnboardingStore.getState().files || []
+        let uploadedFileUrls: string[] | undefined = undefined
+
+        if (storeFiles.length > 0) {
+          const folderName = createdCode
+
+          const uploadPromises = storeFiles.map(f =>
+            (async () => {
+              if (!f.raw) return null
+              const resp = await axiosInstance.post<{
+                uploadUrl: string
+                publicUrl: string
+              }>("/onboarding/upload-file", {
+                fileName: f.name,
+                contentType: f.raw.type || "application/octet-stream",
+                folder: folderName
+              })
+
+              const { uploadUrl, publicUrl } = resp.data
+              await axios.put(uploadUrl, f.raw, {
+                headers: {
+                  "x-ms-blob-type": "BlockBlob",
+                  "Content-Type": f.raw.type || "application/octet-stream"
+                }
+              })
+
+              return publicUrl
+            })()
+          )
+
+          const settled = await Promise.allSettled(uploadPromises)
+          const successful = settled
+            .filter(
+              (r): r is PromiseFulfilledResult<string | null> =>
+                r.status === "fulfilled"
+            )
+            .map(r => r.value)
+            .filter(Boolean) as string[]
+
+          uploadedFileUrls = successful.length > 0 ? successful : undefined
+        }
+
+        // Trigger training with file paths (if any)
+        const finalPayload: TrainAgentRequest = {
+          ...basePayload,
+          filePaths: uploadedFileUrls
+        }
+
+        // Call train-agent again to kick off training with uploaded file paths
+        trainAgentMutation.mutate(finalPayload)
+      } catch (_error) {
+        setIsPollingStatus(false)
+        setIsTrainingDialogOpen(false)
+        setIsButtonDisabled(false)
+      }
+    })()
   }
 
   const handleGoToPlayground = () => {
@@ -255,7 +327,6 @@ const TabContainer = () => {
 
             <TabsTrigger
               value="files"
-              disabled
               className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#5400AE] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <FileText className="size-4 stroke-inherit" />

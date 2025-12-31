@@ -20,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import axios from "axios"
-import axiosInstance from "@/query/axios.instance"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   AlertDialog,
@@ -39,7 +38,8 @@ const tabContentVariants = {
   exit: { opacity: 0, y: 30 }
 }
 
-type TrainAgentRequest = {
+interface TrainAgentRequest {
+  chatBotCode: string
   webUrls?: string[]
   filePaths?: string[]
   cleanText?: string
@@ -47,14 +47,21 @@ type TrainAgentRequest = {
   textTitleTextPairs?: Array<{ textTitle: string; text: string }>
 }
 
-type TrainAgentResponse = {
+interface CreateProjectResponse {
+  chatBotCode: string
+  projectName: string
+  projectApiKey: string
+  status: string
+}
+
+interface TrainAgentResponse {
   chatBotCode: string
   projectName: string
   projectCode: string
   status: string
 }
 
-type AgentStatusResponse = {
+interface AgentStatusResponse {
   status: string
 }
 
@@ -129,6 +136,16 @@ const TabContainer = () => {
     qAndAs,
     socialMedia
   ])
+
+  const createProjectMutation = useApiMutation<CreateProjectResponse, void>(
+    "/onboarding/create-project",
+    "post"
+  )
+
+  const uploadFileMutation = useApiMutation<
+    { uploadUrl: string; publicUrl: string },
+    { fileName: string; contentType?: string; folder?: string }
+  >("/onboarding/upload-file", "post")
 
   const trainAgentMutation = useApiMutation<
     TrainAgentResponse,
@@ -210,8 +227,48 @@ const TabContainer = () => {
           sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
         }
 
-        // Prepare payload without filePaths to create the agent first
-        const basePayload: TrainAgentRequest = {
+        const createResp = await createProjectMutation.mutateAsync()
+        const { chatBotCode, projectName } = createResp
+        if (!chatBotCode)
+          throw new Error("Failed to obtain chatBotCode from server")
+        setChatBotCode(chatBotCode)
+        setAgentName(projectName)
+
+        const storeFiles = useOnboardingStore.getState().files || []
+        let uploadedFileUrls: string[] | undefined = undefined
+        if (storeFiles.length > 0) {
+          const folderName = chatBotCode
+          const uploadPromises = storeFiles.map(f =>
+            (async () => {
+              if (!f.raw) return null
+              const resp = await uploadFileMutation.mutateAsync({
+                fileName: f.name,
+                contentType: f.raw.type || "application/octet-stream",
+                folder: folderName
+              })
+              const { uploadUrl, publicUrl } = resp
+              await axios.put(uploadUrl, f.raw, {
+                headers: {
+                  "x-ms-blob-type": "BlockBlob",
+                  "Content-Type": f.raw.type || "application/octet-stream"
+                }
+              })
+              return publicUrl
+            })()
+          )
+          const settled = await Promise.allSettled(uploadPromises)
+          const successful = settled
+            .filter(
+              (r): r is PromiseFulfilledResult<string | null> =>
+                r.status === "fulfilled"
+            )
+            .map(r => r.value)
+            .filter(Boolean) as string[]
+          uploadedFileUrls = successful.length > 0 ? successful : undefined
+        }
+
+        const finalPayload: TrainAgentRequest = {
+          chatBotCode,
           webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
           textTitleTextPairs:
             textSources.length > 0
@@ -223,69 +280,10 @@ const TabContainer = () => {
           qaPairs:
             qAndAs.length > 0
               ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
-              : undefined
-        }
-
-        // Create agent (this should return chatBotCode without requiring uploaded files)
-        const createResp = await trainAgentMutation.mutateAsync(basePayload)
-        const createdCode = createResp?.chatBotCode
-
-        if (!createdCode) {
-          throw new Error("Failed to obtain chatBotCode from server")
-        }
-
-        setChatBotCode(createdCode)
-
-        // Upload files only to the folder matching chatBotCode
-        const storeFiles = useOnboardingStore.getState().files || []
-        let uploadedFileUrls: string[] | undefined = undefined
-
-        if (storeFiles.length > 0) {
-          const folderName = createdCode
-
-          const uploadPromises = storeFiles.map(f =>
-            (async () => {
-              if (!f.raw) return null
-              const resp = await axiosInstance.post<{
-                uploadUrl: string
-                publicUrl: string
-              }>("/onboarding/upload-file", {
-                fileName: f.name,
-                contentType: f.raw.type || "application/octet-stream",
-                folder: folderName
-              })
-
-              const { uploadUrl, publicUrl } = resp.data
-              await axios.put(uploadUrl, f.raw, {
-                headers: {
-                  "x-ms-blob-type": "BlockBlob",
-                  "Content-Type": f.raw.type || "application/octet-stream"
-                }
-              })
-
-              return publicUrl
-            })()
-          )
-
-          const settled = await Promise.allSettled(uploadPromises)
-          const successful = settled
-            .filter(
-              (r): r is PromiseFulfilledResult<string | null> =>
-                r.status === "fulfilled"
-            )
-            .map(r => r.value)
-            .filter(Boolean) as string[]
-
-          uploadedFileUrls = successful.length > 0 ? successful : undefined
-        }
-
-        // Trigger training with file paths (if any)
-        const finalPayload: TrainAgentRequest = {
-          ...basePayload,
+              : undefined,
           filePaths: uploadedFileUrls
         }
 
-        // Call train-agent again to kick off training with uploaded file paths
         trainAgentMutation.mutate(finalPayload)
       } catch (_error) {
         setIsPollingStatus(false)
@@ -527,7 +525,7 @@ const TabContainer = () => {
 
                             <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                               <p className="text-left text-sm font-normal text-zinc-600">
-                                0
+                                {qAndAs.length}
                               </p>
 
                               <p className="text-sm font-normal text-zinc-600">
@@ -551,7 +549,7 @@ const TabContainer = () => {
 
                             <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                               <p className="text-left text-sm font-normal text-zinc-600">
-                                0
+                                {socialMedia.length}
                               </p>
 
                               <p className="text-sm font-normal text-zinc-600">

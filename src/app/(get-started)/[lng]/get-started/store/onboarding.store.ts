@@ -40,6 +40,9 @@ interface OnboardingState {
   chatBotCode: string | null
   setChatBotCode: (code: string | null) => void
 
+  agentPrompt: string | null
+  setAgentPrompt: (prompt: string | null) => void
+
   agentName: string | null
   setAgentName: (name: string | null) => void
 }
@@ -86,6 +89,9 @@ export const useOnboardingStore = create<OnboardingState>(set => ({
 
   chatBotCode: null,
   setChatBotCode: code => set({ chatBotCode: code }),
+
+  agentPrompt: null,
+  setAgentPrompt: prompt => set({ agentPrompt: prompt }),
 
   agentName: null,
   setAgentName: name => set({ agentName: name })

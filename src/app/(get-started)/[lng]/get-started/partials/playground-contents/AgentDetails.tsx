@@ -17,12 +17,179 @@ import { Textarea } from "@/components/ui/textarea"
 import { IconRefresh } from "@tabler/icons-react"
 import { useState } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
+import { useApiMutation } from "@/query/hooks/useApiMutation"
+import { toast } from "@/lib/hooks/useToast"
+
+enum AgentType {
+  DEFAULT = "default",
+  CUSTOMER_SUPPORT_AGENT = "customer_support_agent",
+  SALES_ASSISTANT = "sales_assistant",
+  PRODUCT_GUIDE = "product_guide",
+  FINANCE_BUDDY = "finance_buddy",
+  TRAVEL_ADVISOR = "travel_advisor",
+  CUSTOM_ROLE = "custom_role"
+}
+
+enum ToneType {
+  DEFAULT = "default",
+  FRIENDLY = "friendly",
+  FORMAL = "formal",
+  PLAYFUL = "playful",
+  DETAILED = "detailed",
+  EMPATHETIC = "empathetic",
+  NEUTRAL = "neutral"
+}
+
+type ChangeAgentTypePayload = { webName: string; newType: AgentType }
+type ChangeAgentTonePayload = { webName: string; newTone: ToneType }
+type ChangeAgentConfidencePayload = {
+  webName: string
+  newConfidenceLevel: string
+}
+
+const agentTypeOptions = [
+  { value: AgentType.CUSTOMER_SUPPORT_AGENT, label: "Customer Support Agent" },
+  { value: AgentType.SALES_ASSISTANT, label: "Sales Assistant" },
+  { value: AgentType.PRODUCT_GUIDE, label: "Product Guide" },
+  { value: AgentType.FINANCE_BUDDY, label: "Finance Buddy" },
+  { value: AgentType.TRAVEL_ADVISOR, label: "Travel Advisor" },
+  { value: AgentType.CUSTOM_ROLE, label: "Custom Role" }
+]
+
+const toneTypeOptions = [
+  { value: ToneType.FRIENDLY, label: "Friendly" },
+  { value: ToneType.FORMAL, label: "Formal" },
+  { value: ToneType.PLAYFUL, label: "Playful" },
+  { value: ToneType.DETAILED, label: "Detailed" },
+  { value: ToneType.EMPATHETIC, label: "Empathetic" },
+  { value: ToneType.NEUTRAL, label: "Neutral" }
+]
 
 const AgentDetails = () => {
-  const [agentType, setAgentType] = useState<string>("")
-  const [toneType, setToneType] = useState<string>("")
+  const [agentType, setAgentType] = useState<AgentType | "">("")
+  const [toneType, setToneType] = useState<ToneType | "">("")
+  const [confidence, setConfidence] = useState<number>(75)
 
+  const chatBotCode = useOnboardingStore(s => s.chatBotCode)
   const agentName = useOnboardingStore(s => s.agentName)
+  const agentPrompt = useOnboardingStore(s => s.agentPrompt)
+
+  const changeAgentTypeMutation = useApiMutation<
+    string,
+    ChangeAgentTypePayload
+  >("/onboarding/change-agent-type", "post", {
+    onSuccess: data => {
+      toast({ title: "Agent type updated", description: String(data) })
+    },
+    onError: () => {
+      toast({ title: "Failed to update agent type" })
+    }
+  })
+
+  const changeAgentToneMutation = useApiMutation<
+    string,
+    ChangeAgentTonePayload
+  >("/onboarding/change-agent-tone", "post", {
+    onSuccess: data => {
+      toast({ title: "Agent tone updated", description: String(data) })
+    },
+    onError: () => {
+      toast({ title: "Failed to update agent tone" })
+    }
+  })
+
+  const changeAgentConfidenceMutation = useApiMutation<
+    string,
+    ChangeAgentConfidencePayload
+  >("/onboarding/change-agent-confidence", "post", {
+    onSuccess: data => {
+      toast({
+        title: "Confidence threshold updated",
+        description: String(data)
+      })
+    },
+    onError: () => {
+      toast({ title: "Failed to update confidence threshold" })
+    }
+  })
+
+  const handleChangeAgentType = (value: AgentType | ""): void => {
+    setAgentType(value)
+    if (!value) return
+    try {
+      const payload: ChangeAgentTypePayload = {
+        webName: chatBotCode ?? "",
+        newType: value
+      }
+      changeAgentTypeMutation.mutate(payload)
+    } catch (_err) {
+      toast({ title: "Unable to change agent type" })
+    }
+  }
+
+  const handleChangeAgentTone = (value: ToneType | ""): void => {
+    setToneType(value)
+    if (!value) return
+    try {
+      const payload: ChangeAgentTonePayload = {
+        webName: chatBotCode ?? "",
+        newTone: value
+      }
+      changeAgentToneMutation.mutate(payload)
+    } catch (_err) {
+      toast({ title: "Unable to change agent tone" })
+    }
+  }
+
+  const handleChangeConfidence = (val: number): void => {
+    setConfidence(val)
+    try {
+      const level = (val / 100).toFixed(2)
+      const payload: ChangeAgentConfidencePayload = {
+        webName: chatBotCode ?? "",
+        newConfidenceLevel: level
+      }
+      changeAgentConfidenceMutation.mutate(payload)
+    } catch (_err) {
+      toast({ title: "Unable to change confidence threshold" })
+    }
+  }
+
+  const handleSliderValueChange = (values: number[]): void => {
+    handleChangeConfidence(values[0])
+  }
+
+  const resetAgentType = (): void => {
+    const value: AgentType = AgentType.DEFAULT
+    setAgentType(value)
+    try {
+      const payload: ChangeAgentTypePayload = {
+        webName: chatBotCode ?? "",
+        newType: value
+      }
+      changeAgentTypeMutation.mutate(payload)
+    } catch (_err) {
+      toast({ title: "Unable to reset agent type" })
+    }
+
+    setAgentType("")
+  }
+
+  const resetToneType = (): void => {
+    const value: ToneType = ToneType.DEFAULT
+    setToneType(value)
+    try {
+      const payload: ChangeAgentTonePayload = {
+        webName: chatBotCode ?? "",
+        newTone: value
+      }
+      changeAgentToneMutation.mutate(payload)
+    } catch (_err) {
+      toast({ title: "Unable to reset agent tone" })
+    }
+
+    setToneType("")
+  }
 
   return (
     <div className="flex h-full min-w-80 flex-col space-y-2.5 rounded-[10px] bg-white py-2.5 pr-2 pl-2.5 shadow-md">
@@ -54,7 +221,7 @@ const AgentDetails = () => {
             </p>
 
             <div className="flex w-full items-center space-x-2">
-              <Select value={agentType} onValueChange={setAgentType}>
+              <Select value={agentType} onValueChange={handleChangeAgentType}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
@@ -63,42 +230,16 @@ const AgentDetails = () => {
                     <SelectLabel className="text-sm font-medium text-zinc-950">
                       Agent Type
                     </SelectLabel>
-                    <SelectItem
-                      value="customerSupportAgent"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Customer Support Agent
-                    </SelectItem>
-                    <SelectItem
-                      value="salesAssistant"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Sales Assistant
-                    </SelectItem>
-                    <SelectItem
-                      value="productGuide"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Product Guide
-                    </SelectItem>
-                    <SelectItem
-                      value="financeBuddy"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Finance Buddy
-                    </SelectItem>
-                    <SelectItem
-                      value="travelAdvisor"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Travel Advisor
-                    </SelectItem>
-                    <SelectItem
-                      value="customRole"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Custom Role
-                    </SelectItem>
+
+                    {agentTypeOptions.map(option => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-sm font-normal text-zinc-950"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -106,7 +247,7 @@ const AgentDetails = () => {
               <Button
                 type="button"
                 className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
-                onClick={() => setAgentType("")}
+                onClick={resetAgentType}
               >
                 <IconRefresh className="size-5 stroke-zinc-600" />
               </Button>
@@ -121,7 +262,7 @@ const AgentDetails = () => {
             </p>
 
             <div className="flex w-full items-center space-x-2">
-              <Select value={toneType} onValueChange={setToneType}>
+              <Select value={toneType} onValueChange={handleChangeAgentTone}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
@@ -130,42 +271,16 @@ const AgentDetails = () => {
                     <SelectLabel className="text-sm font-medium text-zinc-950">
                       Tone Type
                     </SelectLabel>
-                    <SelectItem
-                      value="friendly"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Friendly
-                    </SelectItem>
-                    <SelectItem
-                      value="formal"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Formal
-                    </SelectItem>
-                    <SelectItem
-                      value="playful"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Playful
-                    </SelectItem>
-                    <SelectItem
-                      value="detailed"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Detailed
-                    </SelectItem>
-                    <SelectItem
-                      value="empathetic"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Empathetic
-                    </SelectItem>
-                    <SelectItem
-                      value="neutral"
-                      className="text-sm font-normal text-zinc-950"
-                    >
-                      Neutral
-                    </SelectItem>
+
+                    {toneTypeOptions.map(option => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-sm font-normal text-zinc-950"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -173,7 +288,7 @@ const AgentDetails = () => {
               <Button
                 type="button"
                 className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
-                onClick={() => setToneType("")}
+                onClick={resetToneType}
               >
                 <IconRefresh className="size-5 stroke-zinc-600" />
               </Button>
@@ -188,11 +303,19 @@ const AgentDetails = () => {
                 Confidence Threshold
               </p>
 
-              <p className="text-xs font-normal text-zinc-500">0.75</p>
+              <p className="text-xs font-normal text-zinc-500">
+                {(confidence / 100).toFixed(2)}
+              </p>
             </div>
 
             <div className="flex w-full items-center space-x-2">
-              <Slider defaultValue={[50]} max={100} className="my-1" step={1} />
+              <Slider
+                value={[confidence]}
+                max={100}
+                className="my-1"
+                step={1}
+                onValueChange={handleSliderValueChange}
+              />
             </div>
 
             <div className="mt-1 flex w-full items-center justify-between">
@@ -214,7 +337,9 @@ const AgentDetails = () => {
             <Textarea
               placeholder="### Role
 - Primary Function: You are an AI chatbot who helps users with their inquiries, issues and requests. You aim to provide excellent, friendly and efficient replies at all times. Your role is to listen attentively to the user, understand their needs, "
-              className="h-40 resize-none"
+              className="h-40 resize-none text-zinc-500"
+              value={agentPrompt ?? ""}
+              readOnly
             />
           </div>
         </div>

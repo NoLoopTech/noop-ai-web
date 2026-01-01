@@ -156,7 +156,7 @@ const AgentDetails = () => {
   }
 
   const handleSliderValueChange = (values: number[]): void => {
-    handleChangeConfidence(values[0])
+    setConfidence(values[0])
   }
 
   const resetAgentType = (): void => {
@@ -315,6 +315,7 @@ const AgentDetails = () => {
                 className="my-1"
                 step={1}
                 onValueChange={handleSliderValueChange}
+                onValueCommit={values => handleChangeConfidence(values[0])}
               />
             </div>
 

@@ -19,6 +19,7 @@ import TabSocialMedia from "./tab-contents/TabSocialMedia"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
+import axios from "axios"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   AlertDialog,
@@ -37,7 +38,8 @@ const tabContentVariants = {
   exit: { opacity: 0, y: 30 }
 }
 
-type TrainAgentRequest = {
+interface TrainAgentRequest {
+  chatBotCode: string
   webUrls?: string[]
   filePaths?: string[]
   cleanText?: string
@@ -45,14 +47,21 @@ type TrainAgentRequest = {
   textTitleTextPairs?: Array<{ textTitle: string; text: string }>
 }
 
-type TrainAgentResponse = {
+interface CreateProjectResponse {
+  chatBotCode: string
+  projectName: string
+  projectApiKey: string
+  status: string
+}
+
+interface TrainAgentResponse {
   chatBotCode: string
   projectName: string
   projectCode: string
   status: string
 }
 
-type AgentStatusResponse = {
+interface AgentStatusResponse {
   status: string
 }
 
@@ -128,6 +137,16 @@ const TabContainer = () => {
     socialMedia
   ])
 
+  const createProjectMutation = useApiMutation<CreateProjectResponse, void>(
+    "/onboarding/create-project",
+    "post"
+  )
+
+  const uploadFileMutation = useApiMutation<
+    { uploadUrl: string; publicUrl: string },
+    { fileName: string; contentType?: string; folder?: string }
+  >("/onboarding/upload-file", "post")
+
   const trainAgentMutation = useApiMutation<
     TrainAgentResponse,
     TrainAgentRequest
@@ -197,30 +216,81 @@ const TabContainer = () => {
 
   const handleTrainClick = () => {
     if (isButtonDisabled) return
+    ;(async () => {
+      try {
+        setIsButtonDisabled(true)
+        setIsTrainedDialogOpen(false)
+        setIsTrainingDialogOpen(true)
+        setIsPollingStatus(false)
 
-    setIsButtonDisabled(true)
-    setIsTrainedDialogOpen(false)
-    setIsTrainingDialogOpen(true)
-    setIsPollingStatus(false)
-    setChatBotCode(null)
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
+        }
 
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
-    }
+        const createResp = await createProjectMutation.mutateAsync()
+        const { chatBotCode, projectName } = createResp
+        if (!chatBotCode)
+          throw new Error("Failed to obtain chatBotCode from server")
+        setChatBotCode(chatBotCode)
+        setAgentName(projectName)
 
-    const payload: TrainAgentRequest = {
-      webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
-      textTitleTextPairs:
-        textSources.length > 0
-          ? textSources.map(t => ({ textTitle: t.title, text: t.description }))
-          : undefined,
-      qaPairs:
-        qAndAs.length > 0
-          ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
-          : undefined
-    }
+        const storeFiles = useOnboardingStore.getState().files || []
+        let uploadedFileUrls: string[] | undefined = undefined
+        if (storeFiles.length > 0) {
+          const folderName = chatBotCode
+          const uploadPromises = storeFiles.map(f =>
+            (async () => {
+              if (!f.raw) return null
+              const resp = await uploadFileMutation.mutateAsync({
+                fileName: f.name,
+                contentType: f.raw.type || "application/octet-stream",
+                folder: folderName
+              })
+              const { uploadUrl, publicUrl } = resp
+              await axios.put(uploadUrl, f.raw, {
+                headers: {
+                  "x-ms-blob-type": "BlockBlob",
+                  "Content-Type": f.raw.type || "application/octet-stream"
+                }
+              })
+              return publicUrl
+            })()
+          )
+          const settled = await Promise.allSettled(uploadPromises)
+          const successful = settled
+            .filter(
+              (r): r is PromiseFulfilledResult<string | null> =>
+                r.status === "fulfilled"
+            )
+            .map(r => r.value)
+            .filter(Boolean) as string[]
+          uploadedFileUrls = successful.length > 0 ? successful : undefined
+        }
 
-    trainAgentMutation.mutate(payload)
+        const finalPayload: TrainAgentRequest = {
+          chatBotCode,
+          webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
+          textTitleTextPairs:
+            textSources.length > 0
+              ? textSources.map(t => ({
+                  textTitle: t.title,
+                  text: t.description
+                }))
+              : undefined,
+          qaPairs:
+            qAndAs.length > 0
+              ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
+              : undefined,
+          filePaths: uploadedFileUrls
+        }
+
+        trainAgentMutation.mutate(finalPayload)
+      } catch (_error) {
+        setIsPollingStatus(false)
+        setIsTrainingDialogOpen(false)
+        setIsButtonDisabled(false)
+      }
+    })()
   }
 
   const handleGoToPlayground = () => {
@@ -255,7 +325,6 @@ const TabContainer = () => {
 
             <TabsTrigger
               value="files"
-              disabled
               className="flex space-x-2 rounded-md border border-zinc-200 bg-white stroke-[#5400AE] px-4 py-1.5 text-[#52525B] focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#15A4A7] data-[state=active]:to-[#08C4C8] data-[state=active]:stroke-white data-[state=active]:text-white"
             >
               <FileText className="size-4 stroke-inherit" />
@@ -456,7 +525,7 @@ const TabContainer = () => {
 
                             <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                               <p className="text-left text-sm font-normal text-zinc-600">
-                                0
+                                {qAndAs.length}
                               </p>
 
                               <p className="text-sm font-normal text-zinc-600">
@@ -480,7 +549,7 @@ const TabContainer = () => {
 
                             <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                               <p className="text-left text-sm font-normal text-zinc-600">
-                                0
+                                {socialMedia.length}
                               </p>
 
                               <p className="text-sm font-normal text-zinc-600">

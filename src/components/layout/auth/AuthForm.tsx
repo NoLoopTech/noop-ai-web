@@ -252,7 +252,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
         <div className="absolute inset-x-0 bottom-10 h-max w-full bg-transparent px-7">
           <h1
-            className={`w-full text-left text-5xl font-medium drop-shadow-black/25 ${dark ? "text-foreground" : "text-white"} drop-shadow-md`}
+            className={`w-full text-left text-5xl font-medium text-white drop-shadow-md drop-shadow-black/25`}
           >
             Your Gateway to Smarter Conversations
           </h1>
@@ -310,7 +310,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem className="space-y-1">
+                          <FormItem className="space-y-2">
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input
@@ -327,7 +327,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                         control={form.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem className="space-y-1">
+                          <FormItem className="space-y-2">
                             <div className="flex items-center justify-between">
                               <FormLabel>Password</FormLabel>
                             </div>
@@ -347,7 +347,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                           control={form.control}
                           name="confirmPassword"
                           render={({ field }) => (
-                            <FormItem className="space-y-1">
+                            <FormItem className="space-y-2">
                               <FormLabel>Confirm Password</FormLabel>
                               <FormControl>
                                 <PasswordInput
@@ -361,7 +361,11 @@ const AuthForm: React.FC<AuthFormProps> = ({
                         />
                       )}
 
-                      <Button className="mt-2" disabled={loading}>
+                      <Button
+                        type="button"
+                        className="mt-2 bg-[#093AD7] text-white"
+                        disabled={loading}
+                      >
                         {loading ? (
                           <>
                             <IconLoader className="h-4 w-4 animate-spin duration-[1500ms] ease-in-out" />{" "}
@@ -403,13 +407,14 @@ const AuthForm: React.FC<AuthFormProps> = ({
                   : "Already have an account? "}
               </p>
 
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={toggleMode}
-                className="underline hover:no-underline"
+                className="p-0 text-sm text-zinc-500 underline hover:no-underline"
               >
                 {isSignIn ? "Sign up" : "Sign in"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

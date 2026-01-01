@@ -63,6 +63,7 @@ interface TrainAgentResponse {
 
 interface AgentStatusResponse {
   status: string
+  agentPrompt?: string | null
 }
 
 const normalizeStatus = (s: unknown) =>
@@ -82,7 +83,8 @@ const TabContainer = () => {
     socialMedia,
     chatBotCode,
     setChatBotCode,
-    setAgentName
+    setAgentName,
+    setAgentPrompt
   } = useOnboardingStore()
 
   const [isTrainingDialogOpen, setIsTrainingDialogOpen] = useState(false)
@@ -199,6 +201,7 @@ const TabContainer = () => {
       setIsTrainingDialogOpen(false)
       setIsTrainedDialogOpen(true)
       setIsButtonDisabled(false)
+      setAgentPrompt(agentStatusQuery.data?.agentPrompt ?? null)
       return
     }
 
@@ -207,12 +210,18 @@ const TabContainer = () => {
       setIsTrainingDialogOpen(false)
       setIsButtonDisabled(false)
       setChatBotCode(null)
+      setAgentPrompt(null)
 
       if (typeof window !== "undefined") {
         sessionStorage.removeItem(ONBOARDING_CHATBOT_CODE_KEY)
       }
     }
-  }, [agentStatusQuery.data?.status, setChatBotCode])
+  }, [
+    agentStatusQuery.data?.status,
+    agentStatusQuery.data?.agentPrompt,
+    setChatBotCode,
+    setAgentPrompt
+  ])
 
   const handleTrainClick = () => {
     if (isButtonDisabled) return

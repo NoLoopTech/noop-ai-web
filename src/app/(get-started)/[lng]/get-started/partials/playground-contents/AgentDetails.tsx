@@ -141,10 +141,10 @@ const AgentDetails = () => {
     }
   }
 
-  const handleChangeConfidence = (val: number): void => {
-    setConfidence(val)
+  const handleChangeConfidence = (values: number[]): void => {
+    setConfidence(values[0])
     try {
-      const level = (val / 100).toFixed(2)
+      const level = (values[0] / 100).toFixed(2)
       const payload: ChangeAgentConfidencePayload = {
         webName: chatBotCode ?? "",
         newConfidenceLevel: level
@@ -315,7 +315,7 @@ const AgentDetails = () => {
                 className="my-1"
                 step={1}
                 onValueChange={handleSliderValueChange}
-                onValueCommit={values => handleChangeConfidence(values[0])}
+                onValueCommit={handleChangeConfidence}
               />
             </div>
 

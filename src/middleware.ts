@@ -8,9 +8,9 @@ export default withAuth(stackMiddlewares([withLocaleRedirection]), {
     authorized: ({ req, token }) => {
       // INFO: the protected routes each role has access to
       const gatedRoutes: Record<UserRole, string[]> = {
-        admin: ["/admin/", "/profile/"],
-        super_admin: ["/admin/", "/profile/"],
-        trainee: ["/admin/", "/profile/"] // TODO: trainee ideally should not have access to admin routes, but for now we allow it
+        admin: ["/admin/"],
+        super_admin: ["/admin/"],
+        trainee: ["/admin/"] // TODO: trainee ideally should not have access to admin routes, but for now we allow it
       }
       const protectedRoutes = Object.values(gatedRoutes).flat() // INFO: generate protected route list from gatedRoutes (might have duplicates)
 

@@ -26,6 +26,7 @@ import { toast } from "@/lib/hooks/useToast"
 import triggerNextAuthSessionRefresh from "@/lib/triggerNextAuthSessionRefresh"
 import { roleRedirectMap } from "@/lib/roleRedirectMap"
 import Image from "next/image"
+import { registerEmail } from "@/services/authService"
 
 const formSchema = z.object({
   email: z
@@ -36,6 +37,7 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Please enter your password" })
     .min(7, { message: "Password must be at least 7 characters long" }),
+  fullName: z.string().optional(),
   confirmPassword: z.string().optional()
 })
 
@@ -45,6 +47,15 @@ const internalFormSchema = formSchema
   })
   .superRefine((data, ctx) => {
     if (data.mode !== "signup") return
+
+    if (!data.fullName || data.fullName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fullName"],
+        message: "Please enter your full name"
+      })
+      return
+    }
 
     if (!data.confirmPassword || data.confirmPassword.trim().length === 0) {
       ctx.addIssue({
@@ -68,7 +79,6 @@ type AuthMode = "signin" | "signup"
 
 type AuthFormProps = {
   mode?: AuthMode
-  onSignUp?: (values: z.infer<typeof formSchema>) => Promise<void>
   onSuccess?: () => void
   onError?: (error: string) => void
   redirectTo?: string
@@ -83,7 +93,6 @@ type InternalFormValues = z.infer<typeof internalFormSchema>
 
 const AuthForm: React.FC<AuthFormProps> = ({
   mode = "signin",
-  onSignUp,
   onSuccess,
   onError,
   redirectTo,
@@ -100,7 +109,13 @@ const AuthForm: React.FC<AuthFormProps> = ({
     resolver: zodResolver(internalFormSchema),
     mode: "onBlur",
     reValidateMode: "onChange",
-    defaultValues: { mode, email: "", password: "", confirmPassword: "" }
+    defaultValues: {
+      mode,
+      email: "",
+      fullName: "",
+      password: "",
+      confirmPassword: ""
+    }
   })
 
   useEffect(() => {
@@ -111,7 +126,17 @@ const AuthForm: React.FC<AuthFormProps> = ({
   const toggleMode = () => {
     const nextMode: AuthMode = activeMode === "signin" ? "signup" : "signin"
     setActiveMode(nextMode)
-    form.reset({ mode: nextMode, email: "", password: "", confirmPassword: "" })
+    form.reset({
+      mode: nextMode,
+      email: "",
+      fullName: "",
+      password: "",
+      confirmPassword: ""
+    })
+
+    const path = nextMode === "signin" ? "/login" : "/register"
+
+    router.replace(path)
   }
 
   const searchParams = useSearchParams()
@@ -187,8 +212,35 @@ const AuthForm: React.FC<AuthFormProps> = ({
           throw new Error(msg)
         }
       } else {
-        if (!onSignUp) throw new Error("Sign-up handler not provided")
-        await onSignUp(values)
+        const fullName = values.fullName ?? ""
+        const res = await registerEmail(fullName, values.email, values.password)
+
+        if (!res.ok) {
+          let msg = `Registration failed (status ${res.status})`
+
+          if (
+            res.body &&
+            typeof res.body === "object" &&
+            "message" in res.body
+          ) {
+            const b = res.body as Record<string, unknown>
+
+            if (typeof b.message === "string") {
+              msg = b.message
+            } else if (Array.isArray(b.message)) {
+              msg = (b.message as string[]).join("; ")
+            }
+          }
+
+          toast({
+            title: "Sign Up Failed",
+            description: msg,
+            variant: "destructive"
+          })
+
+          onError?.(msg)
+          return
+        }
       }
 
       toast({
@@ -262,7 +314,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
       {/* Right side */}
       <div className="flex h-full w-full min-w-1/2 flex-col items-center justify-center">
         <div className="w-lg">
-          <div className="flex w-full flex-col items-center justify-start space-y-2 py-10 text-left">
+          <div className="flex w-full flex-col items-center justify-start space-y-1.5 pb-7 text-left">
             <h2
               className={`text-2xl font-semibold ${dark ? "text-foreground" : "text-zinc-950"}`}
             >
@@ -305,12 +357,31 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleSubmit)}>
-                    <div className="relative grid gap-5 overflow-hidden">
+                    <div className="_relative grid gap-5 overflow-hidden">
+                      {!isSignIn && (
+                        <FormField
+                          control={form.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem className="space-y-1.5 px-0.5">
+                              <FormLabel>Full Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Your full name"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
                       <FormField
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem className="space-y-2">
+                          <FormItem className="space-y-1.5 px-0.5">
                             <FormLabel>Email</FormLabel>
                             <FormControl>
                               <Input
@@ -327,7 +398,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                         control={form.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem className="space-y-2">
+                          <FormItem className="space-y-1.5 px-0.5">
                             <div className="flex items-center justify-between">
                               <FormLabel>Password</FormLabel>
                             </div>
@@ -347,7 +418,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                           control={form.control}
                           name="confirmPassword"
                           render={({ field }) => (
-                            <FormItem className="space-y-2">
+                            <FormItem className="space-y-1.5 px-0.5">
                               <FormLabel>Confirm Password</FormLabel>
                               <FormControl>
                                 <PasswordInput
@@ -362,8 +433,8 @@ const AuthForm: React.FC<AuthFormProps> = ({
                       )}
 
                       <Button
-                        type="button"
-                        className="mt-2 bg-[#093AD7] text-white"
+                        type="submit"
+                        className="mt-2 bg-[#093AD7] text-white transition-colors duration-500 ease-in-out hover:bg-[#093AD7]/75"
                         disabled={loading}
                       >
                         {loading ? (
@@ -380,11 +451,11 @@ const AuthForm: React.FC<AuthFormProps> = ({
                         )}
                       </Button>
 
-                      {!isSignIn && (
+                      {/* {!isSignIn && (
                         <div className="bg-background/90 absolute inset-0 z-10 flex items-center justify-center rounded-sm text-zinc-400">
                           <p>Coming Soon</p>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </form>
                 </Form>
@@ -392,7 +463,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
             </div>
           </div>
 
-          <div className="mt-8 flex w-full flex-col items-center space-y-5 text-center text-sm text-[#7E7E7E]">
+          <div className="mt-7 flex w-full flex-col items-center space-y-2 text-center text-sm text-[#7E7E7E]">
             {!isSignIn && (
               <p>
                 By sign up, you agree to our Terms of Service and Privacy

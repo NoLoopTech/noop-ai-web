@@ -18,6 +18,27 @@ export const withLocaleRedirection: MiddlewareFactory = (
     const cookieName = "i18next"
     const res = await next(req, _next)
 
+    // INFO: Detect language preference: cookie -> Accept-Language header -> fallback
+    let lng: string | null = null
+    if (req.cookies.has(cookieName)) {
+      lng = acceptLanguage.get(
+        (req.cookies.get(cookieName) as RequestCookie).value
+      )
+    }
+
+    if (!lng) {
+      lng = acceptLanguage.get(req.headers.get("accept-language") || "")
+    }
+
+    if (!lng) {
+      lng = fallbackLng
+    }
+
+    // INFO: If user visits the root path, redirect to the detected language admin page
+    if (req.nextUrl.pathname === "/") {
+      return NextResponse.redirect(new URL(`/${lng}/admin/`, req.url))
+    }
+
     // TODO: find a better way to exclude images and assets from being redirected
     // TODO: looks like this regex is non-functional. Check out the regex in withDowntimeHandler.ts
     if (

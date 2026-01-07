@@ -1,7 +1,7 @@
 import VerifyEmail from "./partial/VerifyEmail"
 
-const page = async ({ params }: { params: { code: string } }) => {
-  const code = await params.code
+const page = async ({ params }: { params: Promise<{ code: string }> }) => {
+  const { code } = await params
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">

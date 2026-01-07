@@ -357,7 +357,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleSubmit)}>
-                    <div className="_relative grid gap-5 overflow-hidden">
+                    <div className="grid gap-5 overflow-hidden">
                       {!isSignIn && (
                         <FormField
                           control={form.control}
@@ -450,12 +450,6 @@ const AuthForm: React.FC<AuthFormProps> = ({
                           "Sign Up"
                         )}
                       </Button>
-
-                      {/* {!isSignIn && (
-                        <div className="bg-background/90 absolute inset-0 z-10 flex items-center justify-center rounded-sm text-zinc-400">
-                          <p>Coming Soon</p>
-                        </div>
-                      )} */}
                     </div>
                   </form>
                 </Form>

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react"
 import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
 import { useSession } from "next-auth/react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import AuthForm from "@/components/layout/auth/AuthForm"
 import { useApiMutation } from "@/query"
 import { toast } from "@/lib/hooks/useToast"
@@ -22,6 +22,18 @@ const Register = () => {
 
   const { status } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(
+          "onboarding:postAuthStep",
+          OnboardingSteps.PRICING
+        )
+      } catch {}
+    }
+  }, [])
 
   const claimedRef = useRef(false)
 
@@ -55,11 +67,15 @@ const Register = () => {
     claimAgent({ chatBotCode })
   }, [status, chatBotCode, setStep, claimAgent])
 
+  const onSuccess = () => {
+    router.push(`${pathname}/register-success`)
+  }
+
   return (
     <div className="relative flex h-screen w-full items-center justify-center p-2">
       <AuthForm
         mode="signup"
-        onSuccess={() => {}}
+        onSuccess={onSuccess}
         redirectTo={pathname}
         googleLoginProps={{
           postAuthStep: OnboardingSteps.PRICING,

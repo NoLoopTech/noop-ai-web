@@ -286,7 +286,7 @@ const AgentPreview = () => {
       <div className="flex h-14 w-full items-center justify-between rounded-t-md border-b border-zinc-300 bg-zinc-100">
         <div className="flex h-full items-center space-x-2.5 px-4 py-3">
           <h2 className="flex size-7 items-center justify-center rounded-full bg-zinc-500 text-lg font-semibold text-white">
-            N
+            {agentName ? agentName.charAt(0).toUpperCase() : "N"}
           </h2>
 
           <h2 className="text-xl font-semibold text-zinc-950">

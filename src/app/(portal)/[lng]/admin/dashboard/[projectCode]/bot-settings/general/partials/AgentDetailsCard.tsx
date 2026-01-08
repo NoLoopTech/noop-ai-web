@@ -104,7 +104,7 @@ const AgentDetailsCard = ({
           </div>
 
           <div className="flex w-full flex-col space-y-1.5">
-            <p className="text-sm font-medium">Agent Name</p>
+            <p className="text-sm font-medium">Created On</p>
             <div className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-400 dark:border-slate-800 dark:bg-transparent">
               {isUserProjectsLoading ? (
                 <p className="shine-text">Loading...</p>

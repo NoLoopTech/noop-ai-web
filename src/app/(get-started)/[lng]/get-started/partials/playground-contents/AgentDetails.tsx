@@ -40,10 +40,10 @@ enum ToneType {
   NEUTRAL = "neutral"
 }
 
-type ChangeAgentTypePayload = { webName: string; newType: AgentType }
-type ChangeAgentTonePayload = { webName: string; newTone: ToneType }
+type ChangeAgentTypePayload = { chatbotCode: string; newType: AgentType }
+type ChangeAgentTonePayload = { chatbotCode: string; newTone: ToneType }
 type ChangeAgentConfidencePayload = {
-  webName: string
+  chatbotCode: string
   newConfidenceLevel: string
 }
 
@@ -118,7 +118,7 @@ const AgentDetails = () => {
     if (!value) return
     try {
       const payload: ChangeAgentTypePayload = {
-        webName: chatBotCode ?? "",
+        chatbotCode: chatBotCode ?? "",
         newType: value
       }
       changeAgentTypeMutation.mutate(payload)
@@ -132,7 +132,7 @@ const AgentDetails = () => {
     if (!value) return
     try {
       const payload: ChangeAgentTonePayload = {
-        webName: chatBotCode ?? "",
+        chatbotCode: chatBotCode ?? "",
         newTone: value
       }
       changeAgentToneMutation.mutate(payload)
@@ -146,7 +146,7 @@ const AgentDetails = () => {
     try {
       const level = (values[0] / 100).toFixed(2)
       const payload: ChangeAgentConfidencePayload = {
-        webName: chatBotCode ?? "",
+        chatbotCode: chatBotCode ?? "",
         newConfidenceLevel: level
       }
       changeAgentConfidenceMutation.mutate(payload)
@@ -164,7 +164,7 @@ const AgentDetails = () => {
     setAgentType(value)
     try {
       const payload: ChangeAgentTypePayload = {
-        webName: chatBotCode ?? "",
+        chatbotCode: chatBotCode ?? "",
         newType: value
       }
       changeAgentTypeMutation.mutate(payload)
@@ -180,7 +180,7 @@ const AgentDetails = () => {
     setToneType(value)
     try {
       const payload: ChangeAgentTonePayload = {
-        webName: chatBotCode ?? "",
+        chatbotCode: chatBotCode ?? "",
         newTone: value
       }
       changeAgentToneMutation.mutate(payload)
@@ -313,6 +313,7 @@ const AgentDetails = () => {
                 value={[confidence]}
                 max={100}
                 className="my-1"
+                trackClassName="data-[orientation=horizontal]:h-2"
                 step={1}
                 onValueChange={handleSliderValueChange}
                 onValueCommit={handleChangeConfidence}

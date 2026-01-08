@@ -87,8 +87,7 @@ export const sidebarData: SidebarData = {
             },
             {
               title: "Bot Behaviour",
-              url: "/bot-settings/bot-behaviour",
-              disabled: true
+              url: "/bot-settings/bot-behaviour"
             },
             {
               title: "Chat Interface",

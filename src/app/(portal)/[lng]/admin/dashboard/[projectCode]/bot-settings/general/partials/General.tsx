@@ -17,7 +17,7 @@ const General = () => {
 
   const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
     UserProject[]
-  >(["user-projects-bot-settings-general"], `user/me/projects`, () => ({
+  >(["user-projects-bot-settings"], `user/me/projects`, () => ({
     method: "get"
   }))
 

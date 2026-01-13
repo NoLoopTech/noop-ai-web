@@ -95,8 +95,7 @@ export const sidebarData: SidebarData = {
             },
             {
               title: "Data Sources",
-              url: "/bot-settings/data-sources",
-              disabled: true
+              url: "/bot-settings/data-sources"
             },
             {
               title: "Playground",

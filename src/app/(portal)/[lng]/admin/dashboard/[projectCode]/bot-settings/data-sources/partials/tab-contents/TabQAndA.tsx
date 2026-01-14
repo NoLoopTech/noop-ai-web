@@ -7,6 +7,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TabsContent } from "@/components/ui/tabs"
@@ -15,6 +23,7 @@ import { IconDotsVertical } from "@tabler/icons-react"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { useState } from "react"
+import { Separator } from "@/components/ui/separator"
 
 interface TabQAndAProps {
   motionVariants: Variants
@@ -22,6 +31,11 @@ interface TabQAndAProps {
 
 const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
   const { qAndAs, setQAndAs } = useBotSettingsFileSourcesStore()
+  const [isConfirmSourceDeleteDialogOpen, setIsConfirmSourceDeleteDialogOpen] =
+    useState(false)
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
+    null
+  )
 
   const [title, setTitle] = useState("")
   const [question, setQuestion] = useState("")
@@ -58,6 +72,24 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
     setQAndAs(qAndAs.filter((_, i) => i !== idx))
   }
 
+  const openDeleteConfirmForIndex = (idx: number) => () => {
+    setPendingDeleteIndex(idx)
+    setIsConfirmSourceDeleteDialogOpen(true)
+  }
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsConfirmSourceDeleteDialogOpen(open)
+    if (!open) setPendingDeleteIndex(null)
+  }
+
+  const confirmDelete = () => {
+    if (pendingDeleteIndex !== null) {
+      handleDeleteQAndA(pendingDeleteIndex)
+      setPendingDeleteIndex(null)
+    }
+    setIsConfirmSourceDeleteDialogOpen(false)
+  }
+
   return (
     <TabsContent value="qanda">
       <motion.div
@@ -76,8 +108,10 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
           </p>
         </div>
 
+        <Separator className="mb-4 w-[calc(100%-16px)]" />
+
         <ScrollArea
-          className="h-[calc(100vh-15.5rem)] w-full pr-4"
+          className="h-[calc(100vh-16rem)] w-full pr-4"
           scrollbarVariant="tiny"
         >
           <Card className="relative border-zinc-300 bg-white p-0 dark:border-slate-700 dark:bg-slate-950">
@@ -194,7 +228,9 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                     <DropdownMenuContent align="start">
                       <DropdownMenuItem disabled>Edit</DropdownMenuItem>
                       {/* TODO: implement editing functionality */}
-                      <DropdownMenuItem onClick={() => handleDeleteQAndA(idx)}>
+                      <DropdownMenuItem
+                        onClick={openDeleteConfirmForIndex(idx)}
+                      >
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -205,6 +241,44 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
           </div>
         </ScrollArea>
       </motion.div>
+
+      <AlertDialog
+        open={isConfirmSourceDeleteDialogOpen}
+        onOpenChange={handleDialogOpenChange}
+      >
+        <AlertDialogContent className="py-5">
+          {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="sr-only">
+            <AlertDialogTitle>Remove sources confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm removing source from current list
+            </AlertDialogDescription>
+          </div>
+
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex flex-col items-start justify-center space-y-2.5 text-left">
+              <h3 className="text-foreground text-lg font-semibold">
+                Remove source from current list?
+              </h3>
+              <p className="text-foreground text-sm font-normal">
+                The selected file will be removed from the list. The original
+                sources stay the same. The agent is unaffected until Train agent
+                is run.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-end space-x-2.5">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="w-max bg-[#DC2626] p-3 text-white hover:bg-[#DC2626]/80"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </TabsContent>
   )
 }

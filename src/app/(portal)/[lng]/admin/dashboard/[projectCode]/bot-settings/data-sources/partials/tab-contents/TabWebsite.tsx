@@ -124,11 +124,11 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
             </TabsTrigger>
           </TabsList>
 
-          <Separator className="w-[calc(100%-16px)]" />
+          <Separator className="mb-4 w-[calc(100%-16px)]" />
 
           <AnimatePresence mode="wait">
             <ScrollArea
-              className="mt-4 h-[calc(100vh-20rem)] w-full pr-4"
+              className="h-[calc(100vh-20rem)] w-full pr-4"
               scrollbarVariant="tiny"
             >
               <div className="h-full w-full">

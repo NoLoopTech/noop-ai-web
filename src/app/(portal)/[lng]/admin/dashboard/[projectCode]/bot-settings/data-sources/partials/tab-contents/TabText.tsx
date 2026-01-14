@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { InputWithLength } from "@/components/InputWithLength"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { IconDotsVertical } from "@tabler/icons-react"
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+import { calculateTextSizeFromLength, truncateFromMiddle } from "@/utils"
 
 interface TabTextProps {
   motionVariants: Variants
@@ -36,6 +37,11 @@ const TabText = ({ motionVariants }: TabTextProps) => {
   }
 
   const handleAddText = () => {
+    const size = calculateTextSizeFromLength(description).bytes
+    setTextSources([
+      ...textSources,
+      { title, description, size, status: "new" as const }
+    ])
     setTitle("")
     setDescription("")
   }
@@ -43,18 +49,6 @@ const TabText = ({ motionVariants }: TabTextProps) => {
   const handleDeleteText = (idx: number) => {
     setTextSources(textSources.filter((_, i) => i !== idx))
   }
-
-  // INFO: Test data for UI development
-  useEffect(() => {
-    if (textSources.length === 0) {
-      const testTextSources = Array.from({ length: 20 }, (_, i) => ({
-        title: `Test snippet ${i + 1}`,
-        description: `This is test snippet ${i + 1} used for UI testing.`,
-        size: (i + 1) * 128
-      }))
-      setTextSources(testTextSources)
-    }
-  }, [textSources.length, setTextSources])
 
   return (
     <TabsContent value="text">
@@ -140,11 +134,13 @@ const TabText = ({ motionVariants }: TabTextProps) => {
             >
               <p className="w-9/12 text-left">Title</p>
 
-              <p className="w-3/12 text-left">
+              <p className="w-2/12 text-center">Status</p>
+
+              <p className="w-3/12 text-center">
                 Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
               </p>
 
-              <p className="w-1/12 cursor-pointer text-left">Action</p>
+              <p className="w-1/12 cursor-pointer text-left">{""}</p>
             </div>
 
             <div className="flex flex-col pb-5">
@@ -153,13 +149,27 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                   key={idx}
                   className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
                 >
-                  <p className="w-9/12 text-left">{text.title}</p>
+                  <p className="w-9/12 text-left">
+                    {truncateFromMiddle(text.title)}
+                  </p>
 
-                  <p className="w-3/12 text-left">{text.size} bytes</p>
+                  <div className="flex w-2/12 items-center justify-center text-center">
+                    {text.status === "trained" ? (
+                      <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        Trained
+                      </p>
+                    ) : (
+                      <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                        New
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="w-3/12 text-center">{text.size} bytes</p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                      <IconDotsVertical className="h-4 w-4 text-zinc-500" />
+                      <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       <DropdownMenuItem disabled>Edit</DropdownMenuItem>

@@ -10,8 +10,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import FileDropzone from "@/components/FileDropzone"
-import { useEffect } from "react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
+import { truncateFromMiddle } from "@/utils"
 
 interface TabFilesProps {
   motionVariants: Variants
@@ -26,7 +26,8 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
     const entries = selectedFiles.map(file => ({
       name: file.name,
       size: file.size,
-      raw: file
+      raw: file,
+      status: "new" as const
     }))
 
     setFiles([...(files || []), ...entries])
@@ -35,18 +36,6 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
   function handleDeleteFile(idx: number) {
     setFiles(files.filter((_, i) => i !== idx))
   }
-
-  // INFO: Test data for UI development
-  useEffect(() => {
-    if (files.length === 0) {
-      const testFiles = Array.from({ length: 20 }, (_, i) => ({
-        name: `test-file-${i + 1}.pdf`,
-        size: (i + 1) * 1024,
-        raw: undefined
-      }))
-      setFiles(testFiles)
-    }
-  }, [files.length, setFiles])
 
   return (
     <TabsContent value="files">
@@ -91,11 +80,13 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
             >
               <p className="w-9/12 text-left">File Name</p>
 
-              <p className="w-3/12 text-left">
+              <p className="w-2/12 text-center">Status</p>
+
+              <p className="w-3/12 text-center">
                 Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
               </p>
 
-              <p className="w-1/12 cursor-pointer text-left">Action</p>
+              <p className="w-1/12 cursor-pointer text-left">{""}</p>
             </div>
 
             <div className="flex flex-col pb-5">
@@ -104,13 +95,27 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
                   key={idx}
                   className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
                 >
-                  <p className="w-9/12 text-left">{file.name}</p>
+                  <p className="w-9/12 text-left">
+                    {truncateFromMiddle(file.name)}
+                  </p>
 
-                  <p className="w-3/12 text-left">{file.size} bytes</p>
+                  <div className="flex w-2/12 items-center justify-center text-center">
+                    {file.status === "trained" ? (
+                      <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        Trained
+                      </p>
+                    ) : (
+                      <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                        New
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="w-3/12 text-center">{file.size} bytes</p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                      <IconDotsVertical className="h-4 w-4 text-zinc-500" />
+                      <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       <DropdownMenuItem disabled>Edit</DropdownMenuItem>

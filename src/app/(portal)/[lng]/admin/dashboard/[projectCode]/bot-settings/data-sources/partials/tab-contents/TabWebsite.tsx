@@ -28,24 +28,28 @@ interface TabWebsiteProps {
 
 const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const urlSchema = z.string().url({ message: "Please enter a valid URL" })
-  const [protocol, setProtocol] = useState("https://")
+  const [protocol, setProtocol] = useState<"http://" | "https://">("https://")
   const [url, setUrl] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("crawl-links")
+  const [isFromTrainedWebsiteLinks, setIsFromTrainedWebsiteLinks] =
+    useState(false)
 
   const [showSelectWarning, setShowSelectWarning] = useState(false)
 
-  const handleProtocolSelect = (selected: string) => () => {
+  const handleProtocolSelect = (selected: "http://" | "https://") => () => {
     setProtocol(selected)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsFromTrainedWebsiteLinks(false)
     setUrl(e.target.value)
     const result = urlSchema.safeParse(protocol + e.target.value)
     setError(result.success ? null : result.error.errors[0].message)
   }
 
   const handleFetchLinks = () => {
+    setIsFromTrainedWebsiteLinks(false)
     const result = urlSchema.safeParse(protocol + url)
     if (!result.success) {
       setError(result.error.errors[0].message)
@@ -55,6 +59,8 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   }
 
   const {
+    trainedBaseUrl,
+    trainedWebsiteLinks,
     websiteLinks,
     setWebsiteLinks,
     toggleWebsiteLink,
@@ -74,16 +80,12 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     }
   }
 
-  // INFO: Test data for UI development
   useEffect(() => {
-    if (websiteLinks.length === 0) {
-      const testLinks = Array.from({ length: 20 }, (_, i) => ({
-        url: `https://example.com/page-${i + 1}`,
-        selected: i < 3
-      }))
-      setWebsiteLinks(testLinks)
-    }
-  }, [])
+    setIsFromTrainedWebsiteLinks(true)
+    setProtocol(trainedBaseUrl.protocol)
+    setUrl(trainedBaseUrl.domain)
+    setWebsiteLinks(trainedWebsiteLinks)
+  }, [trainedWebsiteLinks, trainedBaseUrl])
 
   return (
     <TabsContent value="website">
@@ -206,7 +208,9 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                           <div className="mt-4 flex items-center justify-end space-x-4">
                             <Button
                               onClick={handleFetchLinks}
-                              disabled={!url || !!error}
+                              disabled={
+                                !url || !!error || isFromTrainedWebsiteLinks
+                              }
                             >
                               <p>Fetch Links</p>
                             </Button>

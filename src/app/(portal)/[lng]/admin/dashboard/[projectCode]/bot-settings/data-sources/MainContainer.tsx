@@ -1,9 +1,153 @@
 "use client"
 
+import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import SourcesPanel from "./partials/SourcesPanel"
 import TabContainer from "./partials/TabContainer"
+import { useBotSettingsFileSourcesStore } from "./store/botSettingsFileSources.store"
+import { useApiQuery } from "@/query"
+import { useEffect } from "react"
+import { calculateTextSizeFromLength } from "@/utils"
+
+interface ApiBaseUrl {
+  protocol: "http://" | "https://"
+  domain: string
+}
+
+interface ApiWebUrl {
+  url: string
+}
+
+interface ApiQaPair {
+  answer: string
+  question: string
+  qAndATitle?: string
+}
+
+interface ApiTextTitlePair {
+  textTitle: string
+  text?: string
+}
+
+interface ApiSocialMedia {
+  platform: string
+  url: string
+}
+
+interface TrainedSourcesResponse {
+  qaPairs: ApiQaPair[]
+  baseUrl: ApiBaseUrl
+  webUrls: ApiWebUrl[]
+  textTitlePairs: ApiTextTitlePair[]
+  socialMedia?: ApiSocialMedia[]
+}
+
+interface TrainedAzureFile {
+  fileName: string
+  blobName: string
+  size: number
+  lastModified: string
+  contentType: string
+}
+
+interface TrainedAzureFilesResponse {
+  files: TrainedAzureFile[]
+}
 
 const MainContainer = () => {
+  const projectId = useProjectCode()
+
+  const {
+    setTrainedBaseUrl,
+    setTrainedWebsiteLinks,
+    setTrainedFiles,
+    setTrainedTextSources,
+    setTrainedQAndAs,
+    setTrainedSocialMedia,
+    setFiles,
+    setTextSources,
+    setQAndAs
+  } = useBotSettingsFileSourcesStore()
+
+  const { data: otherTrainedSources, isLoading: isOtherTrainedSourcesLoading } =
+    useApiQuery<TrainedSourcesResponse>(
+      ["botsettings-trained-sources", projectId],
+      `/botsettings/${projectId}/trained-sources`,
+      undefined,
+      { enabled: !Number.isNaN(projectId) }
+    )
+
+  const { data: trainedAzureFiles, isLoading: isTrainedAzureFilesLoading } =
+    useApiQuery<TrainedAzureFilesResponse>(
+      ["botsettings-trained-azure-files", projectId],
+      `/botsettings/${projectId}/files`,
+      undefined,
+      { enabled: !Number.isNaN(projectId) }
+    )
+
+  const isTrainedSourcesLoading =
+    isOtherTrainedSourcesLoading || isTrainedAzureFilesLoading
+
+  useEffect(() => {
+    if (!otherTrainedSources) return
+
+    const baseUrl = {
+      protocol: otherTrainedSources.baseUrl.protocol,
+      domain: otherTrainedSources.baseUrl.domain
+    }
+
+    const websiteLinks = otherTrainedSources.webUrls.map(w =>
+      typeof w === "string"
+        ? { url: w, selected: true }
+        : { url: w.url, selected: true }
+    )
+
+    const files = (trainedAzureFiles?.files ?? []).map(f => ({
+      name: f.fileName,
+      size: f.size,
+      status: "trained" as const
+    }))
+
+    const textSources = otherTrainedSources.textTitlePairs.map(t => ({
+      title: t.textTitle ?? "",
+      description: t.text ?? "",
+      size: calculateTextSizeFromLength(t.text ?? "").bytes,
+      status: "trained" as const
+    }))
+
+    const qAndAs = otherTrainedSources.qaPairs.map(q => ({
+      title: q.qAndATitle ?? "",
+      question: q.question ?? "",
+      answer: q.answer ?? "",
+      size: calculateTextSizeFromLength(q.answer ?? "").bytes,
+      status: "trained" as const
+    }))
+
+    const socialMedia = (otherTrainedSources.socialMedia ?? []).map(s => ({
+      platform: s.platform ?? "",
+      url: s.url ?? ""
+    }))
+
+    setTrainedBaseUrl(baseUrl)
+    setTrainedWebsiteLinks(websiteLinks)
+    setTrainedFiles(files)
+    setTrainedTextSources(textSources)
+    setTrainedQAndAs(qAndAs)
+    setTrainedSocialMedia(socialMedia)
+
+    setFiles(files)
+    setTextSources(textSources)
+    setQAndAs(qAndAs)
+  }, [
+    otherTrainedSources,
+    trainedAzureFiles,
+    setTrainedBaseUrl,
+    setTrainedFiles,
+    setTrainedQAndAs,
+    setTrainedSocialMedia,
+    setTrainedTextSources,
+    setTrainedWebsiteLinks
+  ])
+
   return (
     <section className="flex h-[calc(100vh-64px)] w-full">
       <div className="flex w-full flex-col border-r border-zinc-200 px-5 py-4 pr-2 dark:border-inherit">
@@ -17,12 +161,12 @@ const MainContainer = () => {
         </div>
 
         <div className="mx-auto mt-8 mb-5 flex w-full flex-col space-y-7">
-          <TabContainer />
+          <TabContainer isTrainedSourcesLoading={isTrainedSourcesLoading} />
         </div>
       </div>
 
       <div className="flex h-full w-md max-w-md bg-zinc-100 dark:bg-slate-900">
-        <SourcesPanel />
+        <SourcesPanel isTrainedSourcesLoading={isTrainedSourcesLoading} />
       </div>
     </section>
   )

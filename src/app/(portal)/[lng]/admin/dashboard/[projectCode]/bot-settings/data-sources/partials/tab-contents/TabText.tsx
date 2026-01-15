@@ -103,7 +103,7 @@ const TabText = ({ motionVariants }: TabTextProps) => {
         <Separator className="mb-4 w-[calc(100%-16px)]" />
 
         <ScrollArea
-          className="h-[calc(100vh-16rem)] w-full pr-4"
+          className="h-[calc(100vh-16.5rem)] w-full pr-4"
           scrollbarVariant="tiny"
         >
           <Card className="relative border-zinc-300 bg-white p-0 dark:border-slate-700 dark:bg-slate-950">
@@ -238,12 +238,12 @@ const TabText = ({ motionVariants }: TabTextProps) => {
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="flex flex-col items-start justify-center space-y-2.5 text-left">
               <h3 className="text-foreground text-lg font-semibold">
-                Remove source from current list?
+                Delete this source from training?
               </h3>
-              <p className="text-foreground text-sm font-normal">
-                The selected file will be removed from the list. The original
-                sources stay the same. The agent is unaffected until Train agent
-                is run.
+              <p className="text-foreground text-sm/normal font-normal">
+                This will remove the source from the training list. The original
+                file or link won’t be deleted. The agent’s current behavior
+                won’t change until you retrain it.
               </p>
             </div>
           </div>

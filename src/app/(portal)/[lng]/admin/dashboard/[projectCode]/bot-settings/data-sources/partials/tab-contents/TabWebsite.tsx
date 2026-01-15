@@ -16,11 +16,22 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangleIcon, ChevronDownIcon } from "lucide-react"
+import { ChevronDownIcon } from "lucide-react"
 import { motion, Variants, AnimatePresence } from "motion/react"
 import { useEffect, useState } from "react"
 import { z } from "zod"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
+import { useApiMutation } from "@/query"
+import Image from "next/image"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
+import { IconLoader } from "@tabler/icons-react"
 
 interface TabWebsiteProps {
   motionVariants: Variants
@@ -34,8 +45,24 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const [activeTab, setActiveTab] = useState("crawl-links")
   const [isFromTrainedWebsiteLinks, setIsFromTrainedWebsiteLinks] =
     useState(false)
-
   const [showSelectWarning, setShowSelectWarning] = useState(false)
+
+  const {
+    trainedBaseUrl,
+    trainedWebsiteLinks,
+    websiteLinks,
+    setBaseUrl,
+    setWebsiteLinks,
+    toggleWebsiteLink,
+    setShowUrlWarning,
+    showUrlWarning
+  } = useBotSettingsFileSourcesStore()
+
+  useEffect(() => {
+    setIsFromTrainedWebsiteLinks(true)
+    setProtocol(trainedBaseUrl.protocol)
+    setUrl(trainedBaseUrl.domain)
+  }, [trainedWebsiteLinks, trainedBaseUrl])
 
   const handleProtocolSelect = (selected: "http://" | "https://") => () => {
     setProtocol(selected)
@@ -48,25 +75,44 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setError(result.success ? null : result.error.errors[0].message)
   }
 
+  const fetchLinksMutation = useApiMutation<
+    { childUrls: string[]; baseUrl: string },
+    { url: string }
+  >("/onboarding/scrape", "post", {
+    onSuccess: data => {
+      if (data.childUrls.length > 10) {
+        setShowSelectWarning(true)
+        setShowUrlWarning(true)
+        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
+      } else {
+        setShowSelectWarning(false)
+        setShowUrlWarning(false)
+        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
+      }
+    }
+  })
+
   const handleFetchLinks = () => {
-    setIsFromTrainedWebsiteLinks(false)
     const result = urlSchema.safeParse(protocol + url)
     if (!result.success) {
       setError(result.error.errors[0].message)
       return
     }
     setError(null)
+    fetchLinksMutation.mutate({ url: protocol + url })
+    setBaseUrl({ protocol, domain: url })
   }
 
-  const {
-    trainedBaseUrl,
-    trainedWebsiteLinks,
-    websiteLinks,
-    setWebsiteLinks,
-    toggleWebsiteLink,
-    setShowUrlWarning,
-    showUrlWarning
-  } = useBotSettingsFileSourcesStore()
+  const handleSelectFirst10 = () => {
+    setWebsiteLinks(
+      websiteLinks.map((link, idx) => ({
+        url: link.url,
+        selected: idx < 10
+      }))
+    )
+    setShowSelectWarning(false)
+    setShowUrlWarning(false)
+  }
 
   const handleToggleWebsiteLink = (idx: number) => () => {
     const nextLinks = websiteLinks.map((l, i) =>
@@ -79,13 +125,6 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
       setShowSelectWarning(false)
     }
   }
-
-  useEffect(() => {
-    setIsFromTrainedWebsiteLinks(true)
-    setProtocol(trainedBaseUrl.protocol)
-    setUrl(trainedBaseUrl.domain)
-    setWebsiteLinks(trainedWebsiteLinks)
-  }, [trainedWebsiteLinks, trainedBaseUrl])
 
   return (
     <TabsContent value="website">
@@ -209,10 +248,20 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                             <Button
                               onClick={handleFetchLinks}
                               disabled={
-                                !url || !!error || isFromTrainedWebsiteLinks
+                                !url ||
+                                !!error ||
+                                fetchLinksMutation.isPending ||
+                                isFromTrainedWebsiteLinks
                               }
                             >
-                              <p>Fetch Links</p>
+                              {fetchLinksMutation.isPending ? (
+                                <div className="flex items-center space-x-2">
+                                  <IconLoader className="inline-block size-4 animate-spin" />
+                                  <p>Fetching...</p>
+                                </div>
+                              ) : (
+                                <p>Fetch Links</p>
+                              )}
                             </Button>
                           </div>
                         </div>
@@ -232,14 +281,6 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                           <span className="px-0.5">/</span>
                           {websiteLinks.length} links
                         </p>
-
-                        {/* TODO: Update this section's UI */}
-                        <div className="flex items-center space-x-2 text-xs font-medium">
-                          <AlertTriangleIcon className="size-3.5" />
-                          <p>
-                            10000<span className="px-0.5">/</span>10000
-                          </p>
-                        </div>
                       </div>
 
                       <div className="flex flex-col pb-5">
@@ -302,6 +343,49 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
           </AnimatePresence>
         </Tabs>
       </motion.div>
+
+      {/* Alert dialog for confirming first 10 links selection */}
+      <AlertDialog open={showSelectWarning} onOpenChange={setShowSelectWarning}>
+        <AlertDialogContent className="py-5">
+          {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="sr-only">
+            <AlertDialogTitle>
+              Confirm first 10 links selection
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm selecting the first 10 links from the website.
+            </AlertDialogDescription>
+          </div>
+
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <Image
+              src="/assets/icons/onboarding-max-links-warning-icon.png"
+              alt="onboarding max links warning icon"
+              width={57}
+              height={27}
+            />
+
+            <div className="flex flex-col items-center justify-center space-y-1 text-center">
+              <h3 className="text-foreground text-lg font-semibold">
+                Looks like your site is big!
+              </h3>
+              <p className="text-muted-foreground text-sm font-medium">
+                Your website has more than 10 links. The free plan allows only
+                10. Do you want to select the first 10 links in order?
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-center space-x-3">
+            <AlertDialogCancel className="border-none shadow-none">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleSelectFirst10} className="w-max">
+              Select
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </TabsContent>
   )
 }

@@ -8,6 +8,9 @@ type File = {
   raw?: globalThis.File
   status?: "trained" | "new"
 }
+type TrainedPublicFileUrl = {
+  url: string
+}
 type TextSource = {
   title: string
   description: string
@@ -33,6 +36,8 @@ interface BotSettingsFileSourcesState {
 
   trainedFiles: File[]
   setTrainedFiles: (files: File[]) => void
+  trainedPublicFileUrls: TrainedPublicFileUrl[]
+  setTrainedPublicFileUrls: (urls: TrainedPublicFileUrl[]) => void
 
   trainedTextSources: TextSource[]
   setTrainedTextSources: (texts: TextSource[]) => void
@@ -85,6 +90,8 @@ export const useBotSettingsFileSourcesStore =
 
     trainedFiles: [],
     setTrainedFiles: files => set({ trainedFiles: files }),
+    trainedPublicFileUrls: [],
+    setTrainedPublicFileUrls: urls => set({ trainedPublicFileUrls: urls }),
 
     trainedTextSources: [],
     setTrainedTextSources: texts => set({ trainedTextSources: texts }),

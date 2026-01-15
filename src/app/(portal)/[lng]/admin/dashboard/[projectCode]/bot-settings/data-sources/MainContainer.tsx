@@ -44,6 +44,7 @@ interface TrainedSourcesResponse {
 interface TrainedAzureFile {
   fileName: string
   blobName: string
+  publicUrl: string
   size: number
   lastModified: string
   contentType: string
@@ -60,9 +61,12 @@ const MainContainer = () => {
     setTrainedBaseUrl,
     setTrainedWebsiteLinks,
     setTrainedFiles,
+    setTrainedPublicFileUrls,
     setTrainedTextSources,
     setTrainedQAndAs,
     setTrainedSocialMedia,
+    setBaseUrl,
+    setWebsiteLinks,
     setFiles,
     setTextSources,
     setQAndAs
@@ -72,15 +76,19 @@ const MainContainer = () => {
     useApiQuery<TrainedSourcesResponse>(
       ["botsettings-trained-sources", projectId],
       `/botsettings/${projectId}/trained-sources`,
-      undefined,
+      () => ({
+        method: "get"
+      }),
       { enabled: !Number.isNaN(projectId) }
     )
 
   const { data: trainedAzureFiles, isLoading: isTrainedAzureFilesLoading } =
     useApiQuery<TrainedAzureFilesResponse>(
       ["botsettings-trained-azure-files", projectId],
-      `/botsettings/${projectId}/files`,
-      undefined,
+      `/botsettings/${projectId}/azure-files`,
+      () => ({
+        method: "get"
+      }),
       { enabled: !Number.isNaN(projectId) }
     )
 
@@ -107,6 +115,10 @@ const MainContainer = () => {
       status: "trained" as const
     }))
 
+    const trainedPublicFileUrls = (trainedAzureFiles?.files ?? []).map(f => ({
+      url: f.publicUrl
+    }))
+
     const textSources = otherTrainedSources.textTitlePairs.map(t => ({
       title: t.textTitle ?? "",
       description: t.text ?? "",
@@ -130,10 +142,13 @@ const MainContainer = () => {
     setTrainedBaseUrl(baseUrl)
     setTrainedWebsiteLinks(websiteLinks)
     setTrainedFiles(files)
+    setTrainedPublicFileUrls(trainedPublicFileUrls)
     setTrainedTextSources(textSources)
     setTrainedQAndAs(qAndAs)
     setTrainedSocialMedia(socialMedia)
 
+    setBaseUrl(baseUrl)
+    setWebsiteLinks(websiteLinks)
     setFiles(files)
     setTextSources(textSources)
     setQAndAs(qAndAs)

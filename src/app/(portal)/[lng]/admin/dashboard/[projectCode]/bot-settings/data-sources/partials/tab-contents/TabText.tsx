@@ -7,7 +7,7 @@ import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { InputWithLength } from "@/components/InputWithLength"
 import { useState } from "react"
-import { IconDotsVertical } from "@tabler/icons-react"
+import { IconDotsVertical, IconTrash } from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -210,8 +210,11 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                       {/* TODO: implement editing functionality */}
                       <DropdownMenuItem
                         onClick={openDeleteConfirmForIndex(idx)}
+                        className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
                       >
-                        Delete
+                        <p>Delete</p>
+
+                        <IconTrash className="h-3.5 w-3.5" />
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

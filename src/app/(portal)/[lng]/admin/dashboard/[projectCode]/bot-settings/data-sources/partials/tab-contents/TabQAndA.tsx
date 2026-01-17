@@ -19,7 +19,7 @@ import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TabsContent } from "@/components/ui/tabs"
 import { calculateTextSizeFromLength, truncateFromMiddle } from "@/utils"
-import { IconDotsVertical } from "@tabler/icons-react"
+import { IconDotsVertical, IconTrash } from "@tabler/icons-react"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { useState } from "react"
@@ -230,8 +230,11 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                       {/* TODO: implement editing functionality */}
                       <DropdownMenuItem
                         onClick={openDeleteConfirmForIndex(idx)}
+                        className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
                       >
-                        Delete
+                        <p>Delete</p>
+
+                        <IconTrash className="h-3.5 w-3.5" />
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

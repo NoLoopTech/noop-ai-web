@@ -1,6 +1,6 @@
 import { TabsContent } from "@/components/ui/tabs"
 import { motion, Variants } from "motion/react"
-import { IconDotsVertical } from "@tabler/icons-react"
+import { IconDotsVertical, IconTrash } from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,15 +10,35 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import FileDropzone from "@/components/FileDropzone"
-import { useEffect } from "react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
+import { truncateFromMiddle } from "@/utils"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
+import { useState } from "react"
+import { Separator } from "@/components/ui/separator"
 
 interface TabFilesProps {
   motionVariants: Variants
 }
 
 const TabFiles = ({ motionVariants }: TabFilesProps) => {
-  const { files, setFiles } = useBotSettingsFileSourcesStore()
+  const {
+    files,
+    setFiles,
+    trainedFilesToBeDeleted,
+    setTrainedFilesToBeDeleted
+  } = useBotSettingsFileSourcesStore()
+  const [isConfirmSourceDeleteDialogOpen, setIsConfirmSourceDeleteDialogOpen] =
+    useState(false)
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
+    null
+  )
 
   function handleFileChange(selectedFiles: File[] | null) {
     if (!selectedFiles || selectedFiles.length === 0) return
@@ -26,7 +46,8 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
     const entries = selectedFiles.map(file => ({
       name: file.name,
       size: file.size,
-      raw: file
+      raw: file,
+      status: "new" as const
     }))
 
     setFiles([...(files || []), ...entries])
@@ -36,17 +57,32 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
     setFiles(files.filter((_, i) => i !== idx))
   }
 
-  // INFO: Test data for UI development
-  useEffect(() => {
-    if (files.length === 0) {
-      const testFiles = Array.from({ length: 20 }, (_, i) => ({
-        name: `test-file-${i + 1}.pdf`,
-        size: (i + 1) * 1024,
-        raw: undefined
-      }))
-      setFiles(testFiles)
+  const openDeleteConfirmForIndex = (idx: number) => () => {
+    setPendingDeleteIndex(idx)
+    setIsConfirmSourceDeleteDialogOpen(true)
+  }
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsConfirmSourceDeleteDialogOpen(open)
+    if (!open) setPendingDeleteIndex(null)
+  }
+
+  const confirmDelete = () => {
+    if (pendingDeleteIndex !== null) {
+      // INFO: if the file being deleted is already trained, queue it for deletion on "Train Agent" click
+      const fileToDelete = files?.[pendingDeleteIndex]
+      if (fileToDelete && fileToDelete.status === "trained") {
+        const existing = trainedFilesToBeDeleted?.blobNames || []
+        setTrainedFilesToBeDeleted({
+          blobNames: [...existing, fileToDelete.name]
+        })
+      }
+
+      handleDeleteFile(pendingDeleteIndex)
+      setPendingDeleteIndex(null)
     }
-  }, [files.length, setFiles])
+    setIsConfirmSourceDeleteDialogOpen(false)
+  }
 
   return (
     <TabsContent value="files">
@@ -66,8 +102,10 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
           </p>
         </div>
 
+        <Separator className="mb-4 w-[calc(100%-16px)]" />
+
         <ScrollArea
-          className="h-[calc(100vh-15.5rem)] w-full pr-4"
+          className="h-[calc(100vh-16.5rem)] w-full pr-4"
           scrollbarVariant="tiny"
         >
           <Card className="relative border-zinc-300 bg-white p-0 dark:border-slate-700 dark:bg-slate-950">
@@ -91,11 +129,13 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
             >
               <p className="w-9/12 text-left">File Name</p>
 
-              <p className="w-3/12 text-left">
+              <p className="w-2/12 text-center">Status</p>
+
+              <p className="w-3/12 text-center">
                 Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
               </p>
 
-              <p className="w-1/12 cursor-pointer text-left">Action</p>
+              <p className="w-1/12 cursor-pointer text-left">{""}</p>
             </div>
 
             <div className="flex flex-col pb-5">
@@ -104,19 +144,36 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
                   key={idx}
                   className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
                 >
-                  <p className="w-9/12 text-left">{file.name}</p>
+                  <p className="w-9/12 text-left">
+                    {truncateFromMiddle(file.name)}
+                  </p>
 
-                  <p className="w-3/12 text-left">{file.size} bytes</p>
+                  <div className="flex w-2/12 items-center justify-center text-center">
+                    {file.status === "trained" ? (
+                      <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        Trained
+                      </p>
+                    ) : (
+                      <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                        New
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="w-3/12 text-center">{file.size} bytes</p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                      <IconDotsVertical className="h-4 w-4 text-zinc-500" />
+                      <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                      <DropdownMenuItem disabled>Edit</DropdownMenuItem>
-                      {/* TODO: implement editing functionality */}
-                      <DropdownMenuItem onClick={() => handleDeleteFile(idx)}>
-                        Delete
+                      <DropdownMenuItem
+                        onClick={openDeleteConfirmForIndex(idx)}
+                        className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
+                      >
+                        <p>Delete</p>
+
+                        <IconTrash className="h-3.5 w-3.5" />
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -126,6 +183,44 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
           </div>
         </ScrollArea>
       </motion.div>
+
+      <AlertDialog
+        open={isConfirmSourceDeleteDialogOpen}
+        onOpenChange={handleDialogOpenChange}
+      >
+        <AlertDialogContent className="py-5">
+          {/* Add visually screen reader only title & description for accessibility. without AlertDialogTitle it shows a error */}
+          <div className="sr-only">
+            <AlertDialogTitle>Remove sources confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm removing source from current list
+            </AlertDialogDescription>
+          </div>
+
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex flex-col items-start justify-center space-y-2.5 text-left">
+              <h3 className="text-foreground text-lg font-semibold">
+                Delete this source from training?
+              </h3>
+              <p className="text-foreground text-sm/normal font-normal">
+                This will remove the source from the training list. The original
+                file or link won’t be deleted. The agent’s current behavior
+                won’t change until you retrain it.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-end space-x-2.5">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="w-max bg-[#DC2626] p-3 text-white hover:bg-[#DC2626]/80"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </TabsContent>
   )
 }

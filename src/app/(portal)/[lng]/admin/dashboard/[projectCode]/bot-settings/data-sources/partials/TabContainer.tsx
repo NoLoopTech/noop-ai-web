@@ -9,13 +9,17 @@ import TabText from "./tab-contents/TabText"
 import TabQAndA from "./tab-contents/TabQAndA"
 import TabSocialMedia from "./tab-contents/TabSocialMedia"
 
+interface TabContainerProps {
+  isTrainedSourcesLoading: boolean
+}
+
 const tabContentVariants = {
   initial: { opacity: 0, x: 20 },
   animate: { opacity: 1, x: 0 },
   exit: { opacity: 0, x: -20 }
 }
 
-const TabContainer = () => {
+const TabContainer = ({ isTrainedSourcesLoading }: TabContainerProps) => {
   const [activeTab, setActiveTab] = useState("website")
 
   return (
@@ -36,6 +40,7 @@ const TabContainer = () => {
 
           <TabsTrigger
             value="files"
+            disabled={isTrainedSourcesLoading}
             className="bg-background flex w-full items-center justify-start rounded-md stroke-none px-4 py-1.5 text-left text-zinc-600 hover:bg-zinc-200 focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-zinc-200 data-[state=active]:stroke-none data-[state=active]:text-zinc-600 data-[state=active]:shadow-none dark:text-zinc-300 dark:hover:bg-slate-700/50 dark:data-[state=active]:bg-slate-800"
           >
             <p>Files</p>
@@ -43,6 +48,7 @@ const TabContainer = () => {
 
           <TabsTrigger
             value="text"
+            disabled={isTrainedSourcesLoading}
             className="bg-background flex w-full items-center justify-start rounded-md stroke-none px-4 py-1.5 text-left text-zinc-600 hover:bg-zinc-200 focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-zinc-200 data-[state=active]:stroke-none data-[state=active]:text-zinc-600 data-[state=active]:shadow-none dark:text-zinc-300 dark:hover:bg-slate-700/50 dark:data-[state=active]:bg-slate-800"
           >
             <p>Text</p>
@@ -50,6 +56,7 @@ const TabContainer = () => {
 
           <TabsTrigger
             value="qanda"
+            disabled={isTrainedSourcesLoading}
             className="bg-background flex w-full items-center justify-start rounded-md stroke-none px-4 py-1.5 text-left text-zinc-600 hover:bg-zinc-200 focus-visible:ring-1 focus-visible:ring-zinc-400 data-[state=active]:bg-zinc-200 data-[state=active]:stroke-none data-[state=active]:text-zinc-600 data-[state=active]:shadow-none dark:text-zinc-300 dark:hover:bg-slate-700/50 dark:data-[state=active]:bg-slate-800"
           >
             <p>Q&A</p>
@@ -65,27 +72,33 @@ const TabContainer = () => {
         </TabsList>
 
         <AnimatePresence mode="wait">
-          <div className="w-full">
-            {activeTab === "website" && (
-              <TabWebsite motionVariants={tabContentVariants} />
-            )}
+          {isTrainedSourcesLoading ? (
+            <div className="flex h-40 w-full items-center justify-center">
+              <p className="shine-text">Loading...</p>
+            </div>
+          ) : (
+            <div className="w-full">
+              {activeTab === "website" && (
+                <TabWebsite motionVariants={tabContentVariants} />
+              )}
 
-            {activeTab === "files" && (
-              <TabFiles motionVariants={tabContentVariants} />
-            )}
+              {activeTab === "files" && (
+                <TabFiles motionVariants={tabContentVariants} />
+              )}
 
-            {activeTab === "text" && (
-              <TabText motionVariants={tabContentVariants} />
-            )}
+              {activeTab === "text" && (
+                <TabText motionVariants={tabContentVariants} />
+              )}
 
-            {activeTab === "qanda" && (
-              <TabQAndA motionVariants={tabContentVariants} />
-            )}
+              {activeTab === "qanda" && (
+                <TabQAndA motionVariants={tabContentVariants} />
+              )}
 
-            {activeTab === "socialmedia" && (
-              <TabSocialMedia motionVariants={tabContentVariants} />
-            )}
-          </div>
+              {activeTab === "socialmedia" && (
+                <TabSocialMedia motionVariants={tabContentVariants} />
+              )}
+            </div>
+          )}
         </AnimatePresence>
       </Tabs>
     </div>

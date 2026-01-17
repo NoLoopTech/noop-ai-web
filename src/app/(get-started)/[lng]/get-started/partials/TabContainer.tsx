@@ -40,10 +40,11 @@ const tabContentVariants = {
 
 interface TrainAgentRequest {
   chatBotCode: string
+  baseUrl?: { protocol: "http://" | "https://"; domain: string }
   webUrls?: string[]
   filePaths?: string[]
   cleanText?: string
-  qaPairs?: Array<{ question: string; answer: string }>
+  qaPairs?: Array<{ qAndATitle: string; question: string; answer: string }>
   textTitleTextPairs?: Array<{ textTitle: string; text: string }>
 }
 
@@ -76,6 +77,7 @@ const TabContainer = () => {
   const {
     setStep,
     showUrlWarning,
+    baseUrl,
     websiteLinks,
     files,
     textSources,
@@ -278,6 +280,7 @@ const TabContainer = () => {
 
         const finalPayload: TrainAgentRequest = {
           chatBotCode,
+          baseUrl: baseUrl,
           webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
           textTitleTextPairs:
             textSources.length > 0
@@ -288,7 +291,11 @@ const TabContainer = () => {
               : undefined,
           qaPairs:
             qAndAs.length > 0
-              ? qAndAs.map(q => ({ question: q.question, answer: q.answer }))
+              ? qAndAs.map(q => ({
+                  qAndATitle: q.title,
+                  question: q.question,
+                  answer: q.answer
+                }))
               : undefined,
           filePaths: uploadedFileUrls
         }
@@ -544,7 +551,14 @@ const TabContainer = () => {
                           </div>
 
                           <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
-                            <p>25</p>
+                            <p>
+                              {qAndAs
+                                .reduce(
+                                  (acc, curr) => acc + curr.size / 1024,
+                                  0
+                                )
+                                .toFixed(3)}
+                            </p>
                             <p>KB</p>
                           </div>
                         </div>

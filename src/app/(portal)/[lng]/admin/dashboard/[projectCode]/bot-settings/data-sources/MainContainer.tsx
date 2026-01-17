@@ -14,7 +14,7 @@ interface ApiBaseUrl {
 }
 
 interface ApiWebUrl {
-  url: string
+  urls: string[]
 }
 
 interface ApiQaPair {
@@ -36,7 +36,7 @@ interface ApiSocialMedia {
 interface TrainedSourcesResponse {
   qaPairs: ApiQaPair[]
   baseUrl: ApiBaseUrl
-  webUrls: ApiWebUrl[]
+  webUrls: ApiWebUrl
   textTitlePairs: ApiTextTitlePair[]
   socialMedia?: ApiSocialMedia[]
 }
@@ -103,11 +103,10 @@ const MainContainer = () => {
       domain: otherTrainedSources.baseUrl.domain
     }
 
-    const websiteLinks = otherTrainedSources.webUrls.map(w =>
-      typeof w === "string"
-        ? { url: w, selected: true }
-        : { url: w.url, selected: true }
-    )
+    const websiteLinks = (otherTrainedSources.webUrls?.urls ?? []).map(w => ({
+      url: w,
+      selected: true
+    }))
 
     const files = (trainedAzureFiles?.files ?? []).map(f => ({
       name: f.fileName,
@@ -115,9 +114,9 @@ const MainContainer = () => {
       status: "trained" as const
     }))
 
-    const trainedPublicFileUrls = (trainedAzureFiles?.files ?? []).map(f => ({
-      url: f.publicUrl
-    }))
+    const trainedPublicFileUrls = {
+      urls: (trainedAzureFiles?.files ?? []).map(f => f.publicUrl)
+    }
 
     const textSources = otherTrainedSources.textTitlePairs.map(t => ({
       title: t.textTitle ?? "",
@@ -139,7 +138,9 @@ const MainContainer = () => {
       url: s.url ?? ""
     }))
 
-    setTrainedBaseUrl(baseUrl)
+    setTrainedBaseUrl(
+      websiteLinks.length > 0 ? baseUrl : { protocol: "https://", domain: "" }
+    )
     setTrainedWebsiteLinks(websiteLinks)
     setTrainedFiles(files)
     setTrainedPublicFileUrls(trainedPublicFileUrls)

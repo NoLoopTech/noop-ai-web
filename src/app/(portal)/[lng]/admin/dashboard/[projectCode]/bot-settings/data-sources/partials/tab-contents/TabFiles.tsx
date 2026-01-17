@@ -28,7 +28,12 @@ interface TabFilesProps {
 }
 
 const TabFiles = ({ motionVariants }: TabFilesProps) => {
-  const { files, setFiles } = useBotSettingsFileSourcesStore()
+  const {
+    files,
+    setFiles,
+    trainedFilesToBeDeleted,
+    setTrainedFilesToBeDeleted
+  } = useBotSettingsFileSourcesStore()
   const [isConfirmSourceDeleteDialogOpen, setIsConfirmSourceDeleteDialogOpen] =
     useState(false)
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
@@ -64,6 +69,15 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
 
   const confirmDelete = () => {
     if (pendingDeleteIndex !== null) {
+      // INFO: if the file being deleted is already trained, queue it for deletion on "Train Agent" click
+      const fileToDelete = files?.[pendingDeleteIndex]
+      if (fileToDelete && fileToDelete.status === "trained") {
+        const existing = trainedFilesToBeDeleted?.blobNames || []
+        setTrainedFilesToBeDeleted({
+          blobNames: [...existing, fileToDelete.name]
+        })
+      }
+
       handleDeleteFile(pendingDeleteIndex)
       setPendingDeleteIndex(null)
     }

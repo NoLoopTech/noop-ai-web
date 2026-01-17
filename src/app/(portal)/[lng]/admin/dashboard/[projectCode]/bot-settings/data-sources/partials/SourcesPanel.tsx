@@ -48,6 +48,11 @@ interface AgentStatusResponse {
   status: string
 }
 
+type DeleteAzureFiles = { blobNames: string[] }
+interface DeleteAzureFilesResponse {
+  results: Array<{ blobName: string; ok: boolean }>
+}
+
 const normalizeStatus = (s: unknown) =>
   String(s ?? "")
     .trim()
@@ -60,6 +65,9 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     websiteLinks,
     files,
     trainedPublicFileUrls,
+    trainedFilesToBeDeleted,
+    setTrainedFilesToBeDeleted,
+    setTrainedPublicFileUrls,
     textSources,
     qAndAs,
     socialMedia
@@ -123,6 +131,11 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     { uploadUrl: string; publicUrl: string },
     { fileName: string; contentType?: string; folder?: string }
   >("/botSettings/upload-file", "post")
+
+  const deleteAzureFilesMutation = useApiMutation<
+    DeleteAzureFilesResponse,
+    DeleteAzureFiles
+  >(`/botsettings/${chatBotCode}/delete-azure-files`, "delete")
 
   const trainAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
     "/botSettings/update-agent",
@@ -220,9 +233,28 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
           uploadedFileUrls = successful.length > 0 ? successful : undefined
         }
 
+        const queuedBlobNames = trainedFilesToBeDeleted?.blobNames || []
+        let publicUrlsForPayload = trainedPublicFileUrls?.urls || []
+
+        if (queuedBlobNames.length > 0) {
+          await deleteAzureFilesMutation.mutateAsync({
+            blobNames: queuedBlobNames
+          })
+
+          const currentUrls = trainedPublicFileUrls?.urls || []
+          const remaining = currentUrls.filter(
+            u => !queuedBlobNames.some(fn => u.includes(fn))
+          )
+          setTrainedPublicFileUrls({ urls: remaining })
+
+          publicUrlsForPayload = remaining
+
+          setTrainedFilesToBeDeleted({ blobNames: [] })
+        }
+
         const finalPayload: AgentRequest = {
           chatBotCode: chatBotCode ?? "",
-          baseUrl: baseUrl,
+          baseUrl: selectedWebUrls.length > 0 ? baseUrl : undefined,
           webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
           textTitleTextPairs:
             textSources.length > 0
@@ -239,10 +271,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
                   answer: q.answer
                 }))
               : undefined,
-          filePaths: [
-            ...trainedPublicFileUrls.map(f => f.url),
-            ...(uploadedFileUrls ?? [])
-          ]
+          filePaths: [...publicUrlsForPayload, ...(uploadedFileUrls ?? [])]
         }
 
         trainAgentMutation.mutate(finalPayload)

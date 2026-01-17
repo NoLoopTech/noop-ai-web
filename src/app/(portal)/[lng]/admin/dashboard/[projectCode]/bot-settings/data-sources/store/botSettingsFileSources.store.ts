@@ -8,8 +8,9 @@ type File = {
   raw?: globalThis.File
   status?: "trained" | "new"
 }
+type TrainedFilesToBeDeleted = { blobNames: string[] }
 type TrainedPublicFileUrl = {
-  url: string
+  urls: string[]
 }
 type TextSource = {
   title: string
@@ -36,8 +37,11 @@ interface BotSettingsFileSourcesState {
 
   trainedFiles: File[]
   setTrainedFiles: (files: File[]) => void
-  trainedPublicFileUrls: TrainedPublicFileUrl[]
-  setTrainedPublicFileUrls: (urls: TrainedPublicFileUrl[]) => void
+  trainedPublicFileUrls: TrainedPublicFileUrl
+  setTrainedPublicFileUrls: (urls: TrainedPublicFileUrl) => void
+
+  trainedFilesToBeDeleted: TrainedFilesToBeDeleted
+  setTrainedFilesToBeDeleted: (files: TrainedFilesToBeDeleted) => void
 
   trainedTextSources: TextSource[]
   setTrainedTextSources: (texts: TextSource[]) => void
@@ -90,8 +94,16 @@ export const useBotSettingsFileSourcesStore =
 
     trainedFiles: [],
     setTrainedFiles: files => set({ trainedFiles: files }),
-    trainedPublicFileUrls: [],
+    trainedPublicFileUrls: { urls: [] },
     setTrainedPublicFileUrls: urls => set({ trainedPublicFileUrls: urls }),
+
+    /*
+     ** INFO: Temporary list of trained file identifiers (blobName) that the user has marked for deletion.
+     ** Items are queued here locally and are not removed server-side until the user confirms the action by clicking the "Train Agent".
+     */
+    trainedFilesToBeDeleted: { blobNames: [] },
+    setTrainedFilesToBeDeleted: files =>
+      set({ trainedFilesToBeDeleted: files }),
 
     trainedTextSources: [],
     setTrainedTextSources: texts => set({ trainedTextSources: texts }),

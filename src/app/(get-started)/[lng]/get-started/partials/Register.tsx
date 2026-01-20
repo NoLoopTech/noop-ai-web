@@ -17,8 +17,7 @@ type ClaimAgentResponse = {
 }
 
 const Register = () => {
-  const setStep = useOnboardingStore(s => s.setStep)
-  const chatBotCode = useOnboardingStore(s => s.chatBotCode)
+  const { setStep, chatBotCode } = useOnboardingStore()
 
   const { status } = useSession()
   const pathname = usePathname()

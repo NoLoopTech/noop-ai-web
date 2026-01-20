@@ -7,7 +7,7 @@ import {
 } from "../../store/onboarding.store"
 
 const CTASection = () => {
-  const setStep = useOnboardingStore(s => s.setStep)
+  const { setStep } = useOnboardingStore()
 
   const handleNextStep = () => {
     setStep(OnboardingSteps.REGISTER)

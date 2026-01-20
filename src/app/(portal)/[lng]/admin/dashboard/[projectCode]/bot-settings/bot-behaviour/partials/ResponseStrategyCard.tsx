@@ -16,10 +16,9 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import { useProjectCodeString } from "@/lib/hooks/useProjectCode"
 import { toast } from "@/lib/hooks/useToast"
-import { UserProject } from "@/models/project"
-import { useApiMutation, useApiQuery } from "@/query"
+import { useApiMutation } from "@/query"
 import { useMemo, useState } from "react"
 
 enum ToneType {
@@ -35,36 +34,69 @@ enum ToneType {
 type ChangeAgentTonePayload = { chatbotCode: string; newTone: ToneType }
 
 const toneTypeOptions = [
-  { value: ToneType.FRIENDLY, label: "Friendly" },
-  { value: ToneType.FORMAL, label: "Formal" },
-  { value: ToneType.PLAYFUL, label: "Playful" },
-  { value: ToneType.DETAILED, label: "Detailed" },
-  { value: ToneType.EMPATHETIC, label: "Empathetic" },
-  { value: ToneType.NEUTRAL, label: "Neutral" }
+  {
+    value: ToneType.FRIENDLY,
+    label: "Friendly",
+    description:
+      "Noopy.ai is your friendly AI assistant, designed to welcome visitors and guide them naturally through your website. It answers questions, offers help, and keeps conversations warm and approachable — like chatting with a helpful teammate.",
+    preview:
+      "Tone: Hey there!  I’m here to help. Let me know what you’re looking for, and I’ll guide you through it."
+  },
+  {
+    value: ToneType.FORMAL,
+    label: "Formal",
+    description:
+      "Noopy.ai is a professional AI assistant built to communicate clearly and respectfully with your website visitors. It provides accurate information, structured responses, and maintains a polished, business-ready tone at all times.",
+    preview:
+      "Tone: Welcome. I’m here to assist you. Please let me know how I can help you today."
+  },
+  {
+    value: ToneType.PLAYFUL,
+    label: "Playful",
+    description:
+      "Noopy.ai is a lively AI assistant that engages visitors with a fun and energetic style. It answers questions, adds light humor, and keeps conversations enjoyable — making interactions feel relaxed and memorable.",
+    preview:
+      "Tone: Hi!  Got a question or just exploring? I’m ready when you are!"
+  },
+  {
+    value: ToneType.DETAILED,
+    label: "Detailed",
+    description:
+      "Noopy.ai is a thorough AI assistant designed to give in-depth explanations and clear guidance. It walks visitors through answers step by step, ensuring nothing is missed and every detail is well explained.",
+    preview:
+      "Tone: Hello! I can walk you through everything step by step. Just tell me what you’d like to know, and we’ll go through it together."
+  },
+  {
+    value: ToneType.EMPATHETIC,
+    label: "Empathetic",
+    description:
+      "Noopy.ai is a caring AI assistant that understands user concerns and responds with empathy. It listens carefully, reassures visitors, and provides supportive, thoughtful answers — especially in sensitive situations.",
+    preview:
+      "Tone: Hi, I’m here to help. If something isn’t working as expected, let’s take a look and sort it out together."
+  },
+  {
+    value: ToneType.NEUTRAL,
+    label: "Neutral",
+    description:
+      "Noopy.ai is a balanced AI assistant that communicates clearly and objectively. It delivers concise, factual responses without added emotion, keeping conversations straightforward and easy to follow.",
+    preview: "Tone: Hello. How can I assist you today?"
+  }
 ]
 
 const ResponseStrategyCard = () => {
   const [toneType, setToneType] = useState<ToneType | "">("")
 
-  const currentProjectId = useProjectCode()
-
-  const { data: userProjects } = useApiQuery<UserProject[]>(
-    ["user-projects-bot-settings"],
-    `user/me/projects`,
-    () => ({ method: "get" })
+  const selectedTone = useMemo(
+    () => toneTypeOptions.find(option => option.value === toneType),
+    [toneType]
   )
 
-  const chatBotCode = useMemo(
-    () =>
-      (userProjects ?? []).find(p => p.id === currentProjectId)?.chatbotCode ??
-      "",
-    [userProjects, currentProjectId]
-  )
+  const chatBotCode = useProjectCodeString()
 
   const changeAgentToneMutation = useApiMutation<
     string,
     ChangeAgentTonePayload
-  >(`/botsettings/${currentProjectId}/change-agent-tone`, "post", {
+  >(`/botsettings/change-agent-tone`, "post", {
     onSuccess: (_data, variables) => {
       const newToneKey = variables?.newTone ?? "unknown"
       const option = toneTypeOptions.find(o => o.value === newToneKey)
@@ -136,20 +168,23 @@ const ResponseStrategyCard = () => {
           </div>
         </div>
 
-        <div className="mt-1 w-full">
-          <p className="text-foreground mb-2 text-sm font-medium">
-            Tone Preview
-          </p>
-
-          <div className="flex w-full items-center space-x-2 rounded-xl border border-zinc-200 p-4 dark:border-slate-800">
-            <p className="text-sm font-medium text-zinc-500">
-              Noopy.ai is your personal AI assistant, built to interact with
-              visitors on your website just like a real team member would. It
-              can answer questions, assist with tasks, and offer helpful
-              suggestions — all in real time!
+        {selectedTone && (selectedTone.value !== ToneType.DEFAULT || "") && (
+          <div className="mt-1 w-full">
+            <p className="text-foreground mb-2 text-sm font-medium">
+              Tone Preview
             </p>
+
+            <div className="flex w-full flex-col items-start space-y-5 rounded-xl border border-zinc-200 p-4 text-left dark:border-slate-800">
+              <p className="text-sm font-medium text-zinc-500">
+                {selectedTone.description}
+              </p>
+
+              <p className="text-foreground text-sm font-semibold">
+                {selectedTone.preview}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   )

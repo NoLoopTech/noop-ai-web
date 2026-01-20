@@ -41,8 +41,7 @@ type WebSocketResponsePayload = {
 type WsStatus = "idle" | "connecting" | "open" | "closed" | "error"
 
 const AgentPreview = () => {
-  const agentName = useOnboardingStore(s => s.agentName)
-  const chatBotCode = useOnboardingStore(s => s.chatBotCode)
+  const { agentName, chatBotCode } = useOnboardingStore()
 
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL
   const redisPrefix = process.env.NEXT_PUBLIC_REDIS_PREFIX ?? ""

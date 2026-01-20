@@ -19,12 +19,14 @@ import {
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
-import { useProjectCode } from "@/lib/hooks/useProjectCode"
+import {
+  useProjectCode,
+  useProjectCodeString
+} from "@/lib/hooks/useProjectCode"
 import { toast } from "@/lib/hooks/useToast"
-import { UserProject } from "@/models/project"
 import { useApiMutation, useApiQuery } from "@/query"
 import { IconRefresh } from "@tabler/icons-react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 enum AgentType {
   DEFAULT = "default",
@@ -56,24 +58,12 @@ const AiAgentCard = () => {
   const [confidence, setConfidence] = useState<number>(75)
 
   const currentProjectId = useProjectCode()
-
-  const { data: userProjects } = useApiQuery<UserProject[]>(
-    ["user-projects-bot-settings"],
-    `user/me/projects`,
-    () => ({ method: "get" })
-  )
-
-  const chatBotCode = useMemo(
-    () =>
-      (userProjects ?? []).find(p => p.id === currentProjectId)?.chatbotCode ??
-      "",
-    [userProjects, currentProjectId]
-  )
+  const chatBotCode = useProjectCodeString()
 
   const changeAgentTypeMutation = useApiMutation<
     string,
     ChangeAgentTypePayload
-  >(`/botsettings/${currentProjectId}/change-agent-type`, "post", {
+  >(`/botsettings/change-agent-type`, "post", {
     onSuccess: (_data, variables) => {
       const newTypeKey = variables?.newType ?? "unknown"
       const option = agentTypeOptions.find(o => o.value === newTypeKey)
@@ -96,7 +86,7 @@ const AiAgentCard = () => {
   const changeAgentConfidenceMutation = useApiMutation<
     string,
     ChangeAgentConfidencePayload
-  >(`/botsettings/${currentProjectId}/change-agent-confidence`, "post", {
+  >(`/botsettings/change-agent-confidence`, "post", {
     onSuccess: (_data, variables) => {
       const newConfidenceLevel = variables?.newConfidenceLevel ?? "unknown"
       toast({

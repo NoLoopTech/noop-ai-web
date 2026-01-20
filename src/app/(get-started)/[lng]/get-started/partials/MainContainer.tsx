@@ -12,7 +12,7 @@ import { useSession } from "next-auth/react"
 import useClaimAgentAfterAuth from "./hooks/useClaimAgentAfterAuth"
 
 const MainContainer = () => {
-  const step = useOnboardingStore(s => s.step)
+  const { step } = useOnboardingStore()
 
   const searchParams = useSearchParams()
   const { status } = useSession()

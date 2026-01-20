@@ -39,13 +39,13 @@ interface TabWebsiteProps {
 
 const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const urlSchema = z.string().url({ message: "Please enter a valid URL" })
-  const [protocol, setProtocol] = useState("https://")
+  const [protocol, setProtocol] = useState<"http://" | "https://">("https://")
   const [url, setUrl] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const [showSelectWarning, setShowSelectWarning] = useState(false)
 
-  const handleProtocolSelect = (selected: string) => () => {
+  const handleProtocolSelect = (selected: "http://" | "https://") => () => {
     setProtocol(selected)
   }
 
@@ -72,6 +72,15 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     }
   })
 
+  const {
+    setBaseUrl,
+    websiteLinks,
+    setWebsiteLinks,
+    toggleWebsiteLink,
+    setShowUrlWarning,
+    showUrlWarning
+  } = useOnboardingStore()
+
   const handleFetchLinks = () => {
     const result = urlSchema.safeParse(protocol + url)
     if (!result.success) {
@@ -80,15 +89,8 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     }
     setError(null)
     fetchLinksMutation.mutate({ url: protocol + url })
+    setBaseUrl({ protocol, domain: url })
   }
-
-  const {
-    websiteLinks,
-    setWebsiteLinks,
-    toggleWebsiteLink,
-    setShowUrlWarning,
-    showUrlWarning
-  } = useOnboardingStore()
 
   const handleSelectFirst10 = () => {
     setWebsiteLinks(
@@ -168,7 +170,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent
-                        align="end"
+                        align="start"
                         className="bg-white text-zinc-500"
                       >
                         <DropdownMenuItem

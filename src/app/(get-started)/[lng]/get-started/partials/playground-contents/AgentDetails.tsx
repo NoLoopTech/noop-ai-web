@@ -70,9 +70,7 @@ const AgentDetails = () => {
   const [toneType, setToneType] = useState<ToneType | "">("")
   const [confidence, setConfidence] = useState<number>(75)
 
-  const chatBotCode = useOnboardingStore(s => s.chatBotCode)
-  const agentName = useOnboardingStore(s => s.agentName)
-  const agentPrompt = useOnboardingStore(s => s.agentPrompt)
+  const { chatBotCode, agentName, agentPrompt } = useOnboardingStore()
 
   const changeAgentTypeMutation = useApiMutation<
     string,

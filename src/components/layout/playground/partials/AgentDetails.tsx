@@ -16,14 +16,16 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { IconRefresh } from "@tabler/icons-react"
 import { useState } from "react"
-// import { useOnboardingStore } from "../../store/onboarding.store"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { toast } from "@/lib/hooks/useToast"
 
+type projectType = {
+  projectName: string
+  chatbotCode: string
+}
 interface AgentDetailsProps {
-  agentName?: string
-  chatBotCode?: string
-  agentPrompt?: string
+  project: projectType
+  agentPrompt: string
 }
 
 enum AgentType {
@@ -71,16 +73,10 @@ const toneTypeOptions = [
   { value: ToneType.NEUTRAL, label: "Neutral" }
 ]
 
-const AgentDetails = ({
-  agentName,
-  chatBotCode,
-  agentPrompt
-}: AgentDetailsProps) => {
+const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
   const [agentType, setAgentType] = useState<AgentType | "">("")
   const [toneType, setToneType] = useState<ToneType | "">("")
   const [confidence, setConfidence] = useState<number>(75)
-
-  // const { chatBotCode, agentName, agentPrompt } = useOnboardingStore()
 
   const changeAgentTypeMutation = useApiMutation<
     string,
@@ -126,7 +122,7 @@ const AgentDetails = ({
     if (!value) return
     try {
       const payload: ChangeAgentTypePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newType: value
       }
       changeAgentTypeMutation.mutate(payload)
@@ -140,7 +136,7 @@ const AgentDetails = ({
     if (!value) return
     try {
       const payload: ChangeAgentTonePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newTone: value
       }
       changeAgentToneMutation.mutate(payload)
@@ -154,7 +150,7 @@ const AgentDetails = ({
     try {
       const level = (values[0] / 100).toFixed(2)
       const payload: ChangeAgentConfidencePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newConfidenceLevel: level
       }
       changeAgentConfidenceMutation.mutate(payload)
@@ -172,7 +168,7 @@ const AgentDetails = ({
     setAgentType(value)
     try {
       const payload: ChangeAgentTypePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newType: value
       }
       changeAgentTypeMutation.mutate(payload)
@@ -188,7 +184,7 @@ const AgentDetails = ({
     setToneType(value)
     try {
       const payload: ChangeAgentTonePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newTone: value
       }
       changeAgentToneMutation.mutate(payload)
@@ -211,7 +207,7 @@ const AgentDetails = ({
             <p className="text-foreground text-sm font-medium">Agent name:</p>
 
             <p className="text-right text-sm font-normal text-zinc-500 dark:text-slate-400">
-              {agentName ?? "—"}
+              {project.projectName ?? "—"}
             </p>
           </div>
 

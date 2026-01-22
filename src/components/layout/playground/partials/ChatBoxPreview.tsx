@@ -3,7 +3,6 @@
 import { IconArrowUp } from "@tabler/icons-react"
 import Image from "next/image"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-// import { useOnboardingStore } from "../../store/onboarding.store"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Markdown from "react-markdown"
 import {
@@ -36,13 +35,16 @@ interface WebSocketResponsePayload {
 
 type WsStatus = "idle" | "connecting" | "open" | "closed" | "error"
 
-interface ChatBoxPreviewProps {
-  agentName?: string
-  chatBotCode?: string
+type projectType = {
+  projectName: string
+  chatbotCode: string
 }
 
-const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
-  // const { agentName, chatBotCode } = useOnboardingStore()
+interface ChatBoxPreviewProps {
+  project: projectType
+}
+
+const ChatBoxPreview = ({ project }: ChatBoxPreviewProps) => {
   const { data: session } = useSession()
 
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL
@@ -68,7 +70,7 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
           ? crypto.randomUUID()
           : `m_${Date.now()}_1`,
       role: "assistant",
-      content: `Hi👋! I'm Noopy, your ${agentName ?? "AI"} AI assistant. How can I help you today?`
+      content: `Hi👋! I'm Noopy, your ${project.projectName ?? "AI"} AI assistant. How can I help you today?`
     }
   ])
 
@@ -80,12 +82,11 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
       return [
         {
           ...only,
-          content: `Hi👋! I'm Noopy, your ${agentName ?? "AI"} AI assistant. How can I help you today?`
+          content: `Hi👋! I'm Noopy, your ${project.projectName ?? "AI"} AI assistant. How can I help you today?`
         }
       ]
     })
-  }, [agentName])
-
+  }, [project.projectName])
   const [input, setInput] = useState("")
 
   const addAssistantMessage = useCallback((content: string) => {
@@ -205,7 +206,7 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
 
     setHasUserAttemptedSend(true)
 
-    if (!chatBotCode) {
+    if (!project.chatbotCode) {
       addAssistantMessage(
         "I can’t send that yet. Please select a chatbot first."
       )
@@ -235,7 +236,7 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
 
     const wsPayload: WebSocketAskPayload = {
       message: trimmed,
-      web_name: chatBotCode,
+      web_name: project.chatbotCode,
       thread_id: threadIdRef.current,
       redis_prefix: redisPrefix,
       username: `${session?.user?.fullname}-PO`, // PO: Project Owner
@@ -245,7 +246,7 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
     sendWebSocketMessage(wsPayload)
   }, [
     addAssistantMessage,
-    chatBotCode,
+    project.chatbotCode,
     input,
     redisPrefix,
     sendWebSocketMessage,
@@ -291,12 +292,14 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
         <div className="flex h-full items-center space-x-2.5 px-4 py-3">
           <div className="flex size-[30px] items-center justify-center rounded-full border border-zinc-200 bg-zinc-500">
             <h2 className="mt-0.5 text-xl font-extrabold text-zinc-50">
-              {agentName ? agentName.charAt(0).toUpperCase() : "N"}
+              {project.projectName
+                ? project.projectName.charAt(0).toUpperCase()
+                : "N"}
             </h2>
           </div>
 
           <h2 className="text-2xl font-bold text-zinc-50 uppercase">
-            {agentName ?? "—"}
+            {project.projectName ?? "—"}
           </h2>
         </div>
       </div>
@@ -409,7 +412,7 @@ const ChatBoxPreview = ({ agentName, chatBotCode }: ChatBoxPreviewProps) => {
         </ScrollArea>
 
         <div className="mx-3 flex h-max flex-col items-center">
-          <InputGroup className="has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 max-h-[100px] rounded-3xl border-2 border-zinc-600 transition-colors duration-300 ease-in-out has-[[data-slot=input-group-control]:focus-visible]:border-zinc-400 has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:bg-white">
+          <InputGroup className="has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 max-h-[100px] rounded-3xl border-2 border-zinc-500/75 transition-colors duration-500 ease-in-out has-[[data-slot=input-group-control]:focus-visible]:border-zinc-300 has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:bg-white">
             <InputGroupTextarea
               value={input}
               onChange={handleInputChange}

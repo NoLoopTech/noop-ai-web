@@ -15,7 +15,6 @@ import { useProjectCodeString } from "@/lib/hooks/useProjectCode"
 import { useApiMutation, useApiQuery } from "@/query"
 import axios from "axios"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +22,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation"
 
 interface SourcesPanelProps {
   isTrainedSourcesLoading: boolean
@@ -82,6 +82,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
   const [isPollingStatus, setIsPollingStatus] = useState(false)
   const [isPreview, setIsPreview] = useState(false)
 
+  const chatBotCode = useProjectCodeString()
+
+  const router = useRouter()
+
   const hasSources =
     websiteLinks.length > 0 ||
     files.length > 0 ||
@@ -129,10 +133,6 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     socialMedia
   ])
 
-  const chatBotCode = useProjectCodeString()
-
-  const router = useRouter()
-
   const uploadFileMutation = useApiMutation<
     { uploadUrl: string; publicUrl: string },
     { fileName: string; contentType?: string; folder?: string }
@@ -143,8 +143,24 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     DeleteAzureFiles
   >(`/botsettings/${chatBotCode}/delete-azure-files`, "delete")
 
-  const trainAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
+  const updateAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
     "/botSettings/update-agent",
+    "post",
+    {
+      onSuccess: () => {
+        setIsPollingStatus(true)
+        setIsTrainingDialogOpen(true)
+      },
+      onError: () => {
+        setIsPollingStatus(false)
+        setIsTrainingDialogOpen(false)
+        setIsButtonDisabled(false)
+      }
+    }
+  )
+
+  const trainPreviewAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
+    "/botSettings/train-preview-agent",
     "post",
     {
       onSuccess: () => {
@@ -161,7 +177,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
   const agentStatusQuery = useApiQuery<AgentStatusResponse>(
     ["botSettings-agent-status", chatBotCode],
-    `/botSettings/${chatBotCode}/agent-status`,
+    `/botSettings/${isPreview ? `preview_${chatBotCode}` : chatBotCode}/agent-status`,
     () => ({
       method: "get"
     }),
@@ -280,37 +296,18 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
                     answer: q.answer
                   }))
                 : undefined,
-            filePaths: [...publicUrlsForPayload, ...(uploadedFileUrls ?? [])],
-            ...(isPreview ? { isPreview: true } : {})
+            filePaths: [...publicUrlsForPayload, ...(uploadedFileUrls ?? [])]
           }
 
           if (isPreview) {
             setIsPreview(true)
-            // add logic to handle preview separately
 
-            // temporary: when testing only the redirection, set
-            // `localStorage.setItem('simulatePreviewRedirect','1')` in the browser
-            // to immediately navigate to the preview route for testing.
-            if (
-              typeof window !== "undefined" &&
-              localStorage.getItem("simulatePreviewRedirect") === "1"
-            ) {
-              setIsTrainingDialogOpen(false)
-              setIsTrainedDialogOpen(true)
-              // allow a brief tick for dialog state to settle, then redirect
-              setTimeout(() => {
-                router.push(
-                  "/admin/dashboard/soft-ridge/bot-settings/data-sources/preview?isPreview=true"
-                )
-              }, 50)
-              return
-            }
-
-            // default preview behavior: open trained dialog so user can click Done
-            setIsTrainingDialogOpen(false)
-            setIsTrainedDialogOpen(true)
+            trainPreviewAgentMutation.mutate({
+              ...finalPayload,
+              isPreview: true
+            })
           } else {
-            trainAgentMutation.mutate(finalPayload)
+            updateAgentMutation.mutate(finalPayload)
           }
         } catch (_error) {
           setIsPollingStatus(false)
@@ -325,10 +322,11 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
       router.push(
         `/admin/dashboard/${chatBotCode}/bot-settings/data-sources/preview?isPreview=true`
       )
-      setIsTrainedDialogOpen(false)
     } else {
       setIsTrainedDialogOpen(false)
     }
+
+    setIsTrainedDialogOpen(false)
   }
 
   const handleTrainingDialogOpenChange = (open: boolean) => {
@@ -515,7 +513,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
         <Button
           onClick={handleTrainClick(true)}
           className="text-foreground w-full bg-white transition-colors duration-700 ease-in-out hover:bg-zinc-200 dark:bg-slate-950 dark:text-zinc-200 dark:hover:bg-slate-800"
-          // disabled={isButtonDisabled || isTrainedSourcesLoading}
+          disabled={isButtonDisabled || isTrainedSourcesLoading}
         >
           Preview agent
         </Button>

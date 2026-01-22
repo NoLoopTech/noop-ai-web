@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import AgentDetails from "./partials/AgentDetails"
 import ChatBoxPreview from "./partials/ChatBoxPreview"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
@@ -14,6 +15,9 @@ interface PlaygroundProps {
 
 const Playground = ({ title, description }: PlaygroundProps) => {
   const projectId = useProjectCode()
+
+  const searchParams = useSearchParams()
+  const preview = Boolean(searchParams?.get("preview")) ?? false
 
   const { data: userProjects } = useApiQuery<UserProject[]>(
     ["user-projects-playground"],
@@ -49,7 +53,7 @@ const Playground = ({ title, description }: PlaygroundProps) => {
       <div className="flex h-[calc(100vh-10.5rem)] w-full items-start justify-evenly space-x-5 rounded-t-md bg-zinc-200 bg-[url('/assets/images/bot-settings-playground-bg.png')] bg-cover bg-center px-12 py-5 dark:bg-slate-950">
         <AgentDetails project={project} agentPrompt="" />
 
-        <ChatBoxPreview project={project} />
+        <ChatBoxPreview project={project} isPreview={preview} />
       </div>
     </div>
   )

@@ -22,7 +22,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
 interface SourcesPanelProps {
   isTrainedSourcesLoading: boolean
@@ -85,6 +85,8 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
   const chatBotCode = useProjectCodeString()
 
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const hasSources =
     websiteLinks.length > 0 ||
@@ -262,9 +264,11 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
           let publicUrlsForPayload = trainedPublicFileUrls?.urls || []
 
           if (queuedBlobNames.length > 0) {
-            await deleteAzureFilesMutation.mutateAsync({
-              blobNames: queuedBlobNames
-            })
+            if (!isPreview) {
+              await deleteAzureFilesMutation.mutateAsync({
+                blobNames: queuedBlobNames
+              })
+            }
 
             const currentUrls = trainedPublicFileUrls?.urls || []
             const remaining = currentUrls.filter(
@@ -320,7 +324,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
   const handleDoneOrGoToPreview = () => {
     if (isPreview) {
       router.push(
-        `/admin/dashboard/${chatBotCode}/bot-settings/data-sources/preview?isPreview=true`
+        `/admin/dashboard/${chatBotCode}/bot-settings/data-sources/preview?preview=true`
       )
     } else {
       setIsTrainedDialogOpen(false)
@@ -336,6 +340,12 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
       setIsPollingStatus(false)
     }
   }
+
+  // INFO: Reset trained dialog and preview state when route or search params change
+  useEffect(() => {
+    setIsTrainedDialogOpen(false)
+    setIsPreview(Boolean(searchParams?.get("preview")))
+  }, [pathname, searchParams?.toString()])
 
   return (
     <div className="mx-auto mt-7 w-full max-w-2xs">

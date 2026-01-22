@@ -42,9 +42,10 @@ type projectType = {
 
 interface ChatBoxPreviewProps {
   project: projectType
+  isPreview?: boolean
 }
 
-const ChatBoxPreview = ({ project }: ChatBoxPreviewProps) => {
+const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
   const { data: session } = useSession()
 
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL
@@ -236,7 +237,9 @@ const ChatBoxPreview = ({ project }: ChatBoxPreviewProps) => {
 
     const wsPayload: WebSocketAskPayload = {
       message: trimmed,
-      web_name: project.chatbotCode,
+      web_name: isPreview
+        ? `preview_${project.chatbotCode}`
+        : project.chatbotCode,
       thread_id: threadIdRef.current,
       redis_prefix: redisPrefix,
       username: `${session?.user?.fullname}-PO`, // PO: Project Owner
@@ -250,7 +253,8 @@ const ChatBoxPreview = ({ project }: ChatBoxPreviewProps) => {
     input,
     redisPrefix,
     sendWebSocketMessage,
-    session
+    session,
+    isPreview
   ])
 
   const handleInputChange = useCallback(

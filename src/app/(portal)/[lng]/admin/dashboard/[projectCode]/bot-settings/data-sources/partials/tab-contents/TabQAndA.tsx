@@ -18,7 +18,11 @@ import {
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TabsContent } from "@/components/ui/tabs"
-import { calculateTextSizeFromLength, truncateFromMiddle } from "@/utils"
+import {
+  calculateTextSizeFromLength,
+  convertBytesToUnits,
+  truncateFromMiddle
+} from "@/utils"
 import { IconDotsVertical, IconTrash } from "@tabler/icons-react"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
@@ -190,9 +194,7 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
 
               <p className="w-2/12 text-center">Status</p>
 
-              <p className="w-3/12 text-center">
-                Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
-              </p>
+              <p className="w-3/12 text-center">Size</p>
 
               <p className="w-1/12 cursor-pointer text-left">{""}</p>
             </div>
@@ -219,7 +221,9 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                     )}
                   </div>
 
-                  <p className="w-3/12 text-center">{qAndA.size} bytes</p>
+                  <p className="w-3/12 text-center">
+                    {convertBytesToUnits(qAndA.size)}
+                  </p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">

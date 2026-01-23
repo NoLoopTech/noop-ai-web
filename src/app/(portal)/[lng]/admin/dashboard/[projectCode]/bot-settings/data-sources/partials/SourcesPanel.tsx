@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
+import { convertBytesToUnits } from "@/utils"
 
 interface SourcesPanelProps {
   isTrainedSourcesLoading: boolean
@@ -417,11 +418,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
                     <div className="flex space-x-1 text-xs font-semibold text-zinc-700 dark:text-zinc-50">
                       <p>
-                        {files
-                          .reduce((acc, curr) => acc + curr.size / 1024, 0)
-                          .toFixed(3)}
+                        {convertBytesToUnits(
+                          files.reduce((acc, curr) => acc + curr.size, 0)
+                        )}
                       </p>
-                      <p>KB</p>
                     </div>
                   </div>
                 )}
@@ -443,11 +443,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
                     <div className="flex space-x-1 text-xs font-semibold text-zinc-700 dark:text-zinc-50">
                       <p>
-                        {textSources
-                          .reduce((acc, curr) => acc + curr.size / 1024, 0)
-                          .toFixed(3)}
+                        {convertBytesToUnits(
+                          textSources.reduce((acc, curr) => acc + curr.size, 0)
+                        )}
                       </p>
-                      <p>KB</p>
                     </div>
                   </div>
                 )}
@@ -469,11 +468,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
                     <div className="flex space-x-1 text-xs font-semibold text-zinc-700 dark:text-zinc-50">
                       <p>
-                        {qAndAs
-                          .reduce((acc, curr) => acc + curr.size / 1024, 0)
-                          .toFixed(3)}
+                        {convertBytesToUnits(
+                          qAndAs.reduce((acc, curr) => acc + curr.size, 0)
+                        )}
                       </p>
-                      <p>KB</p>
                     </div>
                   </div>
                 )}

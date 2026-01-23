@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import FileDropzone from "@/components/FileDropzone"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
-import { truncateFromMiddle } from "@/utils"
+import { convertBytesToUnits, truncateFromMiddle } from "@/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -131,9 +131,7 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
 
               <p className="w-2/12 text-center">Status</p>
 
-              <p className="w-3/12 text-center">
-                Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
-              </p>
+              <p className="w-3/12 text-center">Size</p>
 
               <p className="w-1/12 cursor-pointer text-left">{""}</p>
             </div>
@@ -160,7 +158,9 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
                     )}
                   </div>
 
-                  <p className="w-3/12 text-center">{file.size} bytes</p>
+                  <p className="w-3/12 text-center">
+                    {convertBytesToUnits(file.size)}
+                  </p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">

@@ -31,6 +31,7 @@ import Image from "next/image"
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog"
 import { useApiMutation, useApiQuery } from "@/query"
 import { ONBOARDING_CHATBOT_CODE_KEY } from "./hooks/useClaimAgentAfterAuth"
+import { convertBytesToUnits } from "@/utils"
 
 const tabContentVariants = {
   hidden: { opacity: 0, y: -30 },
@@ -490,14 +491,10 @@ const TabContainer = () => {
 
                           <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                             <p>
-                              {files
-                                .reduce(
-                                  (acc, curr) => acc + curr.size / 1024,
-                                  0
-                                )
-                                .toFixed(3)}
+                              {convertBytesToUnits(
+                                files.reduce((acc, curr) => acc + curr.size, 0)
+                              )}
                             </p>
-                            <p>KB</p>
                           </div>
                         </div>
                       )}
@@ -521,14 +518,13 @@ const TabContainer = () => {
 
                           <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                             <p>
-                              {textSources
-                                .reduce(
-                                  (acc, curr) => acc + curr.size / 1024,
+                              {convertBytesToUnits(
+                                textSources.reduce(
+                                  (acc, curr) => acc + curr.size,
                                   0
                                 )
-                                .toFixed(3)}
+                              )}
                             </p>
-                            <p>KB</p>
                           </div>
                         </div>
                       )}
@@ -552,12 +548,9 @@ const TabContainer = () => {
 
                           <div className="flex space-x-1 text-xs font-semibold text-zinc-700">
                             <p>
-                              {qAndAs
-                                .reduce(
-                                  (acc, curr) => acc + curr.size / 1024,
-                                  0
-                                )
-                                .toFixed(3)}
+                              {convertBytesToUnits(
+                                qAndAs.reduce((acc, curr) => acc + curr.size, 0)
+                              )}
                             </p>
                             <p>KB</p>
                           </div>

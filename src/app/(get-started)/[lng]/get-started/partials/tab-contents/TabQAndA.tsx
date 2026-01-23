@@ -10,7 +10,7 @@ import {
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TabsContent } from "@/components/ui/tabs"
-import { calculateTextSizeFromLength } from "@/utils"
+import { calculateTextSizeFromLength, convertBytesToUnits } from "@/utils"
 import { IconDotsVertical } from "@tabler/icons-react"
 import { motion, Variants } from "motion/react"
 import { useOnboardingStore } from "../../store/onboarding.store"
@@ -141,9 +141,7 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
             >
               <p className="w-9/12 text-left">Title</p>
 
-              <p className="w-2/12 text-left">
-                Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
-              </p>
+              <p className="w-2/12 text-left">Size</p>
 
               <p className="w-1/12 cursor-pointer text-left">Action</p>
             </div>
@@ -156,7 +154,9 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                 >
                   <p className="w-9/12 text-left">{qAndA.title}</p>
 
-                  <p className="w-2/12 text-left">{qAndA.size} bytes</p>
+                  <p className="w-2/12 text-left">
+                    {convertBytesToUnits(qAndA.size)}
+                  </p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">

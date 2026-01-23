@@ -7,7 +7,7 @@ import { motion, Variants } from "motion/react"
 import { useOnboardingStore } from "../../store/onboarding.store"
 import { InputWithLength } from "@/components/InputWithLength"
 import { useState } from "react"
-import { calculateTextSizeFromLength } from "@/utils"
+import { calculateTextSizeFromLength, convertBytesToUnits } from "@/utils"
 import { IconDotsVertical } from "@tabler/icons-react"
 import {
   DropdownMenu,
@@ -127,9 +127,7 @@ const TabText = ({ motionVariants }: TabTextProps) => {
             >
               <p className="w-9/12 text-left">Title</p>
 
-              <p className="w-2/12 text-left">
-                Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
-              </p>
+              <p className="w-2/12 text-left">Size</p>
 
               <p className="w-1/12 cursor-pointer text-left">Action</p>
             </div>
@@ -142,7 +140,9 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                 >
                   <p className="w-9/12 text-left">{text.title}</p>
 
-                  <p className="w-2/12 text-left">{text.size} bytes</p>
+                  <p className="w-2/12 text-left">
+                    {convertBytesToUnits(text.size)}
+                  </p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">

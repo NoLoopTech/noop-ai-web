@@ -22,7 +22,11 @@ import {
   AlertDialogDescription,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { calculateTextSizeFromLength, truncateFromMiddle } from "@/utils"
+import {
+  calculateTextSizeFromLength,
+  convertBytesToUnits,
+  truncateFromMiddle
+} from "@/utils"
 import { Separator } from "@/components/ui/separator"
 
 interface TabTextProps {
@@ -170,9 +174,7 @@ const TabText = ({ motionVariants }: TabTextProps) => {
 
               <p className="w-2/12 text-center">Status</p>
 
-              <p className="w-3/12 text-center">
-                Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
-              </p>
+              <p className="w-3/12 text-center">Size</p>
 
               <p className="w-1/12 cursor-pointer text-left">{""}</p>
             </div>
@@ -199,7 +201,9 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                     )}
                   </div>
 
-                  <p className="w-3/12 text-center">{text.size} bytes</p>
+                  <p className="w-3/12 text-center">
+                    {convertBytesToUnits(text.size)}
+                  </p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">

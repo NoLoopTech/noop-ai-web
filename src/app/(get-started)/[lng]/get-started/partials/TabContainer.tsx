@@ -47,6 +47,7 @@ interface TrainAgentRequest {
   cleanText?: string
   qaPairs?: Array<{ qAndATitle: string; question: string; answer: string }>
   textTitleTextPairs?: Array<{ textTitle: string; text: string }>
+  isPreview?: boolean
 }
 
 interface CreateProjectResponse {
@@ -298,7 +299,8 @@ const TabContainer = () => {
                   answer: q.answer
                 }))
               : undefined,
-          filePaths: uploadedFileUrls
+          filePaths: uploadedFileUrls,
+          isPreview: false
         }
 
         trainAgentMutation.mutate(finalPayload)

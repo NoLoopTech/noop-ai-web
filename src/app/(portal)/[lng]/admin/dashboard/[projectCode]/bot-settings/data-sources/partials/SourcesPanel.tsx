@@ -23,6 +23,7 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface SourcesPanelProps {
   isTrainedSourcesLoading: boolean
@@ -87,6 +88,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
 
   const hasSources =
     websiteLinks.length > 0 ||
@@ -178,7 +180,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
   )
 
   const agentStatusQuery = useApiQuery<AgentStatusResponse>(
-    ["botSettings-agent-status", chatBotCode],
+    [
+      "botSettings-agent-status",
+      isPreview ? `preview_${chatBotCode}` : chatBotCode
+    ],
     `/botSettings/${isPreview ? `preview_${chatBotCode}` : chatBotCode}/agent-status`,
     () => ({
       method: "get"
@@ -221,6 +226,16 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     () => {
       ;(async () => {
         try {
+          /*
+           * Clear any cached agent status for this bot/preview so stale
+           * 'completed' values don't immediately prevent polling from starting.
+           */
+          const statusQueryKey = [
+            "botSettings-agent-status",
+            isPreview ? `preview_${chatBotCode}` : (chatBotCode ?? "")
+          ]
+          queryClient.setQueryData(statusQueryKey, undefined)
+
           setIsButtonDisabled(true)
           setIsTrainedDialogOpen(false)
           setIsTrainingDialogOpen(true)
@@ -230,7 +245,9 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
             useBotSettingsFileSourcesStore.getState().files || []
           let uploadedFileUrls: string[] | undefined = undefined
           if (storeFiles.length > 0) {
-            const folderName = chatBotCode ?? undefined
+            const folderName = isPreview
+              ? `preview_${chatBotCode}`
+              : (chatBotCode ?? undefined)
             const uploadPromises = storeFiles.map(f =>
               (async () => {
                 if (!f.raw) return null

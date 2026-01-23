@@ -339,7 +339,7 @@ const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
                 return (
                   <p
                     key={m.id}
-                    className="max-w-5/6 self-end rounded-full bg-black px-3 py-2.5 text-xs text-white"
+                    className="max-w-5/6 self-end rounded-full bg-[#1E50EF] px-3 py-2.5 text-xs text-white"
                   >
                     {m.content}
                   </p>

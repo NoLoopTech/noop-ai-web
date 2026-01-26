@@ -17,7 +17,7 @@ const Playground = ({ title, description }: PlaygroundProps) => {
   const projectId = useProjectCode()
 
   const searchParams = useSearchParams()
-  const preview = Boolean(searchParams?.get("preview")) ?? false
+  const preview = searchParams?.get("preview") === "true"
 
   const { data: userProjects } = useApiQuery<UserProject[]>(
     ["user-projects-playground"],

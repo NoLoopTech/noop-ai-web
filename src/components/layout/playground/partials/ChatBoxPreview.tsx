@@ -42,7 +42,7 @@ type projectType = {
 
 interface ChatBoxPreviewProps {
   project: projectType
-  isPreview?: boolean
+  isPreview: boolean
 }
 
 const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {

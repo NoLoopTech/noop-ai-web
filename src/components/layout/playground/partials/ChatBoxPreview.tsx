@@ -292,7 +292,7 @@ const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
 
   return (
     <div className="flex h-full max-h-[600px] w-[400px] flex-col overflow-hidden rounded-lg bg-white pb-2 shadow-md">
-      <div className="flex h-14 w-full items-center justify-between rounded-t-md border-b border-zinc-300 bg-[#1E50EF]">
+      <div className="flex h-14 w-full items-center rounded-t-md border-b border-zinc-300 bg-[#1E50EF]">
         <div className="flex h-full items-center space-x-2.5 px-4 py-3">
           <div className="flex size-[30px] items-center justify-center rounded-full border border-zinc-200 bg-zinc-500">
             <h2 className="mt-0.5 text-xl font-extrabold text-zinc-50">

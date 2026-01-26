@@ -19,10 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  useProjectCode,
-  useProjectCodeString
-} from "@/lib/hooks/useProjectCode"
+import { useProjectCodeString } from "@/lib/hooks/useProjectCode"
 import { toast } from "@/lib/hooks/useToast"
 import { useApiMutation, useApiQuery } from "@/query"
 import { IconRefresh } from "@tabler/icons-react"
@@ -57,7 +54,6 @@ const AiAgentCard = () => {
   const [agentType, setAgentType] = useState<AgentType | "">("")
   const [confidence, setConfidence] = useState<number>(75)
 
-  const currentProjectId = useProjectCode()
   const chatBotCode = useProjectCodeString()
 
   const changeAgentTypeMutation = useApiMutation<
@@ -104,8 +100,8 @@ const AiAgentCard = () => {
   })
 
   const { data: agentPromptData } = useApiQuery<{ agentPrompt: string }>(
-    ["botsettings-agent-prompt", currentProjectId],
-    `botsettings/${currentProjectId}/agent-prompt`,
+    ["botsettings-agent-prompt", chatBotCode],
+    `botsettings/${chatBotCode}/agent-prompt`,
     () => ({ method: "get" })
   )
 

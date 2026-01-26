@@ -1,11 +1,6 @@
 "use client"
 
-import {
-  IconArrowsDiagonal,
-  IconArrowUp,
-  IconDotsVertical,
-  IconX
-} from "@tabler/icons-react"
+import { IconArrowUp } from "@tabler/icons-react"
 import Image from "next/image"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
@@ -281,22 +276,18 @@ const AgentPreview = () => {
   const isSendDisabled = input.trim().length === 0 || wsStatus === "connecting"
 
   return (
-    <div className="flex h-full w-[400px] flex-col overflow-hidden rounded-lg bg-white pb-2 shadow-md">
-      <div className="flex h-14 w-full items-center justify-between rounded-t-md border-b border-zinc-300 bg-zinc-100">
+    <div className="flex h-full max-h-[600px] w-[400px] flex-col overflow-hidden rounded-lg bg-white pb-2 shadow-md">
+      <div className="flex h-14 w-full items-center rounded-t-md border-b border-zinc-300 bg-[#1E50EF]">
         <div className="flex h-full items-center space-x-2.5 px-4 py-3">
-          <h2 className="flex size-7 items-center justify-center rounded-full bg-zinc-500 text-lg font-semibold text-white">
-            {agentName ? agentName.charAt(0).toUpperCase() : "N"}
-          </h2>
+          <div className="flex size-[30px] items-center justify-center rounded-full border border-zinc-200 bg-zinc-500">
+            <h2 className="mt-0.5 text-xl font-extrabold text-zinc-50">
+              {agentName ? agentName.charAt(0).toUpperCase() : "N"}
+            </h2>
+          </div>
 
-          <h2 className="text-xl font-semibold text-zinc-950">
+          <h2 className="text-2xl font-bold text-zinc-50 uppercase">
             {agentName ?? "—"}
           </h2>
-        </div>
-
-        <div className="flex items-center space-x-3 pr-3">
-          <IconArrowsDiagonal className="size-5 stroke-zinc-600" />
-          <IconX className="size-5 stroke-zinc-600" />
-          <IconDotsVertical className="size-5 stroke-zinc-600" />
         </div>
       </div>
 
@@ -331,7 +322,7 @@ const AgentPreview = () => {
                 return (
                   <p
                     key={m.id}
-                    className="max-w-5/6 self-end rounded-full bg-black px-3 py-2.5 text-xs text-white"
+                    className="max-w-5/6 self-end rounded-full bg-[#1E50EF] px-3 py-2.5 text-xs text-white"
                   >
                     {m.content}
                   </p>
@@ -429,7 +420,7 @@ const AgentPreview = () => {
 
                 <InputGroupButton
                   variant="default"
-                  className="rounded-full"
+                  className="rounded-full bg-[#1E50EF] hover:bg-[#1648c2] disabled:bg-zinc-400"
                   size="icon-xs"
                   type="button"
                   onClick={handleSend}

@@ -18,6 +18,7 @@ import { IconRefresh } from "@tabler/icons-react"
 import { useState } from "react"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { toast } from "@/lib/hooks/useToast"
+import { getBotBehaviorDescription } from "@/utils"
 
 type projectType = {
   projectName: string
@@ -81,9 +82,12 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
   const changeAgentTypeMutation = useApiMutation<
     string,
     ChangeAgentTypePayload
-  >("/onboarding/change-agent-type", "post", {
+  >("/botsettings/change-agent-type", "post", {
     onSuccess: data => {
-      toast({ title: "Agent type updated", description: String(data) })
+      toast({
+        title: "Agent type updated",
+        description: getBotBehaviorDescription(data)
+      })
     },
     onError: () => {
       toast({ title: "Failed to update agent type" })
@@ -93,9 +97,12 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
   const changeAgentToneMutation = useApiMutation<
     string,
     ChangeAgentTonePayload
-  >("/onboarding/change-agent-tone", "post", {
+  >("/botsettings/change-agent-tone", "post", {
     onSuccess: data => {
-      toast({ title: "Agent tone updated", description: String(data) })
+      toast({
+        title: "Agent tone updated",
+        description: getBotBehaviorDescription(data)
+      })
     },
     onError: () => {
       toast({ title: "Failed to update agent tone" })
@@ -105,11 +112,11 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
   const changeAgentConfidenceMutation = useApiMutation<
     string,
     ChangeAgentConfidencePayload
-  >("/onboarding/change-agent-confidence", "post", {
+  >("/botsettings/change-agent-confidence", "post", {
     onSuccess: data => {
       toast({
         title: "Confidence threshold updated",
-        description: String(data)
+        description: getBotBehaviorDescription(data)
       })
     },
     onError: () => {

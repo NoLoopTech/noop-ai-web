@@ -19,6 +19,7 @@ import { useState } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { toast } from "@/lib/hooks/useToast"
+import { getBotBehaviorDescription } from "@/utils"
 
 enum AgentType {
   DEFAULT = "default",
@@ -77,7 +78,10 @@ const AgentDetails = () => {
     ChangeAgentTypePayload
   >("/onboarding/change-agent-type", "post", {
     onSuccess: data => {
-      toast({ title: "Agent type updated", description: String(data) })
+      toast({
+        title: "Agent type updated",
+        description: getBotBehaviorDescription(data)
+      })
     },
     onError: () => {
       toast({ title: "Failed to update agent type" })
@@ -89,7 +93,10 @@ const AgentDetails = () => {
     ChangeAgentTonePayload
   >("/onboarding/change-agent-tone", "post", {
     onSuccess: data => {
-      toast({ title: "Agent tone updated", description: String(data) })
+      toast({
+        title: "Agent tone updated",
+        description: getBotBehaviorDescription(data)
+      })
     },
     onError: () => {
       toast({ title: "Failed to update agent tone" })
@@ -103,7 +110,7 @@ const AgentDetails = () => {
     onSuccess: data => {
       toast({
         title: "Confidence threshold updated",
-        description: String(data)
+        description: getBotBehaviorDescription(data)
       })
     },
     onError: () => {

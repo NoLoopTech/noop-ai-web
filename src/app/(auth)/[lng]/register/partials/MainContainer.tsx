@@ -2,7 +2,7 @@
 
 import { JSX, useState } from "react"
 import AuthForm from "@/components/layout/auth/AuthForm"
-import SuccessIcon from "./SuccessIcon"
+import PartialSuccessIcon from "@/components/layout/animated-icons/PartialSuccessIcon"
 
 export default function MainContainer(): JSX.Element {
   const [registered, setRegistered] = useState(false)
@@ -15,7 +15,7 @@ export default function MainContainer(): JSX.Element {
     <div className="mx-auto flex h-screen max-w-[1440px] items-center justify-center p-2 px-20">
       {registered ? (
         <div className="w-full max-w-lg p-8 text-center">
-          <SuccessIcon size={130} />
+          <PartialSuccessIcon size={130} />
           <div className="mt-10 flex w-full flex-col items-center justify-center">
             <h2 className="text-foreground mb-5 text-3xl font-bold">
               You’re almost there!

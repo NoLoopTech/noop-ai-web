@@ -99,8 +99,8 @@ const MainContainer = () => {
     if (!otherTrainedSources) return
 
     const baseUrl = {
-      protocol: otherTrainedSources.baseUrl.protocol,
-      domain: otherTrainedSources.baseUrl.domain
+      protocol: otherTrainedSources.baseUrl?.protocol ?? "https://",
+      domain: otherTrainedSources.baseUrl?.domain ?? ""
     }
 
     const websiteLinks = (otherTrainedSources.webUrls?.urls ?? []).map(w => ({

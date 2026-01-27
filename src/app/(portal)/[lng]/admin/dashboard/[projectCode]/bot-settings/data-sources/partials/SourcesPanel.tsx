@@ -22,6 +22,9 @@ import {
   AlertDialogDescription,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
+import { convertBytesToUnits } from "@/utils"
 
 interface SourcesPanelProps {
   isTrainedSourcesLoading: boolean
@@ -35,6 +38,7 @@ interface AgentRequest {
   cleanText?: string
   qaPairs?: Array<{ qAndATitle: string; question: string; answer: string }>
   textTitleTextPairs?: Array<{ textTitle: string; text: string }>
+  isPreview?: boolean
 }
 
 interface AgentResponse {
@@ -46,6 +50,7 @@ interface AgentResponse {
 
 interface AgentStatusResponse {
   status: string
+  agentPrompt?: string | null
 }
 
 type DeleteAzureFiles = { blobNames: string[] }
@@ -77,6 +82,14 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
   const [isTrainedDialogOpen, setIsTrainedDialogOpen] = useState(false)
   const [isButtonDisabled, setIsButtonDisabled] = useState(true)
   const [isPollingStatus, setIsPollingStatus] = useState(false)
+  const [isPreview, setIsPreview] = useState(false)
+
+  const chatBotCode = useProjectCodeString()
+
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
 
   const hasSources =
     websiteLinks.length > 0 ||
@@ -125,8 +138,6 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     socialMedia
   ])
 
-  const chatBotCode = useProjectCodeString()
-
   const uploadFileMutation = useApiMutation<
     { uploadUrl: string; publicUrl: string },
     { fileName: string; contentType?: string; folder?: string }
@@ -137,7 +148,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     DeleteAzureFiles
   >(`/botsettings/${chatBotCode}/delete-azure-files`, "delete")
 
-  const trainAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
+  const updateAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
     "/botSettings/update-agent",
     "post",
     {
@@ -153,9 +164,28 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     }
   )
 
+  const trainPreviewAgentMutation = useApiMutation<AgentResponse, AgentRequest>(
+    "/botSettings/train-preview-agent",
+    "post",
+    {
+      onSuccess: () => {
+        setIsPollingStatus(true)
+        setIsTrainingDialogOpen(true)
+      },
+      onError: () => {
+        setIsPollingStatus(false)
+        setIsTrainingDialogOpen(false)
+        setIsButtonDisabled(false)
+      }
+    }
+  )
+
   const agentStatusQuery = useApiQuery<AgentStatusResponse>(
-    ["botSettings-agent-status", chatBotCode],
-    `/botSettings/${chatBotCode}/agent-status`,
+    [
+      "botSettings-agent-status",
+      isPreview ? `preview_${chatBotCode}` : chatBotCode
+    ],
+    `/botSettings/${isPreview ? `preview_${chatBotCode}` : chatBotCode}/agent-status`,
     () => ({
       method: "get"
     }),
@@ -192,98 +222,132 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
     }
   }, [agentStatusQuery.data?.status])
 
-  const handleTrainClick = () => {
-    ;(async () => {
-      try {
-        setIsButtonDisabled(true)
-        setIsTrainedDialogOpen(false)
-        setIsTrainingDialogOpen(true)
-        setIsPollingStatus(false)
+  const handleTrainClick =
+    (isPreview: boolean = false) =>
+    () => {
+      ;(async () => {
+        try {
+          /*
+           * Clear any cached agent status for this bot/preview so stale
+           * 'completed' values don't immediately prevent polling from starting.
+           */
+          const statusQueryKey = [
+            "botSettings-agent-status",
+            isPreview ? `preview_${chatBotCode}` : (chatBotCode ?? "")
+          ]
+          queryClient.setQueryData(statusQueryKey, undefined)
 
-        const storeFiles = useBotSettingsFileSourcesStore.getState().files || []
-        let uploadedFileUrls: string[] | undefined = undefined
-        if (storeFiles.length > 0) {
-          const folderName = chatBotCode ?? undefined
-          const uploadPromises = storeFiles.map(f =>
-            (async () => {
-              if (!f.raw) return null
-              const resp = await uploadFileMutation.mutateAsync({
-                fileName: f.name,
-                contentType: f.raw.type || "application/octet-stream",
-                folder: folderName
-              })
-              const { uploadUrl, publicUrl } = resp
-              await axios.put(uploadUrl, f.raw, {
-                headers: {
-                  "x-ms-blob-type": "BlockBlob",
-                  "Content-Type": f.raw.type || "application/octet-stream"
-                }
-              })
-              return publicUrl
-            })()
-          )
-          const settled = await Promise.allSettled(uploadPromises)
-          const successful = settled
-            .filter(
-              (r): r is PromiseFulfilledResult<string | null> =>
-                r.status === "fulfilled"
+          setIsButtonDisabled(true)
+          setIsTrainedDialogOpen(false)
+          setIsTrainingDialogOpen(true)
+          setIsPollingStatus(false)
+
+          const storeFiles =
+            useBotSettingsFileSourcesStore.getState().files || []
+          let uploadedFileUrls: string[] | undefined = undefined
+          if (storeFiles.length > 0) {
+            const folderName = isPreview
+              ? `preview_${chatBotCode}`
+              : (chatBotCode ?? undefined)
+            const uploadPromises = storeFiles.map(f =>
+              (async () => {
+                if (!f.raw) return null
+                const resp = await uploadFileMutation.mutateAsync({
+                  fileName: f.name,
+                  contentType: f.raw.type || "application/octet-stream",
+                  folder: folderName
+                })
+                const { uploadUrl, publicUrl } = resp
+                await axios.put(uploadUrl, f.raw, {
+                  headers: {
+                    "x-ms-blob-type": "BlockBlob",
+                    "Content-Type": f.raw.type || "application/octet-stream"
+                  }
+                })
+                return publicUrl
+              })()
             )
-            .map(r => r.value)
-            .filter(Boolean) as string[]
-          uploadedFileUrls = successful.length > 0 ? successful : undefined
+            const settled = await Promise.allSettled(uploadPromises)
+            const successful = settled
+              .filter(
+                (r): r is PromiseFulfilledResult<string | null> =>
+                  r.status === "fulfilled"
+              )
+              .map(r => r.value)
+              .filter(Boolean) as string[]
+            uploadedFileUrls = successful.length > 0 ? successful : undefined
+          }
+
+          const queuedBlobNames = trainedFilesToBeDeleted?.blobNames || []
+          let publicUrlsForPayload = trainedPublicFileUrls?.urls || []
+
+          if (queuedBlobNames.length > 0) {
+            if (!isPreview) {
+              await deleteAzureFilesMutation.mutateAsync({
+                blobNames: queuedBlobNames
+              })
+            }
+
+            const currentUrls = trainedPublicFileUrls?.urls || []
+            const remaining = currentUrls.filter(
+              u => !queuedBlobNames.some(fn => u.includes(fn))
+            )
+            setTrainedPublicFileUrls({ urls: remaining })
+
+            publicUrlsForPayload = remaining
+
+            setTrainedFilesToBeDeleted({ blobNames: [] })
+          }
+
+          const finalPayload: AgentRequest = {
+            chatBotCode: chatBotCode ?? "",
+            baseUrl: selectedWebUrls.length > 0 ? baseUrl : undefined,
+            webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
+            textTitleTextPairs:
+              textSources.length > 0
+                ? textSources.map(t => ({
+                    textTitle: t.title,
+                    text: t.description
+                  }))
+                : undefined,
+            qaPairs:
+              qAndAs.length > 0
+                ? qAndAs.map(q => ({
+                    qAndATitle: q.title,
+                    question: q.question,
+                    answer: q.answer
+                  }))
+                : undefined,
+            filePaths: [...publicUrlsForPayload, ...(uploadedFileUrls ?? [])]
+          }
+
+          if (isPreview) {
+            setIsPreview(true)
+
+            trainPreviewAgentMutation.mutate({
+              ...finalPayload,
+              isPreview: true
+            })
+          } else {
+            updateAgentMutation.mutate(finalPayload)
+          }
+        } catch (_error) {
+          setIsPollingStatus(false)
+          setIsTrainingDialogOpen(false)
+          setIsButtonDisabled(false)
         }
+      })()
+    }
 
-        const queuedBlobNames = trainedFilesToBeDeleted?.blobNames || []
-        let publicUrlsForPayload = trainedPublicFileUrls?.urls || []
+  const handleDoneOrGoToPreview = () => {
+    if (isPreview) {
+      router.push(
+        `/admin/dashboard/${chatBotCode}/bot-settings/data-sources/preview?preview=true`
+      )
+    } else {
+      setIsTrainedDialogOpen(false)
+    }
 
-        if (queuedBlobNames.length > 0) {
-          await deleteAzureFilesMutation.mutateAsync({
-            blobNames: queuedBlobNames
-          })
-
-          const currentUrls = trainedPublicFileUrls?.urls || []
-          const remaining = currentUrls.filter(
-            u => !queuedBlobNames.some(fn => u.includes(fn))
-          )
-          setTrainedPublicFileUrls({ urls: remaining })
-
-          publicUrlsForPayload = remaining
-
-          setTrainedFilesToBeDeleted({ blobNames: [] })
-        }
-
-        const finalPayload: AgentRequest = {
-          chatBotCode: chatBotCode ?? "",
-          baseUrl: selectedWebUrls.length > 0 ? baseUrl : undefined,
-          webUrls: selectedWebUrls.length > 0 ? selectedWebUrls : undefined,
-          textTitleTextPairs:
-            textSources.length > 0
-              ? textSources.map(t => ({
-                  textTitle: t.title,
-                  text: t.description
-                }))
-              : undefined,
-          qaPairs:
-            qAndAs.length > 0
-              ? qAndAs.map(q => ({
-                  qAndATitle: q.title,
-                  question: q.question,
-                  answer: q.answer
-                }))
-              : undefined,
-          filePaths: [...publicUrlsForPayload, ...(uploadedFileUrls ?? [])]
-        }
-
-        trainAgentMutation.mutate(finalPayload)
-      } catch (_error) {
-        setIsPollingStatus(false)
-        setIsTrainingDialogOpen(false)
-        setIsButtonDisabled(false)
-      }
-    })()
-  }
-
-  const handleGoToPlayground = () => {
     setIsTrainedDialogOpen(false)
   }
 
@@ -294,6 +358,12 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
       setIsPollingStatus(false)
     }
   }
+
+  // INFO: Reset trained dialog and preview state when route or search params change
+  useEffect(() => {
+    setIsTrainedDialogOpen(false)
+    setIsPreview(Boolean(searchParams?.get("preview")))
+  }, [pathname, searchParams?.toString()])
 
   return (
     <div className="mx-auto mt-7 w-full max-w-2xs">
@@ -348,11 +418,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
                     <div className="flex space-x-1 text-xs font-semibold text-zinc-700 dark:text-zinc-50">
                       <p>
-                        {files
-                          .reduce((acc, curr) => acc + curr.size / 1024, 0)
-                          .toFixed(3)}
+                        {convertBytesToUnits(
+                          files.reduce((acc, curr) => acc + curr.size, 0)
+                        )}
                       </p>
-                      <p>KB</p>
                     </div>
                   </div>
                 )}
@@ -374,11 +443,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
                     <div className="flex space-x-1 text-xs font-semibold text-zinc-700 dark:text-zinc-50">
                       <p>
-                        {textSources
-                          .reduce((acc, curr) => acc + curr.size / 1024, 0)
-                          .toFixed(3)}
+                        {convertBytesToUnits(
+                          textSources.reduce((acc, curr) => acc + curr.size, 0)
+                        )}
                       </p>
-                      <p>KB</p>
                     </div>
                   </div>
                 )}
@@ -400,11 +468,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
                     <div className="flex space-x-1 text-xs font-semibold text-zinc-700 dark:text-zinc-50">
                       <p>
-                        {qAndAs
-                          .reduce((acc, curr) => acc + curr.size / 1024, 0)
-                          .toFixed(3)}
+                        {convertBytesToUnits(
+                          qAndAs.reduce((acc, curr) => acc + curr.size, 0)
+                        )}
                       </p>
-                      <p>KB</p>
                     </div>
                   </div>
                 )}
@@ -459,11 +526,21 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
       <div className="mt-4 flex w-full">
         <Button
-          onClick={handleTrainClick}
+          onClick={handleTrainClick(false)}
           className="w-full"
           disabled={isButtonDisabled || isTrainedSourcesLoading}
         >
           Train agent
+        </Button>
+      </div>
+
+      <div className="mt-4 flex w-full">
+        <Button
+          onClick={handleTrainClick(true)}
+          className="text-foreground w-full bg-white transition-colors duration-700 ease-in-out hover:bg-zinc-200 dark:bg-slate-950 dark:text-zinc-200 dark:hover:bg-slate-800"
+          disabled={isButtonDisabled || isTrainedSourcesLoading}
+        >
+          Preview agent
         </Button>
       </div>
 
@@ -532,10 +609,10 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
           </div>
 
           <AlertDialogAction
-            onClick={handleGoToPlayground}
+            onClick={handleDoneOrGoToPreview}
             className="mx-auto mt-2 w-max"
           >
-            Done
+            {isPreview ? "Go to Preview" : "Done"}
           </AlertDialogAction>
         </AlertDialogContent>
       </AlertDialog>

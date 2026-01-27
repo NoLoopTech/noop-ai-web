@@ -99,8 +99,7 @@ export const sidebarData: SidebarData = {
             },
             {
               title: "Playground",
-              url: "/bot-settings/playground",
-              disabled: true
+              url: "/bot-settings/playground?preview=false"
             }
           ]
         }

@@ -16,10 +16,18 @@ import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { IconRefresh } from "@tabler/icons-react"
 import { useState } from "react"
-import { useOnboardingStore } from "../../store/onboarding.store"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { toast } from "@/lib/hooks/useToast"
 import { getBotBehaviorDescription } from "@/utils"
+
+type projectType = {
+  projectName: string
+  chatbotCode: string
+}
+interface AgentDetailsProps {
+  project: projectType
+  agentPrompt: string
+}
 
 enum AgentType {
   DEFAULT = "default",
@@ -66,17 +74,15 @@ const toneTypeOptions = [
   { value: ToneType.NEUTRAL, label: "Neutral" }
 ]
 
-const AgentDetails = () => {
+const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
   const [agentType, setAgentType] = useState<AgentType | "">("")
   const [toneType, setToneType] = useState<ToneType | "">("")
   const [confidence, setConfidence] = useState<number>(75)
 
-  const { chatBotCode, agentName, agentPrompt } = useOnboardingStore()
-
   const changeAgentTypeMutation = useApiMutation<
     string,
     ChangeAgentTypePayload
-  >("/onboarding/change-agent-type", "post", {
+  >("/botsettings/change-agent-type", "post", {
     onSuccess: data => {
       toast({
         title: "Agent type updated",
@@ -91,7 +97,7 @@ const AgentDetails = () => {
   const changeAgentToneMutation = useApiMutation<
     string,
     ChangeAgentTonePayload
-  >("/onboarding/change-agent-tone", "post", {
+  >("/botsettings/change-agent-tone", "post", {
     onSuccess: data => {
       toast({
         title: "Agent tone updated",
@@ -106,7 +112,7 @@ const AgentDetails = () => {
   const changeAgentConfidenceMutation = useApiMutation<
     string,
     ChangeAgentConfidencePayload
-  >("/onboarding/change-agent-confidence", "post", {
+  >("/botsettings/change-agent-confidence", "post", {
     onSuccess: data => {
       toast({
         title: "Confidence threshold updated",
@@ -123,7 +129,7 @@ const AgentDetails = () => {
     if (!value) return
     try {
       const payload: ChangeAgentTypePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newType: value
       }
       changeAgentTypeMutation.mutate(payload)
@@ -137,7 +143,7 @@ const AgentDetails = () => {
     if (!value) return
     try {
       const payload: ChangeAgentTonePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newTone: value
       }
       changeAgentToneMutation.mutate(payload)
@@ -151,7 +157,7 @@ const AgentDetails = () => {
     try {
       const level = (values[0] / 100).toFixed(2)
       const payload: ChangeAgentConfidencePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newConfidenceLevel: level
       }
       changeAgentConfidenceMutation.mutate(payload)
@@ -169,7 +175,7 @@ const AgentDetails = () => {
     setAgentType(value)
     try {
       const payload: ChangeAgentTypePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newType: value
       }
       changeAgentTypeMutation.mutate(payload)
@@ -185,7 +191,7 @@ const AgentDetails = () => {
     setToneType(value)
     try {
       const payload: ChangeAgentTonePayload = {
-        chatbotCode: chatBotCode ?? "",
+        chatbotCode: project.chatbotCode ?? "",
         newTone: value
       }
       changeAgentToneMutation.mutate(payload)
@@ -197,23 +203,23 @@ const AgentDetails = () => {
   }
 
   return (
-    <div className="flex h-full min-w-80 flex-col space-y-2.5 rounded-[10px] bg-white py-2.5 pr-2 pl-2.5 shadow-md">
-      <h2 className="pl-1 text-lg font-semibold text-zinc-950">
+    <div className="bg-background flex h-full max-h-[675px] min-w-80 flex-col space-y-2.5 rounded-[10px] py-2.5 pr-2 pl-2.5 shadow-md">
+      <h2 className="text-foreground pl-1 text-lg font-semibold">
         Agent Details
       </h2>
 
       <ScrollArea className="flex h-full w-full pr-2.5" scrollbarVariant="tiny">
         <div className="flex flex-col items-center space-y-4 p-1">
-          <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2">
-            <p className="text-sm font-medium text-zinc-950">Agent name:</p>
+          <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2 dark:border-slate-800">
+            <p className="text-foreground text-sm font-medium">Agent name:</p>
 
-            <p className="text-right text-sm font-normal text-zinc-500">
-              {agentName ?? "—"}
+            <p className="text-right text-sm font-normal text-zinc-500 dark:text-slate-400">
+              {project.projectName ?? "—"}
             </p>
           </div>
 
-          <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2">
-            <p className="text-sm font-medium text-zinc-950">Agent status:</p>
+          <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2 dark:border-slate-800">
+            <p className="text-foreground text-sm font-medium">Agent status:</p>
 
             <p className="text-sm text-[#34c759]">Trained</p>
           </div>
@@ -221,7 +227,7 @@ const AgentDetails = () => {
           <Separator className="my-1 w-full" />
 
           <div className="mt-3 w-full">
-            <p className="mb-1.5 text-sm font-medium text-zinc-950">
+            <p className="text-foreground mb-1.5 text-sm font-medium">
               Agent type
             </p>
 
@@ -232,7 +238,7 @@ const AgentDetails = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel className="text-sm font-medium text-zinc-950">
+                    <SelectLabel className="text-foreground text-sm font-medium">
                       Agent Type
                     </SelectLabel>
 
@@ -240,7 +246,7 @@ const AgentDetails = () => {
                       <SelectItem
                         key={option.value}
                         value={option.value}
-                        className="text-sm font-normal text-zinc-950"
+                        className="text-foreground text-sm font-normal"
                       >
                         {option.label}
                       </SelectItem>
@@ -251,10 +257,10 @@ const AgentDetails = () => {
 
               <Button
                 type="button"
-                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
+                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
                 onClick={resetAgentType}
               >
-                <IconRefresh className="size-5 stroke-zinc-600" />
+                <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
               </Button>
             </div>
           </div>
@@ -262,7 +268,7 @@ const AgentDetails = () => {
           <Separator className="my-1 w-full" />
 
           <div className="mt-3 w-full">
-            <p className="mb-1.5 text-sm font-medium text-zinc-950">
+            <p className="text-foreground mb-1.5 text-sm font-medium">
               Bot Tone type
             </p>
 
@@ -273,7 +279,7 @@ const AgentDetails = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel className="text-sm font-medium text-zinc-950">
+                    <SelectLabel className="text-foreground text-sm font-medium">
                       Tone Type
                     </SelectLabel>
 
@@ -281,7 +287,7 @@ const AgentDetails = () => {
                       <SelectItem
                         key={option.value}
                         value={option.value}
-                        className="text-sm font-normal text-zinc-950"
+                        className="text-foreground text-sm font-normal"
                       >
                         {option.label}
                       </SelectItem>
@@ -292,10 +298,10 @@ const AgentDetails = () => {
 
               <Button
                 type="button"
-                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
+                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
                 onClick={resetToneType}
               >
-                <IconRefresh className="size-5 stroke-zinc-600" />
+                <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
               </Button>
             </div>
           </div>
@@ -304,7 +310,7 @@ const AgentDetails = () => {
 
           <div className="mt-3 w-full">
             <div className="flex w-full items-center justify-between">
-              <p className="mb-1.5 text-sm font-medium text-zinc-950">
+              <p className="text-foreground mb-1.5 text-sm font-medium">
                 Confidence Threshold
               </p>
 
@@ -336,7 +342,7 @@ const AgentDetails = () => {
 
           <div className="w-full">
             <div className="flex w-full items-center justify-between">
-              <p className="mb-1.5 text-sm font-medium text-zinc-950">
+              <p className="text-foreground mb-1.5 text-sm font-medium">
                 Instructions
               </p>
             </div>

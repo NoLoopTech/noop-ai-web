@@ -36,7 +36,10 @@ export const withLocaleRedirection: MiddlewareFactory = (
 
     // INFO: If user visits the root path, redirect to the detected language admin page
     if (req.nextUrl.pathname === "/") {
-      return NextResponse.redirect(new URL(`/${lng}/admin/`, req.url))
+      // INFO: preserve any search/query string when redirecting
+      return NextResponse.redirect(
+        new URL(`/${lng}/admin/${req.nextUrl.search || ""}`, req.url)
+      )
     }
 
     // TODO: find a better way to exclude images and assets from being redirected
@@ -70,8 +73,12 @@ export const withLocaleRedirection: MiddlewareFactory = (
         !req.nextUrl.pathname.endsWith(".geojson") &&
         !req.nextUrl.pathname.includes("/maintenance/api")
       ) {
+        // INFO: preserve any search/query string when redirecting to the localized path
         return NextResponse.redirect(
-          new URL(`/${lng as string}${req.nextUrl.pathname}`, req.url)
+          new URL(
+            `/${lng as string}${req.nextUrl.pathname}${req.nextUrl.search || ""}`,
+            req.url
+          )
         )
       }
 

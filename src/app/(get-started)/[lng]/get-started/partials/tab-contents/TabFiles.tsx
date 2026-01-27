@@ -11,6 +11,7 @@ import { useOnboardingStore } from "../../store/onboarding.store"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import FileDropzone from "@/components/FileDropzone"
+import { convertBytesToUnits } from "@/utils"
 
 interface TabFilesProps {
   motionVariants: Variants
@@ -78,9 +79,7 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
             >
               <p className="w-9/12 text-left">File Name</p>
 
-              <p className="w-2/12 text-left">
-                Size<span className="text-xs text-zinc-500/75"> (bytes)</span>
-              </p>
+              <p className="w-2/12 text-left">Size</p>
 
               <p className="w-1/12 cursor-pointer text-left">Action</p>
             </div>
@@ -93,7 +92,9 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
                 >
                   <p className="w-9/12 text-left">{file.name}</p>
 
-                  <p className="w-2/12 text-left">{file.size} bytes</p>
+                  <p className="w-2/12 text-left">
+                    {convertBytesToUnits(file.size)}
+                  </p>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger className="w-1/12 cursor-pointer">

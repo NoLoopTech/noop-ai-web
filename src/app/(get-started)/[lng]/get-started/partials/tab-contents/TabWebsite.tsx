@@ -55,6 +55,25 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setError(result.success ? null : result.error.errors[0].message)
   }
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedText = e.clipboardData.getData("text")
+
+    // INFO: Detect and set protocol from pasted URL
+    let detectedProtocol: "http://" | "https://" = protocol
+    if (pastedText.startsWith("https://")) {
+      detectedProtocol = "https://"
+    } else if (pastedText.startsWith("http://")) {
+      detectedProtocol = "http://"
+    }
+    setProtocol(detectedProtocol)
+
+    const cleanedUrl = pastedText.replace(/^https?:\/\//, "")
+    setUrl(cleanedUrl)
+    const result = urlSchema.safeParse(detectedProtocol + cleanedUrl)
+    setError(result.success ? null : result.error.errors[0].message)
+  }
+
   const fetchLinksMutation = useApiMutation<
     { childUrls: string[]; baseUrl: string },
     { url: string }
@@ -65,9 +84,10 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
         setShowUrlWarning(true)
         setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
       } else {
+        // INFO: If there are 10 or fewer links, auto-select them all
         setShowSelectWarning(false)
         setShowUrlWarning(false)
-        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
+        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: true })))
       }
     }
   })
@@ -115,6 +135,32 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     }
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      // INFO: Select up to 10 links
+      setWebsiteLinks(
+        websiteLinks.map((link, idx) => ({
+          url: link.url,
+          selected: idx < 10
+        }))
+      )
+    } else {
+      // INFO: Deselect all links
+      setWebsiteLinks(
+        websiteLinks.map(link => ({
+          url: link.url,
+          selected: false
+        }))
+      )
+    }
+    setShowUrlWarning(false)
+    setShowSelectWarning(false)
+  }
+
+  const selectedCount = websiteLinks.filter(link => link.selected).length
+  const maxSelectable = Math.min(websiteLinks.length, 10)
+  const allSelected = selectedCount === maxSelectable && maxSelectable > 0
+
   return (
     <TabsContent
       value="website"
@@ -153,6 +199,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                   <InputGroupInput
                     placeholder="www.example.com"
                     value={url}
+                    onPaste={handlePaste}
                     onChange={handleInputChange}
                     aria-invalid={!!error}
                   />
@@ -231,11 +278,20 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
             <div
               className={`mt-1 mb-2 flex h-10 items-center justify-between rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-3.5 text-sm font-normal ${showUrlWarning ? "text-[#FF383C]" : "text-zinc-500"}`}
             >
-              <p>
-                {websiteLinks.filter(link => link.selected).length}
-                <span className="px-0.5">/</span>
-                {websiteLinks.length} links
-              </p>
+              <div className="flex items-center space-x-2">
+                {websiteLinks.length > 0 && (
+                  <Checkbox
+                    id="select-all"
+                    checked={allSelected}
+                    onCheckedChange={handleSelectAll}
+                  />
+                )}
+                <p>
+                  {selectedCount}
+                  <span className="px-0.5">/</span>
+                  {websiteLinks.length} links
+                </p>
+              </div>
 
               {/* TODO: remove this later */}
               {/* <div className="flex items-center space-x-2 text-xs font-medium">
@@ -255,7 +311,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                 return (
                   <label
                     key={link.url + idx}
-                    className={`flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                    className={`flex h-12 items-center space-x-2 border-b border-zinc-200 pr-4 pl-[14.3px] ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   >
                     <Checkbox
                       id={`link-${idx}`}

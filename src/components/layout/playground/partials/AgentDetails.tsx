@@ -15,38 +15,28 @@ import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { IconRefresh } from "@tabler/icons-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useApiMutation } from "@/query/hooks/useApiMutation"
 import { toast } from "@/lib/hooks/useToast"
 import { getBotBehaviorDescription } from "@/utils"
+import {
+  AgentType,
+  getBotSettingsResponse,
+  ToneType
+} from "@/types/botBehavior"
 
 type projectType = {
   projectName: string
   chatbotCode: string
 }
+
 interface AgentDetailsProps {
   project: projectType
   agentPrompt: string
-}
-
-enum AgentType {
-  DEFAULT = "default",
-  CUSTOMER_SUPPORT_AGENT = "customer_support_agent",
-  SALES_ASSISTANT = "sales_assistant",
-  PRODUCT_GUIDE = "product_guide",
-  FINANCE_BUDDY = "finance_buddy",
-  TRAVEL_ADVISOR = "travel_advisor",
-  CUSTOM_ROLE = "custom_role"
-}
-
-enum ToneType {
-  DEFAULT = "default",
-  FRIENDLY = "friendly",
-  FORMAL = "formal",
-  PLAYFUL = "playful",
-  DETAILED = "detailed",
-  EMPATHETIC = "empathetic",
-  NEUTRAL = "neutral"
+  botBehavior: getBotSettingsResponse | undefined
+  isUserProjectsLoading: boolean
+  isAgentPromptLoading: boolean
+  isBotBehaviorLoading: boolean
 }
 
 type ChangeAgentTypePayload = { chatbotCode: string; newType: AgentType }
@@ -74,10 +64,33 @@ const toneTypeOptions = [
   { value: ToneType.NEUTRAL, label: "Neutral" }
 ]
 
-const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
+const AgentDetails = ({
+  project,
+  agentPrompt,
+  botBehavior,
+  isBotBehaviorLoading,
+  isAgentPromptLoading,
+  isUserProjectsLoading
+}: AgentDetailsProps) => {
   const [agentType, setAgentType] = useState<AgentType | "">("")
   const [toneType, setToneType] = useState<ToneType | "">("")
-  const [confidence, setConfidence] = useState<number>(75)
+  const [confidence, setConfidence] = useState<number>(0)
+
+  useEffect(() => {
+    if (botBehavior) {
+      setAgentType(
+        botBehavior.agentType === AgentType.DEFAULT
+          ? ""
+          : (botBehavior.agentType ?? "")
+      )
+      setToneType(
+        botBehavior.toneType === ToneType.DEFAULT
+          ? ""
+          : (botBehavior.toneType ?? "")
+      )
+      setConfidence((botBehavior.confidenceLevel ?? 0) * 100)
+    }
+  }, [botBehavior])
 
   const changeAgentTypeMutation = useApiMutation<
     string,
@@ -213,9 +226,15 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
           <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2 dark:border-slate-800">
             <p className="text-foreground text-sm font-medium">Agent name:</p>
 
-            <p className="text-right text-sm font-normal text-zinc-500 dark:text-slate-400">
-              {project.projectName ?? "—"}
-            </p>
+            {isUserProjectsLoading ? (
+              <p className="shine-text text-right text-sm font-normal">
+                Loading...
+              </p>
+            ) : (
+              <p className="text-right text-sm font-normal text-zinc-500 dark:text-slate-400">
+                {project.projectName ?? "—"}
+              </p>
+            )}
           </div>
 
           <div className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 px-2 dark:border-slate-800">
@@ -231,37 +250,46 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
               Agent type
             </p>
 
-            <div className="flex w-full items-center space-x-2">
-              <Select value={agentType} onValueChange={handleChangeAgentType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel className="text-foreground text-sm font-medium">
-                      Agent Type
-                    </SelectLabel>
+            <div>
+              {isBotBehaviorLoading ? (
+                <div className="shine h-9 w-full rounded-md"></div>
+              ) : (
+                <div className="flex w-full items-center space-x-2">
+                  <Select
+                    value={agentType}
+                    onValueChange={handleChangeAgentType}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel className="text-foreground text-sm font-medium">
+                          Agent Type
+                        </SelectLabel>
 
-                    {agentTypeOptions.map(option => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="text-foreground text-sm font-normal"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                        {agentTypeOptions.map(option => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                            className="text-foreground text-sm font-normal"
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
 
-              <Button
-                type="button"
-                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
-                onClick={resetAgentType}
-              >
-                <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
-              </Button>
+                  <Button
+                    type="button"
+                    className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
+                    onClick={resetAgentType}
+                  >
+                    <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -271,38 +299,46 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
             <p className="text-foreground mb-1.5 text-sm font-medium">
               Bot Tone type
             </p>
+            <div>
+              {isBotBehaviorLoading ? (
+                <div className="shine h-9 w-full rounded-md"></div>
+              ) : (
+                <div className="flex w-full items-center space-x-2">
+                  <Select
+                    value={toneType}
+                    onValueChange={handleChangeAgentTone}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel className="text-foreground text-sm font-medium">
+                          Tone Type
+                        </SelectLabel>
 
-            <div className="flex w-full items-center space-x-2">
-              <Select value={toneType} onValueChange={handleChangeAgentTone}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel className="text-foreground text-sm font-medium">
-                      Tone Type
-                    </SelectLabel>
+                        {toneTypeOptions.map(option => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                            className="text-foreground text-sm font-normal"
+                          >
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
 
-                    {toneTypeOptions.map(option => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="text-foreground text-sm font-normal"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-
-              <Button
-                type="button"
-                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
-                onClick={resetToneType}
-              >
-                <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
-              </Button>
+                  <Button
+                    type="button"
+                    className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
+                    onClick={resetToneType}
+                  >
+                    <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -319,17 +355,21 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
               </p>
             </div>
 
-            <div className="flex w-full items-center space-x-2">
-              <Slider
-                value={[confidence]}
-                max={100}
-                className="my-1"
-                trackClassName="data-[orientation=horizontal]:h-2"
-                step={1}
-                onValueChange={handleSliderValueChange}
-                onValueCommit={handleChangeConfidence}
-              />
-            </div>
+            {isBotBehaviorLoading ? (
+              <div className="shine mt-1 mb-2 h-2 w-full rounded-md"></div>
+            ) : (
+              <div className="flex w-full items-center space-x-2">
+                <Slider
+                  value={[confidence]}
+                  max={100}
+                  className="my-1"
+                  trackClassName="data-[orientation=horizontal]:h-2"
+                  step={1}
+                  onValueChange={handleSliderValueChange}
+                  onValueCommit={handleChangeConfidence}
+                />
+              </div>
+            )}
 
             <div className="mt-1 flex w-full items-center justify-between">
               <p className="text-xs font-normal text-zinc-500">Restrictive</p>
@@ -350,7 +390,7 @@ const AgentDetails = ({ project, agentPrompt }: AgentDetailsProps) => {
             <Textarea
               placeholder="### Role
 - Primary Function: You are an AI chatbot who helps users with their inquiries, issues and requests. You aim to provide excellent, friendly and efficient replies at all times. Your role is to listen attentively to the user, understand their needs, "
-              className="h-40 resize-none text-zinc-500"
+              className={`${isAgentPromptLoading ? "shine-text" : ""} h-40 resize-none text-zinc-500`}
               value={agentPrompt ?? ""}
               readOnly
             />

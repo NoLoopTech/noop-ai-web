@@ -7,6 +7,7 @@ import ChatBoxPreview from "./partials/ChatBoxPreview"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { UserProject } from "@/models/project"
+import { getBotSettingsResponse } from "@/types/botBehavior"
 
 interface PlaygroundProps {
   title?: string
@@ -19,11 +20,9 @@ const Playground = ({ title, description }: PlaygroundProps) => {
   const searchParams = useSearchParams()
   const preview = searchParams?.get("preview") === "true"
 
-  const { data: userProjects } = useApiQuery<UserProject[]>(
-    ["user-projects-playground"],
-    `user/me/projects`,
-    () => ({ method: "get" })
-  )
+  const { data: userProjects, isLoading: isUserProjectsLoading } = useApiQuery<
+    UserProject[]
+  >(["user-projects-playground"], `user/me/projects`, () => ({ method: "get" }))
 
   const project = useMemo(() => {
     const projects = userProjects ?? []
@@ -42,13 +41,21 @@ const Playground = ({ title, description }: PlaygroundProps) => {
     ? `preview_${project.chatbotCode}`
     : project.chatbotCode
 
-  const { data: agentPromptData } = useApiQuery<{ agentPrompt: string }>(
-    ["botsettings-playground-agent-prompt", previewCheckedChatbotCode],
-    `botsettings/${previewCheckedChatbotCode}/agent-prompt`,
-    () => ({ method: "get" })
-  )
+  const { data: agentPromptData, isLoading: isAgentPromptLoading } =
+    useApiQuery<{ agentPrompt: string }>(
+      ["botsettings-playground-agent-prompt", previewCheckedChatbotCode],
+      `botsettings/${previewCheckedChatbotCode}/agent-prompt`,
+      () => ({ method: "get" })
+    )
 
   const agentPrompt = agentPromptData?.agentPrompt ?? ""
+
+  const { data: botBehaviorData, isLoading: isBotBehaviorLoading } =
+    useApiQuery<getBotSettingsResponse>(
+      ["botsettings-playground-bot-behavior", previewCheckedChatbotCode],
+      `botsettings/${previewCheckedChatbotCode}/bot-behavior`,
+      () => ({ method: "get" })
+    )
 
   return (
     <div className="flex w-full flex-col justify-between px-5 pt-5">
@@ -63,9 +70,20 @@ const Playground = ({ title, description }: PlaygroundProps) => {
       </div>
 
       <div className="flex h-[calc(100vh-10.5rem)] w-full items-start justify-evenly space-x-5 rounded-t-md bg-zinc-200 bg-[url('/assets/images/bot-settings-playground-bg.png')] bg-cover bg-center px-12 py-5 dark:bg-slate-950">
-        <AgentDetails project={project} agentPrompt={agentPrompt} />
+        <AgentDetails
+          project={project}
+          agentPrompt={agentPrompt}
+          botBehavior={botBehaviorData}
+          isUserProjectsLoading={isUserProjectsLoading}
+          isAgentPromptLoading={isAgentPromptLoading}
+          isBotBehaviorLoading={isBotBehaviorLoading}
+        />
 
-        <ChatBoxPreview project={project} isPreview={preview} />
+        <ChatBoxPreview
+          project={project}
+          isPreview={preview}
+          isUserProjectsLoading={isUserProjectsLoading}
+        />
       </div>
     </div>
   )

@@ -22,18 +22,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { useProjectCodeString } from "@/lib/hooks/useProjectCode"
 import { toast } from "@/lib/hooks/useToast"
 import { useApiMutation, useApiQuery } from "@/query"
+import { AgentType, getBotBehaviorResponse } from "@/types/botBehavior"
 import { IconRefresh } from "@tabler/icons-react"
-import { useState } from "react"
-
-enum AgentType {
-  DEFAULT = "default",
-  CUSTOMER_SUPPORT_AGENT = "customer_support_agent",
-  SALES_ASSISTANT = "sales_assistant",
-  PRODUCT_GUIDE = "product_guide",
-  FINANCE_BUDDY = "finance_buddy",
-  TRAVEL_ADVISOR = "travel_advisor",
-  CUSTOM_ROLE = "custom_role"
-}
+import { useEffect, useState } from "react"
 
 type ChangeAgentTypePayload = { chatbotCode: string; newType: AgentType }
 type ChangeAgentConfidencePayload = {
@@ -50,9 +41,28 @@ const agentTypeOptions = [
   { value: AgentType.CUSTOM_ROLE, label: "Custom Role" }
 ]
 
-const AiAgentCard = () => {
+interface AiAgentCardProps {
+  isBotBehaviorLoading: boolean
+  botBehaviorData: getBotBehaviorResponse | undefined
+}
+
+const AiAgentCard = ({
+  isBotBehaviorLoading,
+  botBehaviorData
+}: AiAgentCardProps) => {
   const [agentType, setAgentType] = useState<AgentType | "">("")
-  const [confidence, setConfidence] = useState<number>(75)
+  const [confidence, setConfidence] = useState<number>(0)
+
+  useEffect(() => {
+    if (botBehaviorData) {
+      setAgentType(
+        botBehaviorData.agentType === AgentType.DEFAULT
+          ? ""
+          : (botBehaviorData.agentType ?? "")
+      )
+      setConfidence((botBehaviorData.confidenceLevel ?? 0) * 100)
+    }
+  }, [botBehaviorData])
 
   const chatBotCode = useProjectCodeString()
 
@@ -99,11 +109,12 @@ const AiAgentCard = () => {
     }
   })
 
-  const { data: agentPromptData } = useApiQuery<{ agentPrompt: string }>(
-    ["botsettings-agent-prompt", chatBotCode],
-    `botsettings/${chatBotCode}/agent-prompt`,
-    () => ({ method: "get" })
-  )
+  const { data: agentPromptData, isLoading: isAgentPromptLoading } =
+    useApiQuery<{ agentPrompt: string }>(
+      ["botsettings-agent-prompt", chatBotCode],
+      `botsettings/${chatBotCode}/agent-prompt`,
+      () => ({ method: "get" })
+    )
 
   const agentPrompt = agentPromptData?.agentPrompt ?? ""
 
@@ -168,43 +179,47 @@ const AiAgentCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="w-full space-y-8">
-        <div className="mt-3 w-full">
+        <div className="mt-1 w-full">
           <p className="text-foreground mb-1.5 text-sm font-medium">
             Agent type
           </p>
 
-          <div className="flex w-full items-center space-x-2">
-            <Select value={agentType} onValueChange={handleChangeAgentType}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel className="text-foreground text-sm font-medium">
-                    -- Agent Type --
-                  </SelectLabel>
+          {isBotBehaviorLoading ? (
+            <div className="shine h-9 w-full rounded-md"></div>
+          ) : (
+            <div className="flex w-full items-center space-x-2">
+              <Select value={agentType} onValueChange={handleChangeAgentType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel className="text-foreground text-sm font-medium">
+                      -- Agent Type --
+                    </SelectLabel>
 
-                  {agentTypeOptions.map(option => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="text-foreground text-sm font-normal"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                    {agentTypeOptions.map(option => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-foreground text-sm font-normal"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
 
-            <Button
-              type="button"
-              className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
-              onClick={resetAgentType}
-            >
-              <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
-            </Button>
-          </div>
+              <Button
+                type="button"
+                className="size-[35px] border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800"
+                onClick={resetAgentType}
+              >
+                <IconRefresh className="size-5 stroke-zinc-600 dark:stroke-slate-400" />
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="w-full">
@@ -218,7 +233,7 @@ const AiAgentCard = () => {
             placeholder="### Role
 - Primary Function: You are an AI chatbot who helps users with their inquiries, issues and requests. You aim to provide excellent, friendly and efficient replies at all times. Your role is to listen attentively to the user, understand their needs,"
             value={agentPrompt}
-            className="h-80 resize-none text-zinc-500"
+            className={`${isAgentPromptLoading ? "shine-text" : ""} h-80 resize-none text-zinc-500`}
             readOnly
           />
         </div>
@@ -234,17 +249,21 @@ const AiAgentCard = () => {
             </p>
           </div>
 
-          <div className="flex w-full items-center space-x-2">
-            <Slider
-              value={[confidence]}
-              max={100}
-              className="my-1"
-              trackClassName="data-[orientation=horizontal]:h-2.5"
-              step={1}
-              onValueChange={handleSliderValueChange}
-              onValueCommit={handleChangeConfidence}
-            />
-          </div>
+          {isBotBehaviorLoading ? (
+            <div className="shine mt-1 mb-2 h-2.5 w-full rounded-md"></div>
+          ) : (
+            <div className="flex w-full items-center space-x-2">
+              <Slider
+                value={[confidence]}
+                max={100}
+                className="my-1"
+                trackClassName="data-[orientation=horizontal]:h-2.5"
+                step={1}
+                onValueChange={handleSliderValueChange}
+                onValueCommit={handleChangeConfidence}
+              />
+            </div>
+          )}
 
           <div className="mt-1 flex w-full items-center justify-between">
             <p className="text-xs font-normal text-zinc-500">Restrictive</p>

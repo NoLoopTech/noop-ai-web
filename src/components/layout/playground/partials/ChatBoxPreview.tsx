@@ -348,7 +348,7 @@ const ChatBoxPreview = ({
                 return (
                   <p
                     key={m.id}
-                    className="max-w-5/6 self-end rounded-full bg-[#1E50EF] px-3 py-2.5 text-xs text-white"
+                    className="max-w-5/6 self-end rounded-xl bg-[#1E50EF] px-3 py-2.5 text-sm text-white"
                   >
                     {m.content}
                   </p>
@@ -358,7 +358,7 @@ const ChatBoxPreview = ({
               return (
                 <div
                   key={m.id}
-                  className="max-w-5/6 self-start rounded-xl bg-zinc-100 px-3 py-2.5 text-xs"
+                  className="max-w-5/6 self-start rounded-xl bg-zinc-100 px-3 py-2.5 text-sm"
                 >
                   <Markdown
                     components={{
@@ -410,7 +410,7 @@ const ChatBoxPreview = ({
                         />
                       ),
                       p: ({ node, ...props }) => (
-                        <p className="text-xs text-zinc-950" {...props} />
+                        <p className="text-sm text-zinc-950" {...props} />
                       )
                     }}
                   >

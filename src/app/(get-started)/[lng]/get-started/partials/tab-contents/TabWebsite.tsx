@@ -19,10 +19,11 @@ import { TabsContent } from "@/components/ui/tabs"
 import { ChevronDownIcon } from "lucide-react"
 import { motion, Variants } from "motion/react"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useOnboardingStore } from "../../store/onboarding.store"
 import { z } from "zod"
 import { useApiMutation } from "@/query"
+import { io, Socket } from "socket.io-client"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,8 +43,86 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const [protocol, setProtocol] = useState<"http://" | "https://">("https://")
   const [url, setUrl] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [isCrawling, setIsCrawling] = useState(false)
+  const [isSocketRegistered, setIsSocketRegistered] = useState(false)
 
   const [showSelectWarning, setShowSelectWarning] = useState(false)
+
+  // WebSocket refs
+  const socketRef = useRef<Socket | null>(null)
+  const clientIdRef = useRef<string>(
+    `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+  )
+
+  const {
+    setBaseUrl,
+    websiteLinks,
+    setWebsiteLinks,
+    toggleWebsiteLink,
+    setShowUrlWarning,
+    showUrlWarning
+  } = useOnboardingStore()
+
+  // Handle incoming crawl results
+  const handleSitemapDone = useCallback(
+    (data: { jobId: string; url: string; links: string[]; count: number }) => {
+      setIsCrawling(false)
+      if (data.links.length > 10) {
+        setShowSelectWarning(true)
+        setShowUrlWarning(true)
+        setWebsiteLinks(data.links.map(url => ({ url, selected: false })))
+      } else {
+        setShowSelectWarning(false)
+        setShowUrlWarning(false)
+        setWebsiteLinks(data.links.map(url => ({ url, selected: false })))
+      }
+    },
+    [setShowUrlWarning, setWebsiteLinks]
+  )
+
+  const handleCrawlError = useCallback(
+    (data: { jobId: string; error: string }) => {
+      setIsCrawling(false)
+      setError(`Crawl failed: ${data.error}`)
+    },
+    []
+  )
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string
+    const baseUrl = apiUrl.replace(/\/v1\/?$/, "")
+
+    const socket = io(`${baseUrl}/crawler`, {
+      transports: ["websocket", "polling"],
+      autoConnect: true
+    })
+
+    socketRef.current = socket
+
+    socket.on("connect", () => {
+      socket.emit("register", { clientId: clientIdRef.current })
+    })
+
+    socket.on("registered", () => {
+      setIsSocketRegistered(true)
+    })
+
+    socket.on("disconnect", () => {
+      setIsSocketRegistered(false)
+    })
+
+    socket.on("sitemap_done", handleSitemapDone)
+    socket.on("crawl_error", handleCrawlError)
+
+    return () => {
+      socket.off("sitemap_done", handleSitemapDone)
+      socket.off("crawl_error", handleCrawlError)
+      socket.off("registered")
+      socket.off("disconnect")
+      socket.disconnect()
+    }
+  }, [handleSitemapDone, handleCrawlError])
 
   const handleProtocolSelect = (selected: "http://" | "https://") => () => {
     setProtocol(selected)
@@ -55,31 +134,18 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setError(result.success ? null : result.error.errors[0].message)
   }
 
-  const fetchLinksMutation = useApiMutation<
-    { childUrls: string[]; baseUrl: string },
-    { url: string }
-  >("/onboarding/scrape", "post", {
-    onSuccess: data => {
-      if (data.childUrls.length > 10) {
-        setShowSelectWarning(true)
-        setShowUrlWarning(true)
-        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
-      } else {
-        setShowSelectWarning(false)
-        setShowUrlWarning(false)
-        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
-      }
+  const startCrawlMutation = useApiMutation<
+    { jobId: string; },
+    { url: string; clientId: string }
+  >("/onboarding/crawl/start", "post", {
+    onSuccess: () => {
+      setIsCrawling(true)
+    },
+    onError: () => {
+      setIsCrawling(false)
+      setError("Failed to start crawl")
     }
   })
-
-  const {
-    setBaseUrl,
-    websiteLinks,
-    setWebsiteLinks,
-    toggleWebsiteLink,
-    setShowUrlWarning,
-    showUrlWarning
-  } = useOnboardingStore()
 
   const handleFetchLinks = () => {
     const result = urlSchema.safeParse(protocol + url)
@@ -88,7 +154,11 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
       return
     }
     setError(null)
-    fetchLinksMutation.mutate({ url: protocol + url })
+    setIsCrawling(true)
+    startCrawlMutation.mutate({
+      url: protocol + url,
+      clientId: clientIdRef.current
+    })
     setBaseUrl({ protocol, domain: url })
   }
 
@@ -206,9 +276,9 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
 
                   <Button
                     onClick={handleFetchLinks}
-                    disabled={!url || !!error || fetchLinksMutation.isPending}
+                    disabled={!url || !!error || isCrawling || !isSocketRegistered}
                   >
-                    {fetchLinksMutation.isPending ? (
+                    {isCrawling ? (
                       <div className="flex items-center space-x-2">
                         <IconLoader className="inline-block size-4 animate-spin" />
                         <p>Fetching...</p>

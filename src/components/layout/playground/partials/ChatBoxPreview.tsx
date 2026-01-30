@@ -43,9 +43,14 @@ type projectType = {
 interface ChatBoxPreviewProps {
   project: projectType
   isPreview: boolean
+  isUserProjectsLoading?: boolean
 }
 
-const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
+const ChatBoxPreview = ({
+  project,
+  isPreview,
+  isUserProjectsLoading
+}: ChatBoxPreviewProps) => {
   const { data: session } = useSession()
 
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL
@@ -293,19 +298,23 @@ const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
   return (
     <div className="flex h-full max-h-[600px] w-[400px] flex-col overflow-hidden rounded-lg bg-white pb-2 shadow-md">
       <div className="flex h-14 w-full items-center rounded-t-md border-b border-zinc-300 bg-[#1E50EF]">
-        <div className="flex h-full items-center space-x-2.5 px-4 py-3">
-          <div className="flex size-[30px] items-center justify-center rounded-full border border-zinc-200 bg-zinc-500">
-            <h2 className="mt-0.5 text-xl font-extrabold text-zinc-50">
-              {project.projectName
-                ? project.projectName.charAt(0).toUpperCase()
-                : "N"}
+        {isUserProjectsLoading ? (
+          <div className="shine ml-3 flex h-9 w-48 items-center rounded-md"></div>
+        ) : (
+          <div className="flex h-full items-center space-x-2.5 px-4 py-3">
+            <div className="flex size-[30px] items-center justify-center rounded-full border border-zinc-200 bg-zinc-500">
+              <h2 className="mt-0.5 text-xl font-extrabold text-zinc-50">
+                {project.projectName
+                  ? project.projectName.charAt(0).toUpperCase()
+                  : "N"}
+              </h2>
+            </div>
+
+            <h2 className="text-2xl font-bold text-zinc-50 uppercase">
+              {project.projectName ?? "—"}
             </h2>
           </div>
-
-          <h2 className="text-2xl font-bold text-zinc-50 uppercase">
-            {project.projectName ?? "—"}
-          </h2>
-        </div>
+        )}
       </div>
 
       {connectionNotice ? (
@@ -339,7 +348,7 @@ const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
                 return (
                   <p
                     key={m.id}
-                    className="max-w-5/6 self-end rounded-full bg-[#1E50EF] px-3 py-2.5 text-xs text-white"
+                    className="max-w-5/6 self-end rounded-xl bg-[#1E50EF] px-3 py-2.5 text-sm text-white"
                   >
                     {m.content}
                   </p>
@@ -349,7 +358,7 @@ const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
               return (
                 <div
                   key={m.id}
-                  className="max-w-5/6 self-start rounded-xl bg-zinc-100 px-3 py-2.5 text-xs"
+                  className="max-w-5/6 self-start rounded-xl bg-zinc-100 px-3 py-2.5 text-sm"
                 >
                   <Markdown
                     components={{
@@ -401,7 +410,7 @@ const ChatBoxPreview = ({ project, isPreview }: ChatBoxPreviewProps) => {
                         />
                       ),
                       p: ({ node, ...props }) => (
-                        <p className="text-xs text-zinc-950" {...props} />
+                        <p className="text-sm text-zinc-950" {...props} />
                       )
                     }}
                   >

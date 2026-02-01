@@ -234,7 +234,7 @@ const TabText = ({ motionVariants }: TabTextProps) => {
                         onClick={openEditForIndex(idx)}
                         className="flex cursor-pointer items-center justify-between px-1.5"
                       >
-                        <p>Edit</p>
+                        <p>Edit Text</p>
 
                         <IconEdit className="h-3.5 w-3.5" />
                       </DropdownMenuItem>

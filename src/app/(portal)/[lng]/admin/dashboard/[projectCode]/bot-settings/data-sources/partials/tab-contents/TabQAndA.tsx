@@ -253,7 +253,7 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                         onClick={openEditForIndex(idx)}
                         className="flex cursor-pointer items-center justify-between px-1.5"
                       >
-                        <p>Edit</p>
+                        <p>Edit Q&A</p>
 
                         <IconEdit className="h-3.5 w-3.5" />
                       </DropdownMenuItem>
@@ -262,7 +262,7 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                         onClick={openDeleteConfirmForIndex(idx)}
                         className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
                       >
-                        <p>Delete Text</p>
+                        <p>Delete Q&A</p>
 
                         <IconTrash className="h-3.5 w-3.5" />
                       </DropdownMenuItem>

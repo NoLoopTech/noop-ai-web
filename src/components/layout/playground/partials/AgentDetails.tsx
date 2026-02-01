@@ -21,7 +21,7 @@ import { toast } from "@/lib/hooks/useToast"
 import { getBotBehaviorDescription } from "@/utils"
 import {
   AgentType,
-  getBotSettingsResponse,
+  getBotBehaviorResponse,
   ToneType
 } from "@/types/botBehavior"
 
@@ -33,7 +33,7 @@ type projectType = {
 interface AgentDetailsProps {
   project: projectType
   agentPrompt: string
-  botBehavior: getBotSettingsResponse | undefined
+  botBehavior: getBotBehaviorResponse | undefined
   isUserProjectsLoading: boolean
   isAgentPromptLoading: boolean
   isBotBehaviorLoading: boolean

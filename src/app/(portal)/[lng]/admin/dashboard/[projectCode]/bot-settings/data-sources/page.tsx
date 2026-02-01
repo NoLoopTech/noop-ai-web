@@ -1,4 +1,4 @@
-import MainContainer from "./MainContainer"
+import MainContainer from "./partials/MainContainer"
 
 const DataSources = () => {
   return <MainContainer />

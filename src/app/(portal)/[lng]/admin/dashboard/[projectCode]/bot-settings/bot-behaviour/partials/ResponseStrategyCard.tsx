@@ -19,17 +19,8 @@ import {
 import { useProjectCodeString } from "@/lib/hooks/useProjectCode"
 import { toast } from "@/lib/hooks/useToast"
 import { useApiMutation } from "@/query"
-import { useMemo, useState } from "react"
-
-enum ToneType {
-  DEFAULT = "default",
-  FRIENDLY = "friendly",
-  FORMAL = "formal",
-  PLAYFUL = "playful",
-  DETAILED = "detailed",
-  EMPATHETIC = "empathetic",
-  NEUTRAL = "neutral"
-}
+import { getBotBehaviorResponse, ToneType } from "@/types/botBehavior"
+import { useEffect, useMemo, useState } from "react"
 
 type ChangeAgentTonePayload = { chatbotCode: string; newTone: ToneType }
 
@@ -83,8 +74,26 @@ const toneTypeOptions = [
   }
 ]
 
-const ResponseStrategyCard = () => {
+interface ResponseStrategyCardProps {
+  isBotBehaviorLoading: boolean
+  botBehaviorData: getBotBehaviorResponse | undefined
+}
+
+const ResponseStrategyCard = ({
+  isBotBehaviorLoading,
+  botBehaviorData
+}: ResponseStrategyCardProps) => {
   const [toneType, setToneType] = useState<ToneType | "">("")
+
+  useEffect(() => {
+    if (botBehaviorData) {
+      setToneType(
+        botBehaviorData.toneType === ToneType.DEFAULT
+          ? ""
+          : (botBehaviorData.toneType ?? "")
+      )
+    }
+  }, [botBehaviorData])
 
   const selectedTone = useMemo(
     () => toneTypeOptions.find(option => option.value === toneType),
@@ -143,28 +152,32 @@ const ResponseStrategyCard = () => {
           </p>
 
           <div className="flex w-full items-center space-x-2">
-            <Select value={toneType} onValueChange={handleChangeAgentTone}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel className="text-foreground text-sm font-medium">
-                    -- Tone Type --
-                  </SelectLabel>
+            {isBotBehaviorLoading ? (
+              <div className="shine h-9 w-full rounded-md"></div>
+            ) : (
+              <Select value={toneType} onValueChange={handleChangeAgentTone}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel className="text-foreground text-sm font-medium">
+                      -- Tone Type --
+                    </SelectLabel>
 
-                  {toneTypeOptions.map(option => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="text-foreground text-sm font-normal"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                    {toneTypeOptions.map(option => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="text-foreground text-sm font-normal"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import ChatBoxPreview from "./partials/ChatBoxPreview"
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
 import { useApiQuery } from "@/query"
 import { UserProject } from "@/models/project"
-import { getBotSettingsResponse } from "@/types/botBehavior"
+import { getBotBehaviorResponse } from "@/types/botBehavior"
 
 interface PlaygroundProps {
   title?: string
@@ -51,7 +51,7 @@ const Playground = ({ title, description }: PlaygroundProps) => {
   const agentPrompt = agentPromptData?.agentPrompt ?? ""
 
   const { data: botBehaviorData, isLoading: isBotBehaviorLoading } =
-    useApiQuery<getBotSettingsResponse>(
+    useApiQuery<getBotBehaviorResponse>(
       ["botsettings-playground-bot-behavior", previewCheckedChatbotCode],
       `botsettings/${previewCheckedChatbotCode}/bot-behavior`,
       () => ({ method: "get" })

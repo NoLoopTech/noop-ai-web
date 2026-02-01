@@ -1,9 +1,9 @@
 "use client"
 
 import { useProjectCode } from "@/lib/hooks/useProjectCode"
-import SourcesPanel from "./partials/SourcesPanel"
-import TabContainer from "./partials/TabContainer"
-import { useBotSettingsFileSourcesStore } from "./store/botSettingsFileSources.store"
+import SourcesPanel from "./SourcesPanel"
+import TabContainer from "./TabContainer"
+import { useBotSettingsFileSourcesStore } from "../store/botSettingsFileSources.store"
 import { useApiQuery } from "@/query"
 import { useEffect } from "react"
 import { calculateTextSizeFromLength } from "@/utils"
@@ -69,7 +69,9 @@ const MainContainer = () => {
     setWebsiteLinks,
     setFiles,
     setTextSources,
-    setQAndAs
+    setQAndAs,
+    initializedProjectId,
+    setInitializedProjectId
   } = useBotSettingsFileSourcesStore()
 
   const { data: otherTrainedSources, isLoading: isOtherTrainedSourcesLoading } =
@@ -97,6 +99,9 @@ const MainContainer = () => {
 
   useEffect(() => {
     if (!otherTrainedSources) return
+    if (projectId === null || projectId === "no-project") return
+    if (initializedProjectId === projectId) return
+    setInitializedProjectId(projectId)
 
     const baseUrl = {
       protocol: otherTrainedSources.baseUrl?.protocol ?? "https://",
@@ -161,7 +166,10 @@ const MainContainer = () => {
     setTrainedQAndAs,
     setTrainedSocialMedia,
     setTrainedTextSources,
-    setTrainedWebsiteLinks
+    setTrainedWebsiteLinks,
+    projectId,
+    initializedProjectId,
+    setInitializedProjectId
   ])
 
   return (

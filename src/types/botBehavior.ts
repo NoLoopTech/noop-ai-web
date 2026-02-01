@@ -18,7 +18,7 @@ export enum ToneType {
   NEUTRAL = "neutral"
 }
 
-export interface getBotSettingsResponse {
+export interface getBotBehaviorResponse {
   toneType: ToneType
   agentType: AgentType
   confidenceLevel: number

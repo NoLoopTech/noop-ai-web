@@ -1,7 +1,7 @@
 import { motion } from "motion/react"
 import { JSX } from "react"
 
-const SuccessIcon = ({ size = 96 }: { size?: number }): JSX.Element => {
+const PartialSuccessIcon = ({ size = 96 }: { size?: number }): JSX.Element => {
   const stroke = "#10B981"
 
   const paths = [
@@ -70,4 +70,4 @@ const SuccessIcon = ({ size = 96 }: { size?: number }): JSX.Element => {
   )
 }
 
-export default SuccessIcon
+export default PartialSuccessIcon

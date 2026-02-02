@@ -391,13 +391,13 @@ const AuthForm: React.FC<AuthFormProps> = ({
                       />
 
                       <div
-                        className={`w-full ${!isSignIn ? "flex items-start space-x-2.5" : ""}`}
+                        className={`flex w-full ${!isSignIn ? "items-start space-x-2.5" : ""}`}
                       >
                         <FormField
                           control={form.control}
                           name="password"
                           render={({ field }) => (
-                            <FormItem className="space-y-1.5 px-0.5">
+                            <FormItem className="w-full space-y-1.5 px-0.5">
                               <div className="flex items-center justify-between">
                                 <FormLabel>Password</FormLabel>
                               </div>
@@ -417,7 +417,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                             control={form.control}
                             name="confirmPassword"
                             render={({ field }) => (
-                              <FormItem className="space-y-1.5 px-0.5">
+                              <FormItem className="w-full space-y-1.5 px-0.5">
                                 <div className="flex items-center justify-between">
                                   <FormLabel>Confirm Password</FormLabel>
                                 </div>

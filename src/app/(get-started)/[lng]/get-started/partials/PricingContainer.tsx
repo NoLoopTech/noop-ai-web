@@ -323,7 +323,8 @@ const PricingContainer = () => {
         </Button>
       </div>
 
-      <ScrollArea className="mt-10 h-[calc(100vh-17.1rem)] w-full px-4">
+      <ScrollArea className="mt-10 h-[calc(100vh-17rem)] w-full px-4">
+        {/* INFO: in future if the card data is updated and it exceeds the height of 600px, increase the height "[@media(min-height:300px)]:h-[600px]" of this accordingly */}
         <div className="flex h-[calc(100vh-8rem)] w-full items-start justify-center space-x-5 [@media(min-height:300px)]:h-[600px]">
           {pricingPlans.map((plan, idx) => (
             <PricingCard

@@ -71,7 +71,7 @@ const Register = () => {
   }
 
   return (
-    <div className="relative flex h-screen w-full items-center justify-center p-2">
+    <div className="relative flex h-screen w-full items-center justify-center">
       <AuthForm
         mode="signup"
         onSuccess={onSuccess}

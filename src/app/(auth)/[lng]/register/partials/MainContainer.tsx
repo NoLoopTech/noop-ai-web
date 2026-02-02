@@ -12,7 +12,7 @@ export default function MainContainer(): JSX.Element {
   }
 
   return (
-    <div className="mx-auto flex h-screen max-w-[1440px] items-center justify-center p-2 px-20">
+    <div className="mx-auto flex h-screen w-screen items-center justify-center">
       {registered ? (
         <div className="w-full max-w-lg p-8 text-center">
           <PartialSuccessIcon size={130} />

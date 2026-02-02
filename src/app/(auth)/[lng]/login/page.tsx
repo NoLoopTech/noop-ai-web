@@ -3,7 +3,7 @@ import { JSX } from "react"
 
 export default function Page(): JSX.Element {
   return (
-    <div className="mx-auto flex h-screen max-w-[1440px] items-center justify-center p-2 px-20">
+    <div className="mx-auto flex h-screen w-screen items-center justify-center">
       <AuthForm mode="signin" enableSessionRedirect redirectTo="/admin" dark />
     </div>
   )

@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 const pricingPlans = [
   {
     title: {
-      text: "Free",
+      text: "Starter",
       icon: IconCircleFilled,
       iconColor: "#1C5CFF",
       iconWidth: 16,
@@ -24,7 +24,7 @@ const pricingPlans = [
     yearlyPrice: "0",
     features: [
       {
-        name: "Access to fast models",
+        name: "1 bot, 1 website",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -32,7 +32,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "100 message credits/month",
+        name: "Website AI Chatbot",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -40,7 +40,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 AI agent",
+        name: "Chat History",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -48,7 +48,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 AI Action per AI agent",
+        name: "Ticketing (AI + manual forms)",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -56,7 +56,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "400 KB per AI agent",
+        name: "Bot settings (docs upload, persona)",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -64,23 +64,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 seat",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "Integrations",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "API access",
+        name: "General settings (profile, billing)",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -88,13 +72,13 @@ const pricingPlans = [
         iconHeight: 18
       }
     ],
-    buttonText: "Get Started",
+    buttonText: "Subscribe",
     onButtonClick: () => {},
     comingSoon: false
   },
   {
     title: {
-      text: "Pro",
+      text: "Growth",
       icon: IconCircleFilled,
       iconColor: "#12C79C",
       iconWidth: 16,
@@ -103,11 +87,11 @@ const pricingPlans = [
     currency: Currency.USD,
     highlighted: true,
     highlightText: "Popular",
-    monthlyPrice: "39",
-    yearlyPrice: "93",
+    monthlyPrice: "99",
+    yearlyPrice: "",
     features: [
       {
-        name: "Access to fast models",
+        name: "3 bots · 3 websites",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -115,7 +99,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "100 message credits/month",
+        name: "Website AI Chatbot",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -123,7 +107,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 AI agent",
+        name: "Chat History",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -131,7 +115,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 AI Action per AI agent",
+        name: "Ticketing system",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -139,7 +123,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "400 KB per AI agent",
+        name: "Lead capture & Leads page",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -147,7 +131,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 seat",
+        name: "Lead scoring",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -155,7 +139,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "Integrations",
+        name: "Bot settings (docs, persona, tone)",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -163,7 +147,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "API access",
+        name: "Multilingual auto-replies",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -177,7 +161,7 @@ const pricingPlans = [
   },
   {
     title: {
-      text: " Growth",
+      text: "Pro",
       icon: IconCircleFilled,
       iconColor: "#FFB700",
       iconWidth: 16,
@@ -186,11 +170,11 @@ const pricingPlans = [
     currency: Currency.USD,
     highlighted: false,
     highlightText: "Popular",
-    monthlyPrice: "99",
-    yearlyPrice: "193",
+    monthlyPrice: "499",
+    yearlyPrice: "",
     features: [
       {
-        name: "Access to fast models",
+        name: "Unlimited bots & websites",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -198,7 +182,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "100 message credits/month",
+        name: "Website AI Chatbot",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -206,7 +190,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 AI agent",
+        name: "Chat history & full analytics",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -214,7 +198,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 AI Action per AI agent",
+        name: "Leads & opportunities dashboard",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -222,7 +206,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "400 KB per AI agent",
+        name: "Confidence-based escalation",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -230,7 +214,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "1 seat",
+        name: "EQ-AI (tone & sentiment detection)",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -238,15 +222,7 @@ const pricingPlans = [
         iconHeight: 18
       },
       {
-        name: "Integrations",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "API access",
+        name: "Multilingual auto-replies",
         textColor: "#27272A",
         icon: IconCheck,
         iconColor: "#27272A",
@@ -266,78 +242,13 @@ const pricingPlans = [
       iconWidth: 16,
       iconHeight: 16
     },
-    currency: Currency.USD,
+    currency: Currency.CONTACT_SALES,
     highlighted: false,
     highlightText: "Popular",
     monthlyPrice: "499",
-    yearlyPrice: "993",
-    features: [
-      {
-        name: "Access to fast models",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "100 message credits/month",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "1 AI agent",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "1 AI Action per AI agent",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "400 KB per AI agent",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "1 seat",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "Integrations",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      },
-      {
-        name: "API access",
-        textColor: "#27272A",
-        icon: IconCheck,
-        iconColor: "#27272A",
-        iconWidth: 18,
-        iconHeight: 18
-      }
-    ],
-    buttonText: "Subscribe",
+    yearlyPrice: "",
+    features: [],
+    buttonText: "Contact Now",
     onButtonClick: () => {},
     comingSoon: true
   }
@@ -413,24 +324,19 @@ const PricingContainer = () => {
       </div>
 
       <ScrollArea className="mt-10 h-[calc(100vh-17.1rem)] w-full px-4">
-        <div className="flex w-full items-end justify-center space-x-5 overflow-hidden">
-          <div className="flex w-full items-end justify-center space-x-5">
-            {pricingPlans.map((plan, idx) => (
-              <PricingCard
-                key={idx}
-                {...plan}
-                monthlyPrice={
-                  activeTab === "monthly" ? plan.monthlyPrice : plan.yearlyPrice
-                }
-                billingPeriod={activeTab}
-                onButtonClick={
-                  plan.title?.text?.trim() === "Free"
-                    ? handleFreeClick
-                    : plan.onButtonClick
-                }
-              />
-            ))}
-          </div>
+        <div className="flex h-[calc(100vh-8rem)] w-full items-start justify-center space-x-5 [@media(min-height:300px)]:h-[600px]">
+          {pricingPlans.map((plan, idx) => (
+            <PricingCard
+              key={idx}
+              {...plan}
+              billingPeriod={activeTab}
+              onButtonClick={
+                plan.title?.text?.trim() === "Free"
+                  ? handleFreeClick
+                  : plan.onButtonClick
+              }
+            />
+          ))}
         </div>
       </ScrollArea>
     </div>

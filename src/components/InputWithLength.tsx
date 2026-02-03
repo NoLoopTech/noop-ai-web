@@ -23,6 +23,7 @@ interface InputWithLengthProps {
   type?: "text" | "textarea"
   rows?: number
   className?: string
+  groupClassName?: string
   disabled?: boolean
   inputAddonAlignment?:
     | "inline-end"
@@ -47,6 +48,7 @@ export function InputWithLength({
   type = "text",
   rows = 2,
   className,
+  groupClassName,
   disabled,
   lengthType = "characters",
   inputAddonAlignment = "inline-end",
@@ -87,7 +89,12 @@ export function InputWithLength({
     switch (type) {
       case "text":
         return (
-          <InputGroup className="has-[[data-slot=input-group-control]:focus-visible]:border-input !bg-background border-slate-300 has-[[data-slot=input-group-control]:focus-visible]:ring-1 dark:border-slate-800">
+          <InputGroup
+            className={
+              "has-[[data-slot=input-group-control]:focus-visible]:border-input !bg-background border-slate-300 has-[[data-slot=input-group-control]:focus-visible]:ring-1 dark:border-slate-800 " +
+              (groupClassName ?? "")
+            }
+          >
             <InputGroupInput
               name={name}
               placeholder={placeholder}
@@ -124,7 +131,12 @@ export function InputWithLength({
         )
       case "textarea":
         return (
-          <InputGroup className="has-[[data-slot=input-group-control]:focus-visible]:border-input !bg-background border-slate-300 has-[[data-slot=input-group-control]:focus-visible]:ring-1 dark:border-slate-800">
+          <InputGroup
+            className={
+              "has-[[data-slot=input-group-control]:focus-visible]:border-input !bg-background border-slate-300 has-[[data-slot=input-group-control]:focus-visible]:ring-1 dark:border-slate-800 " +
+              (groupClassName ?? "")
+            }
+          >
             <InputGroupTextarea
               name={name}
               placeholder={placeholder}

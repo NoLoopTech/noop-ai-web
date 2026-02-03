@@ -341,9 +341,7 @@ const SourcesPanel = ({ isTrainedSourcesLoading }: SourcesPanelProps) => {
 
   const handleDoneOrGoToPreview = () => {
     if (isPreview) {
-      router.push(
-        `/admin/dashboard/${chatBotCode}/bot-settings/data-sources/preview?preview=true`
-      )
+      router.push(`${pathname}/preview?preview=true`)
     } else {
       setIsTrainedDialogOpen(false)
     }

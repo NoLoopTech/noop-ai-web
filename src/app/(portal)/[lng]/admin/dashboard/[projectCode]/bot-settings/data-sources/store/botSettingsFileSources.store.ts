@@ -16,16 +16,22 @@ type TextSource = {
   title: string
   description: string
   size: number
-  status?: "trained" | "new"
+  status?: "trained" | "new" | "edited"
 }
 type QAndA = {
   title: string
   question: string
   answer: string
   size: number
-  status?: "trained" | "new"
+  status?: "trained" | "new" | "edited"
 }
 type SocialMedia = { platform: string; url: string }
+export type DataSourcesTab =
+  | "website"
+  | "files"
+  | "text"
+  | "qanda"
+  | "socialmedia"
 
 interface BotSettingsFileSourcesState {
   // INFO: state for existing/trained bot settings data sources
@@ -81,6 +87,12 @@ interface BotSettingsFileSourcesState {
 
   agentName: string | null
   setAgentName: (name: string | null) => void
+
+  activeDataSourcesTab: DataSourcesTab
+  setActiveDataSourcesTab: (tab: DataSourcesTab) => void
+
+  initializedProjectId: number | "no-project" | null
+  setInitializedProjectId: (projectId: number | "no-project" | null) => void
 }
 
 export const useBotSettingsFileSourcesStore =
@@ -146,5 +158,12 @@ export const useBotSettingsFileSourcesStore =
     setChatBotCode: code => set({ chatBotCode: code }),
 
     agentName: null,
-    setAgentName: name => set({ agentName: name })
+    setAgentName: name => set({ agentName: name }),
+
+    activeDataSourcesTab: "website",
+    setActiveDataSourcesTab: tab => set({ activeDataSourcesTab: tab }),
+
+    initializedProjectId: null,
+    setInitializedProjectId: projectId =>
+      set({ initializedProjectId: projectId })
   }))

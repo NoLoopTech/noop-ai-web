@@ -1,6 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
-import ResponseStrategyCard from "./partials/ResponseStrategyCard"
-import AiAgentCard from "./partials/AiAgentCard"
+import MainContainer from "./partials/MainContainer"
 
 const General = () => {
   return (
@@ -9,11 +8,7 @@ const General = () => {
         Bot Behaviour
       </h2>
       <ScrollArea className="mt-3 h-[calc(100vh-8.4rem)] w-full px-5">
-        <div className="mx-auto mb-4 flex max-w-4xl flex-col space-y-7">
-          <ResponseStrategyCard />
-
-          <AiAgentCard />
-        </div>
+        <MainContainer />
       </ScrollArea>
     </section>
   )

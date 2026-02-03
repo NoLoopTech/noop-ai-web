@@ -54,7 +54,6 @@ const internalFormSchema = formSchema
         path: ["fullName"],
         message: "Please enter your full name"
       })
-      return
     }
 
     if (!data.confirmPassword || data.confirmPassword.trim().length === 0) {
@@ -63,10 +62,7 @@ const internalFormSchema = formSchema
         path: ["confirmPassword"],
         message: "Please confirm your password"
       })
-      return
-    }
-
-    if (data.confirmPassword !== data.password) {
+    } else if (data.confirmPassword !== data.password) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["confirmPassword"],
@@ -281,8 +277,8 @@ const AuthForm: React.FC<AuthFormProps> = ({
   return (
     <div className="flex h-full w-full items-center justify-between">
       {/* Left side */}
-      <div className="relative flex h-full min-w-1/2 flex-col">
-        <div className="relative flex-1 overflow-hidden rounded-lg">
+      <div className="relative flex h-full w-full min-w-1/2 flex-col">
+        <div className="relative flex-1 overflow-hidden">
           <Image
             src={isSignIn ? signInImage : signUpImage}
             alt="Register Page Background"
@@ -293,7 +289,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent from-[29%] to-black/50 to-[100%]" />
         </div>
 
-        <div className="absolute top-8 left-9 z-10">
+        <div className="absolute top-8 left-10 z-10">
           <Image
             src="/assets/noopy-white-full.png"
             alt="Noopy Logo"
@@ -302,9 +298,9 @@ const AuthForm: React.FC<AuthFormProps> = ({
           />
         </div>
 
-        <div className="absolute inset-x-0 bottom-10 h-max w-full bg-transparent px-7">
+        <div className="absolute inset-x-0 bottom-10 h-max w-full bg-transparent px-10">
           <h1
-            className={`w-full text-left text-5xl font-medium text-white drop-shadow-md drop-shadow-black/25`}
+            className={`w-full max-w-2xl text-left text-5xl font-medium text-white drop-shadow-md drop-shadow-black/25`}
           >
             Your Gateway to Smarter Conversations
           </h1>
@@ -312,8 +308,8 @@ const AuthForm: React.FC<AuthFormProps> = ({
       </div>
 
       {/* Right side */}
-      <div className="flex h-full w-full min-w-1/2 flex-col items-center justify-center">
-        <div className="w-lg">
+      <div className="flex h-full w-full max-w-2xl min-w-lg flex-col items-center justify-center px-5 2xl:max-w-6/12">
+        <div className="w-full">
           <div className="flex w-full flex-col items-center justify-start space-y-1.5 pb-7 text-left">
             <h2
               className={`text-2xl font-semibold ${dark ? "text-foreground" : "text-zinc-950"}`}
@@ -394,35 +390,20 @@ const AuthForm: React.FC<AuthFormProps> = ({
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1.5 px-0.5">
-                            <div className="flex items-center justify-between">
-                              <FormLabel>Password</FormLabel>
-                            </div>
-                            <FormControl>
-                              <PasswordInput
-                                placeholder="Password"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {!isSignIn && (
+                      <div
+                        className={`flex w-full ${!isSignIn ? "items-start space-x-2.5" : ""}`}
+                      >
                         <FormField
                           control={form.control}
-                          name="confirmPassword"
+                          name="password"
                           render={({ field }) => (
-                            <FormItem className="space-y-1.5 px-0.5">
-                              <FormLabel>Confirm Password</FormLabel>
+                            <FormItem className="w-full space-y-1.5 px-0.5">
+                              <div className="flex items-center justify-between">
+                                <FormLabel>Password</FormLabel>
+                              </div>
                               <FormControl>
                                 <PasswordInput
-                                  placeholder="Confirm password"
+                                  placeholder="Password"
                                   {...field}
                                 />
                               </FormControl>
@@ -430,7 +411,28 @@ const AuthForm: React.FC<AuthFormProps> = ({
                             </FormItem>
                           )}
                         />
-                      )}
+
+                        {!isSignIn && (
+                          <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem className="w-full space-y-1.5 px-0.5">
+                                <div className="flex items-center justify-between">
+                                  <FormLabel>Confirm Password</FormLabel>
+                                </div>
+                                <FormControl>
+                                  <PasswordInput
+                                    placeholder="Confirm password"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
 
                       <Button
                         type="submit"

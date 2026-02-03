@@ -23,11 +23,12 @@ import {
   convertBytesToUnits,
   truncateFromMiddle
 } from "@/utils"
-import { IconDotsVertical, IconTrash } from "@tabler/icons-react"
+import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { useState } from "react"
 import { Separator } from "@/components/ui/separator"
+import { usePathname, useRouter } from "next/navigation"
 
 interface TabQAndAProps {
   motionVariants: Variants
@@ -40,10 +41,12 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
     null
   )
-
   const [title, setTitle] = useState("")
   const [question, setQuestion] = useState("")
   const [answer, setAnswer] = useState("")
+
+  const router = useRouter()
+  const pathname = usePathname()
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value)
@@ -74,6 +77,12 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
 
   const handleDeleteQAndA = (idx: number) => {
     setQAndAs(qAndAs.filter((_, i) => i !== idx))
+  }
+
+  const openEditForIndex = (idx: number) => () => {
+    const current = qAndAs[idx]
+    if (!current) return
+    router.push(`${pathname}/edit/qanda?editIndex=${idx}`)
   }
 
   const openDeleteConfirmForIndex = (idx: number) => () => {
@@ -205,14 +214,24 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                   key={idx}
                   className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
                 >
-                  <p className="w-9/12 text-left">
-                    {truncateFromMiddle(qAndA.title)}
-                  </p>
+                  <div className="w-9/12">
+                    <button
+                      type="button"
+                      onClick={openEditForIndex(idx)}
+                      className="text-left decoration-dashed hover:underline hover:underline-offset-4"
+                    >
+                      {truncateFromMiddle(qAndA.title)}
+                    </button>
+                  </div>
 
                   <div className="flex w-2/12 items-center justify-center text-center">
                     {qAndA.status === "trained" ? (
                       <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
                         Trained
+                      </p>
+                    ) : qAndA.status === "edited" ? (
+                      <p className="w-max rounded-md border border-[#FF7C0A] bg-[#FF7C0A]/10 px-2 py-0.5 text-xs font-medium text-[#FF7C0A]">
+                        Edited
                       </p>
                     ) : (
                       <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
@@ -230,13 +249,20 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                       <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                      <DropdownMenuItem disabled>Edit</DropdownMenuItem>
-                      {/* TODO: implement editing functionality */}
+                      <DropdownMenuItem
+                        onClick={openEditForIndex(idx)}
+                        className="flex cursor-pointer items-center justify-between px-1.5"
+                      >
+                        <p>Edit Q&A</p>
+
+                        <IconEdit className="h-3.5 w-3.5" />
+                      </DropdownMenuItem>
+
                       <DropdownMenuItem
                         onClick={openDeleteConfirmForIndex(idx)}
                         className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
                       >
-                        <p>Delete</p>
+                        <p>Delete Q&A</p>
 
                         <IconTrash className="h-3.5 w-3.5" />
                       </DropdownMenuItem>

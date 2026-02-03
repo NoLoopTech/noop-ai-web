@@ -216,7 +216,7 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
               onClick={confirmDelete}
               className="w-max bg-[#DC2626] p-3 text-white hover:bg-[#DC2626]/80"
             >
-              Delete
+              Delete File
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

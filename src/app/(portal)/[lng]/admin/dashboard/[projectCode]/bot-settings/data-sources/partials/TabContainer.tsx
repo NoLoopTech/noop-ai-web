@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { AnimatePresence } from "motion/react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import TabWebsite from "./tab-contents/TabWebsite"
@@ -8,6 +7,10 @@ import TabFiles from "./tab-contents/TabFiles"
 import TabText from "./tab-contents/TabText"
 import TabQAndA from "./tab-contents/TabQAndA"
 import TabSocialMedia from "./tab-contents/TabSocialMedia"
+import {
+  DataSourcesTab,
+  useBotSettingsFileSourcesStore
+} from "../store/botSettingsFileSources.store"
 
 interface TabContainerProps {
   isTrainedSourcesLoading: boolean
@@ -20,14 +23,19 @@ const tabContentVariants = {
 }
 
 const TabContainer = ({ isTrainedSourcesLoading }: TabContainerProps) => {
-  const [activeTab, setActiveTab] = useState("website")
+  const { activeDataSourcesTab, setActiveDataSourcesTab } =
+    useBotSettingsFileSourcesStore()
+
+  const handleTabChange = (value: string) => {
+    setActiveDataSourcesTab(value as DataSourcesTab)
+  }
 
   return (
     <div className="flex h-[calc(100vh-13.7rem)] w-full items-start justify-between">
       <Tabs
         className="flex h-full w-full space-x-10"
-        defaultValue={activeTab}
-        onValueChange={setActiveTab}
+        value={activeDataSourcesTab}
+        onValueChange={handleTabChange}
         orientation="vertical"
       >
         <TabsList className="flex h-max w-52 flex-col space-y-1.5 bg-transparent p-0">
@@ -78,23 +86,23 @@ const TabContainer = ({ isTrainedSourcesLoading }: TabContainerProps) => {
             </div>
           ) : (
             <div className="w-full">
-              {activeTab === "website" && (
+              {activeDataSourcesTab === "website" && (
                 <TabWebsite motionVariants={tabContentVariants} />
               )}
 
-              {activeTab === "files" && (
+              {activeDataSourcesTab === "files" && (
                 <TabFiles motionVariants={tabContentVariants} />
               )}
 
-              {activeTab === "text" && (
+              {activeDataSourcesTab === "text" && (
                 <TabText motionVariants={tabContentVariants} />
               )}
 
-              {activeTab === "qanda" && (
+              {activeDataSourcesTab === "qanda" && (
                 <TabQAndA motionVariants={tabContentVariants} />
               )}
 
-              {activeTab === "socialmedia" && (
+              {activeDataSourcesTab === "socialmedia" && (
                 <TabSocialMedia motionVariants={tabContentVariants} />
               )}
             </div>

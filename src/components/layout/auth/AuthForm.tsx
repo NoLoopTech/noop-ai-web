@@ -79,6 +79,7 @@ type AuthFormProps = {
   onError?: (error: string) => void
   redirectTo?: string
   enableSessionRedirect?: boolean
+  switchModeRoutes?: Partial<Record<AuthMode, string>>
   showGoogle?: boolean
   dark?: boolean
 
@@ -93,6 +94,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
   onError,
   redirectTo,
   enableSessionRedirect = false,
+  switchModeRoutes,
   showGoogle = true,
   dark = false,
   googleLoginProps
@@ -119,8 +121,20 @@ const AuthForm: React.FC<AuthFormProps> = ({
     form.setValue("mode", mode, { shouldValidate: true })
   }, [mode, form])
 
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const { data: session } = useSession()
+  const router = useRouter()
+
   const toggleMode = () => {
     const nextMode: AuthMode = activeMode === "signin" ? "signup" : "signin"
+
+    const targetRoute = switchModeRoutes?.[nextMode]
+    if (targetRoute) {
+      router.replace(targetRoute)
+      return
+    }
+
     setActiveMode(nextMode)
     form.reset({
       mode: nextMode,
@@ -129,16 +143,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
       password: "",
       confirmPassword: ""
     })
-
-    const path = nextMode === "signin" ? "/login" : "/register"
-
-    router.replace(path)
   }
-
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const { data: session } = useSession()
-  const router = useRouter()
 
   const didRedirectRef = useRef(false)
 
@@ -246,6 +251,11 @@ const AuthForm: React.FC<AuthFormProps> = ({
           : "Your account has been created",
         variant: "success"
       })
+
+      if (!isSignIn && onSuccess) {
+        onSuccess()
+        return
+      }
 
       if (redirectTo && !enableSessionRedirect) {
         didRedirectRef.current = true
@@ -391,7 +401,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
                       />
 
                       <div
-                        className={`flex w-full ${!isSignIn ? "items-start space-x-2.5" : ""}`}
+                        className={`flex w-full ${!isSignIn ? "mt-1 items-start space-x-2.5" : ""}`}
                       >
                         <FormField
                           control={form.control}

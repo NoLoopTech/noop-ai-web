@@ -98,7 +98,7 @@ const PricingCard = ({
   }
 
   return (
-    <div className="flex h-full w-72 flex-col">
+    <div className="flex h-full w-[295px] flex-col">
       {/* Pricing Card highlight. add highlighting like "Popular" */}
       <div
         className={`-mb-2.5 flex w-full items-center justify-center rounded-t-xl ${highlighted && highlightText ? "bg-gradient-to-r from-[#093AD7] to-[#0072F4]" : "bg-transparent"} pt-1 pb-4`}
@@ -175,7 +175,7 @@ const PricingCard = ({
             <div className="mb-8 w-full">
               <ul className="flex flex-col space-y-4">
                 {features.map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-2">
+                  <li key={index} className="flex items-start space-x-2">
                     {feature.icon && (
                       <feature.icon
                         color={feature.iconColor}

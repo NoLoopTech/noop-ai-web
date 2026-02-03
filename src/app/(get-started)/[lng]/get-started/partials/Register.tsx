@@ -30,6 +30,7 @@ const Register = () => {
           "onboarding:postAuthStep",
           OnboardingSteps.PRICING
         )
+        localStorage.setItem("onboarding:postAuthStep", OnboardingSteps.PRICING)
       } catch {}
     }
   }, [])

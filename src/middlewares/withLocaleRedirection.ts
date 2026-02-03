@@ -38,7 +38,20 @@ export const withLocaleRedirection: MiddlewareFactory = (
     if (req.nextUrl.pathname === "/") {
       // INFO: preserve any search/query string when redirecting
       return NextResponse.redirect(
-        new URL(`/${lng}/admin/${req.nextUrl.search || ""}`, req.url)
+        new URL(`/${lng}/admin${req.nextUrl.search || ""}`, req.url)
+      )
+    }
+
+    // INFO: If user visits a locale root like `/en` or `/en/`, redirect to that locale's admin
+    const firstSegment = req.nextUrl.pathname.split("/").filter(Boolean)[0]
+    if (
+      firstSegment &&
+      languages.includes(firstSegment) &&
+      req.nextUrl.pathname.replace(/\/$/, "").split("/").filter(Boolean)
+        .length === 1
+    ) {
+      return NextResponse.redirect(
+        new URL(`/${firstSegment}/admin${req.nextUrl.search || ""}`, req.url)
       )
     }
 
@@ -49,18 +62,21 @@ export const withLocaleRedirection: MiddlewareFactory = (
         "/((?!api|_next/static|auth|protected|_next/image|assets|favicon.ico|sw.js|robots.txt).*)"
       ) != null
     ) {
-      let lng: string | null = ""
+      let detectedLng: string | null = null
       if (req.cookies.has(cookieName)) {
-        lng = acceptLanguage.get(
+        detectedLng = acceptLanguage.get(
           (req.cookies.get(cookieName) as RequestCookie).value
         )
       }
-      if (lng !== null) {
-        lng = acceptLanguage.get(req.headers.get("Accept-Language"))
+      if (!detectedLng) {
+        detectedLng = acceptLanguage.get(
+          req.headers.get("accept-language") || ""
+        )
       }
-      if (lng !== null) {
-        lng = fallbackLng
+      if (!detectedLng) {
+        detectedLng = fallbackLng
       }
+      const lngToUse = detectedLng
 
       // Redirect if lng in path is supported
       if (
@@ -76,7 +92,7 @@ export const withLocaleRedirection: MiddlewareFactory = (
         // INFO: preserve any search/query string when redirecting to the localized path
         return NextResponse.redirect(
           new URL(
-            `/${lng as string}${req.nextUrl.pathname}${req.nextUrl.search || ""}`,
+            `${"/" + (lngToUse as string)}${req.nextUrl.pathname}${req.nextUrl.search || ""}`,
             req.url
           )
         )

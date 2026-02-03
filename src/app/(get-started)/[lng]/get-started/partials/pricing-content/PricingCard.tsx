@@ -18,7 +18,8 @@ interface Feature {
 export enum Currency {
   USD = "USD",
   EUR = "EUR",
-  LKR = "LKR"
+  LKR = "LKR",
+  CONTACT_SALES = "CONTACT_SALES"
 }
 
 interface PricingCardProps {
@@ -73,91 +74,129 @@ const PricingCard = ({
     }
   }, [billingPeriod])
 
+  const getDisplayNumber = () => {
+    const m = monthlyPrice ?? ""
+    const y = yearlyPrice ?? ""
+
+    if (billingPeriod === "monthly") {
+      if (m !== "") return m
+      if (y !== "") return y
+      return "0"
+    }
+
+    // billingPeriod === "yearly"
+    if (y !== "") return y
+
+    // If yearly is an empty string, try to compute from monthly.
+    const mNum = parseFloat(m)
+    if (!isNaN(mNum)) {
+      const yearly = Math.round(mNum * 12)
+      return String(yearly)
+    }
+
+    return m || "0"
+  }
+
   return (
-    <div className="flex w-72 flex-col">
+    <div className="flex h-full w-72 flex-col">
       {/* Pricing Card highlight. add highlighting like "Popular" */}
-      {highlighted && highlightText && (
-        <div className="-mb-2.5 flex w-full items-center justify-center rounded-t-xl bg-gradient-to-r from-[#093AD7] to-[#0072F4] pt-1 pb-4">
-          <p className="text-sm font-bold text-white">{highlightText}</p>
-        </div>
-      )}
+      <div
+        className={`-mb-2.5 flex w-full items-center justify-center rounded-t-xl ${highlighted && highlightText ? "bg-gradient-to-r from-[#093AD7] to-[#0072F4]" : "bg-transparent"} pt-1 pb-4`}
+      >
+        <p className="text-sm font-bold text-white">
+          {highlighted && highlightText ? highlightText : "\u00A0"}
+          {/* \u00A0 is used to render a non-breaking space to maintain layout consistency */}
+        </p>
+      </div>
 
       {/* main content */}
-      <div className="flex w-full flex-col items-start justify-center rounded-lg border border-zinc-300 bg-white px-4 py-5">
-        {/* Tier title */}
-        <div className="flex items-center space-x-2 text-lg font-semibold text-zinc-950">
-          {title.icon && (
-            <title.icon
-              color={title.iconColor}
-              width={title.iconWidth}
-              height={title.iconHeight}
-            />
-          )}
-          <span>{title.text}</span>
-        </div>
+      <div
+        className={`bg-white ${currency === Currency.CONTACT_SALES ? "" : "flex h-[calc(100%-2rem)] min-h-max w-full"} flex-col items-start justify-between rounded-lg border border-zinc-300 px-4 py-5`}
+      >
+        <div>
+          {/* Tier title */}
+          <div className="flex items-center space-x-2 text-lg font-semibold text-zinc-950">
+            {title.icon && (
+              <title.icon
+                color={title.iconColor}
+                width={title.iconWidth}
+                height={title.iconHeight}
+              />
+            )}
+            <span>{title.text}</span>
+          </div>
 
-        {/* Tier price */}
-        <div className="flex flex-col items-start justify-center space-y-3.5 pt-8">
-          <h1 className="flex items-center text-[40px] leading-5 font-normal text-zinc-950">
-            {currency === Currency.USD
-              ? "$"
-              : currency === Currency.EUR
-                ? "€"
-                : "LKR"}
-            <SlidingNumber
-              number={monthlyPrice ?? yearlyPrice ?? "0"}
-              decimalPlaces={0}
-              className="ml-1"
-            />
-          </h1>
+          {/* Tier price */}
+          <div className="flex flex-col items-start justify-center space-y-3.5 pt-8">
+            {currency === Currency.CONTACT_SALES ? (
+              <h1 className="flex w-max items-center text-4xl leading-5 font-normal text-zinc-950">
+                Contact Sales
+              </h1>
+            ) : (
+              <h1 className="flex items-center text-[40px] leading-5 font-normal text-zinc-950">
+                {currency === Currency.USD
+                  ? "$"
+                  : currency === Currency.EUR
+                    ? "€"
+                    : "LKR"}
+                <SlidingNumber
+                  number={getDisplayNumber()}
+                  decimalPlaces={0}
+                  className="ml-1"
+                />
+              </h1>
+            )}
 
-          {/* payment period */}
-          <div className="flex space-x-1 text-xs font-normal text-zinc-500">
-            <p>per</p>
-            <div className="">
-              {animatedText.split("").map((char, i) => (
-                <motion.span
-                  key={char + i}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.15, delay: i * 0.03 }}
-                  style={{ display: "inline-block" }}
-                >
-                  {char}
-                </motion.span>
-              ))}
+            {/* payment period */}
+            {currency !== Currency.CONTACT_SALES && (
+              <div className="flex space-x-1 text-xs font-normal text-zinc-500">
+                <p>per</p>
+                <div className="">
+                  {animatedText.split("").map((char, i) => (
+                    <motion.span
+                      key={char + i}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15, delay: i * 0.03 }}
+                      style={{ display: "inline-block" }}
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Separator className="my-6 w-full" />
+
+          {/* tier features */}
+          {features.length > 0 && (
+            <div className="mb-8 w-full">
+              <ul className="flex flex-col space-y-4">
+                {features.map((feature, index) => (
+                  <li key={index} className="flex items-center space-x-2">
+                    {feature.icon && (
+                      <feature.icon
+                        color={feature.iconColor}
+                        width={feature.iconWidth}
+                        height={feature.iconHeight}
+                      />
+                    )}
+                    <span
+                      className="text-sm text-zinc-800"
+                      style={{
+                        color: feature.textColor ? feature.textColor : ""
+                      }}
+                    >
+                      {feature.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
         </div>
-
-        <Separator className="mt-8 mb-6 w-full" />
-
-        {/* tier features */}
-        {features.length > 0 && (
-          <div className="mb-8 w-full">
-            <ul className="flex flex-col space-y-4">
-              {features.map((feature, index) => (
-                <li key={index} className="flex items-center space-x-2">
-                  {feature.icon && (
-                    <feature.icon
-                      color={feature.iconColor}
-                      width={feature.iconWidth}
-                      height={feature.iconHeight}
-                    />
-                  )}
-                  <span
-                    className="text-sm text-zinc-800"
-                    style={{
-                      color: feature.textColor ? feature.textColor : ""
-                    }}
-                  >
-                    {feature.name}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {/* subscribe button */}
         <Button

@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronDownIcon } from "lucide-react"
 import { motion, Variants, AnimatePresence } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { z } from "zod"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { useApiMutation } from "@/query"
@@ -32,6 +32,7 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
 import { IconLoader } from "@tabler/icons-react"
+import { io, Socket } from "socket.io-client"
 
 interface TabWebsiteProps {
   motionVariants: Variants
@@ -46,6 +47,14 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const [isFromTrainedWebsiteLinks, setIsFromTrainedWebsiteLinks] =
     useState(false)
   const [showSelectWarning, setShowSelectWarning] = useState(false)
+  const [isCrawling, setIsCrawling] = useState(false)
+  const [isSocketRegistered, setIsSocketRegistered] = useState(false)
+
+  // WebSocket refs
+  const socketRef = useRef<Socket | null>(null)
+  const clientIdRef = useRef<string>(
+    `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+  )
 
   const {
     trainedBaseUrl,
@@ -57,6 +66,67 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setShowUrlWarning,
     showUrlWarning
   } = useBotSettingsFileSourcesStore()
+
+  // Handle incoming crawl results
+  const handleSitemapDone = useCallback(
+    (data: { jobId: string; url: string; links: string[]; count: number }) => {
+      setIsCrawling(false)
+      if (data.links.length > 10) {
+        setShowSelectWarning(true)
+        setShowUrlWarning(true)
+        setWebsiteLinks(data.links.map(url => ({ url, selected: false })))
+      } else {
+        setShowSelectWarning(false)
+        setShowUrlWarning(false)
+        setWebsiteLinks(data.links.map(url => ({ url, selected: false })))
+      }
+    },
+    [setShowUrlWarning, setWebsiteLinks]
+  )
+
+  const handleCrawlError = useCallback(
+    (data: { jobId: string; error: string }) => {
+      setIsCrawling(false)
+      setError(`Crawl failed: ${data.error}`)
+    },
+    []
+  )
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string
+    const baseUrl = apiUrl.replace(/\/v1\/?$/, "")
+
+    const socket = io(`${baseUrl}/crawler`, {
+      transports: ["websocket", "polling"],
+      autoConnect: true
+    })
+
+    socketRef.current = socket
+
+    socket.on("connect", () => {
+      socket.emit("register", { clientId: clientIdRef.current })
+    })
+
+    socket.on("registered", () => {
+      setIsSocketRegistered(true)
+    })
+
+    socket.on("disconnect", () => {
+      setIsSocketRegistered(false)
+    })
+
+    socket.on("sitemap_done", handleSitemapDone)
+    socket.on("crawl_error", handleCrawlError)
+
+    return () => {
+      socket.off("sitemap_done", handleSitemapDone)
+      socket.off("crawl_error", handleCrawlError)
+      socket.off("registered")
+      socket.off("disconnect")
+      socket.disconnect()
+    }
+  }, [handleSitemapDone, handleCrawlError])
 
   useEffect(() => {
     setIsFromTrainedWebsiteLinks(true)
@@ -75,20 +145,35 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     setError(result.success ? null : result.error.errors[0].message)
   }
 
-  const fetchLinksMutation = useApiMutation<
-    { childUrls: string[]; baseUrl: string },
-    { url: string }
-  >("/onboarding/scrape", "post", {
-    onSuccess: data => {
-      if (data.childUrls.length > 10) {
-        setShowSelectWarning(true)
-        setShowUrlWarning(true)
-        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
-      } else {
-        setShowSelectWarning(false)
-        setShowUrlWarning(false)
-        setWebsiteLinks(data.childUrls.map(url => ({ url, selected: false })))
-      }
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedText = e.clipboardData.getData("text")
+
+    let detectedProtocol: "http://" | "https://" = protocol
+    if (pastedText.startsWith("https://")) {
+      detectedProtocol = "https://"
+    } else if (pastedText.startsWith("http://")) {
+      detectedProtocol = "http://"
+    }
+    setProtocol(detectedProtocol)
+
+    const cleanedUrl = pastedText.replace(/^https?:\/\//, "")
+    setUrl(cleanedUrl)
+    setIsFromTrainedWebsiteLinks(false)
+    const result = urlSchema.safeParse(detectedProtocol + cleanedUrl)
+    setError(result.success ? null : result.error.errors[0].message)
+  }
+
+  const startCrawlMutation = useApiMutation<
+    { jobId: string },
+    { url: string; clientId: string }
+  >("/onboarding/crawl/start", "post", {
+    onSuccess: () => {
+      setIsCrawling(true)
+    },
+    onError: () => {
+      setIsCrawling(false)
+      setError("Failed to start crawl")
     }
   })
 
@@ -99,7 +184,11 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
       return
     }
     setError(null)
-    fetchLinksMutation.mutate({ url: protocol + url })
+    setIsCrawling(true)
+    startCrawlMutation.mutate({
+      url: protocol + url,
+      clientId: clientIdRef.current
+    })
     setBaseUrl({ protocol, domain: url })
   }
 
@@ -195,6 +284,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                             <InputGroupInput
                               placeholder="www.example.com"
                               value={url}
+                              onPaste={handlePaste}
                               onChange={handleInputChange}
                               aria-invalid={!!error}
                             />
@@ -250,11 +340,12 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                               disabled={
                                 !url ||
                                 !!error ||
-                                fetchLinksMutation.isPending ||
+                                isCrawling ||
+                                !isSocketRegistered ||
                                 isFromTrainedWebsiteLinks
                               }
                             >
-                              {fetchLinksMutation.isPending ? (
+                              {isCrawling ? (
                                 <div className="flex items-center space-x-2">
                                   <IconLoader className="inline-block size-4 animate-spin" />
                                   <p>Fetching...</p>

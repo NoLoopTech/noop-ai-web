@@ -332,7 +332,7 @@ const PricingContainer = () => {
               {...plan}
               billingPeriod={activeTab}
               onButtonClick={
-                plan.title?.text?.trim() === "Free"
+                plan.title?.text?.trim() === "Starter"
                   ? handleFreeClick
                   : plan.onButtonClick
               }

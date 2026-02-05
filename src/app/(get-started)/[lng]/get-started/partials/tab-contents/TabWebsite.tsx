@@ -154,7 +154,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   }
 
   const startCrawlMutation = useApiMutation<
-    { jobId: string; },
+    { jobId: string },
     { url: string; clientId: string }
   >("/onboarding/crawl/start", "post", {
     onSuccess: () => {
@@ -322,7 +322,9 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
 
                   <Button
                     onClick={handleFetchLinks}
-                    disabled={!url || !!error || isCrawling || !isSocketRegistered}
+                    disabled={
+                      !url || !!error || isCrawling || !isSocketRegistered
+                    }
                   >
                     {isCrawling ? (
                       <div className="flex items-center space-x-2">

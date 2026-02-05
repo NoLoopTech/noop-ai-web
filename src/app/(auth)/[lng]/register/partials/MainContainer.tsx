@@ -4,7 +4,7 @@ import { JSX, useState } from "react"
 import AuthForm from "@/components/layout/auth/AuthForm"
 import PartialSuccessIcon from "@/components/layout/animated-icons/PartialSuccessIcon"
 
-export default function MainContainer(): JSX.Element {
+export default function MainContainer({ lng }: { lng: string }): JSX.Element {
   const [registered, setRegistered] = useState(false)
 
   const handleOnSuccess = () => {
@@ -36,6 +36,7 @@ export default function MainContainer(): JSX.Element {
           mode="signup"
           enableSessionRedirect
           redirectTo="/admin"
+          switchModeRoutes={{ signin: `/${lng}/login` }}
           dark
           onSuccess={handleOnSuccess}
         />

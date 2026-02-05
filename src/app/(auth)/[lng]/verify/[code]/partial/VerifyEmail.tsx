@@ -3,6 +3,8 @@
 import { signIn, useSession } from "next-auth/react"
 import { redirect, useParams } from "next/navigation"
 import React, { useEffect, useState } from "react"
+import { POST_AUTH_STEP_STORAGE_KEY } from "@/app/(get-started)/[lng]/get-started/partials/hooks/usePostAuthStepHydrator"
+import triggerNextAuthSessionRefresh from "@/lib/triggerNextAuthSessionRefresh"
 
 const VerifyEmail = ({ code }: { code: string }) => {
   const { data: session } = useSession()
@@ -10,7 +12,8 @@ const VerifyEmail = ({ code }: { code: string }) => {
   const lng = params?.lng ?? "en"
   const isOnboardingAttempt =
     typeof window !== "undefined" &&
-    sessionStorage.getItem("onboarding:postAuthStep") === "pricing"
+    (sessionStorage.getItem(POST_AUTH_STEP_STORAGE_KEY) === "pricing" ||
+      localStorage.getItem(POST_AUTH_STEP_STORAGE_KEY) === "pricing")
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -36,6 +39,19 @@ const VerifyEmail = ({ code }: { code: string }) => {
 
     if (!signInResponse?.ok) {
       setError("Invalid link or link has expired")
+      return
+    }
+
+    try {
+      triggerNextAuthSessionRefresh()
+    } catch {}
+
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem(POST_AUTH_STEP_STORAGE_KEY)
+        localStorage.removeItem(POST_AUTH_STEP_STORAGE_KEY)
+      } catch {}
+      window.location.href = callbackUrl
     }
   }
 

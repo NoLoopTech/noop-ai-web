@@ -6,8 +6,13 @@ import { TabsContent } from "@/components/ui/tabs"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { InputWithLength } from "@/components/InputWithLength"
-import { useState } from "react"
-import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
+import { useMemo, useState } from "react"
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
+  IconZoomExclamation
+} from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +34,14 @@ import {
 } from "@/utils"
 import { Separator } from "@/components/ui/separator"
 import { usePathname, useRouter } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 
 interface TabTextProps {
   motionVariants: Variants
@@ -41,6 +54,22 @@ const TabText = ({ motionVariants }: TabTextProps) => {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
     null
   )
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<
+    "default" | "new" | "edited" | "trained"
+  >("default")
+
+  const filteredTextSources = useMemo(() => {
+    let fileList = textSources.filter(ts =>
+      ts.title?.toLowerCase().includes(searchQuery.trim().toLowerCase())
+    )
+
+    if (statusFilter !== "default") {
+      fileList = fileList.filter(ts => (ts.status ?? "new") === statusFilter)
+    }
+
+    return fileList
+  }, [textSources, searchQuery, statusFilter])
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -94,6 +123,14 @@ const TabText = ({ motionVariants }: TabTextProps) => {
       setPendingDeleteIndex(null)
     }
     setIsConfirmSourceDeleteDialogOpen(false)
+  }
+
+  const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+  }
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as "default" | "new" | "edited" | "trained")
   }
 
   return (
@@ -177,6 +214,32 @@ const TabText = ({ motionVariants }: TabTextProps) => {
               Text sources
             </h2>
 
+            <div className="mx-0.5 mt-1 mb-3 flex items-center justify-between space-x-2">
+              <Input
+                placeholder="Search by title"
+                value={searchQuery}
+                onChange={handleSearchQueryChange}
+                className="w-72"
+              />
+
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={statusFilter}
+                  onValueChange={handleStatusFilterChange}
+                >
+                  <SelectTrigger className="h-10 w-32">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="edited">Edited</SelectItem>
+                    <SelectItem value="trained">Trained</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div
               className={`mt-1 mb-2 flex h-10 items-center justify-between space-x-2 rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-4 text-sm font-normal text-zinc-500 dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-400`}
             >
@@ -190,67 +253,77 @@ const TabText = ({ motionVariants }: TabTextProps) => {
             </div>
 
             <div className="flex flex-col pb-5">
-              {textSources.map((text, idx) => (
-                <div
-                  key={idx}
-                  className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
-                >
-                  <div className="w-9/12">
-                    <button
-                      type="button"
-                      onClick={openEditForIndex(idx)}
-                      className="text-left decoration-dashed hover:underline hover:underline-offset-4"
-                    >
-                      {truncateFromMiddle(text.title)}
-                    </button>
-                  </div>
+              {searchQuery && filteredTextSources.length === 0 ? (
+                <div className="my-5 flex w-full flex-col items-center space-y-2.5">
+                  <IconZoomExclamation className="size-8 stroke-1 text-zinc-500" />
 
-                  <div className="flex w-2/12 items-center justify-center text-center">
-                    {text.status === "trained" ? (
-                      <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
-                        Trained
-                      </p>
-                    ) : text.status === "edited" ? (
-                      <p className="w-max rounded-md border border-[#FF7C0A] bg-[#FF7C0A]/10 px-2 py-0.5 text-xs font-medium text-[#FF7C0A]">
-                        Edited
-                      </p>
-                    ) : (
-                      <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
-                        New
-                      </p>
-                    )}
-                  </div>
-
-                  <p className="w-3/12 text-center">
-                    {convertBytesToUnits(text.size)}
+                  <p className="px-4 text-center text-sm text-zinc-500">
+                    No results found for "{searchQuery}"
                   </p>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                      <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem
-                        onClick={openEditForIndex(idx)}
-                        className="flex cursor-pointer items-center justify-between px-1.5"
-                      >
-                        <p>Edit Text</p>
-
-                        <IconEdit className="h-3.5 w-3.5" />
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={openDeleteConfirmForIndex(idx)}
-                        className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
-                      >
-                        <p>Delete Text</p>
-
-                        <IconTrash className="h-3.5 w-3.5" />
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
-              ))}
+              ) : (
+                filteredTextSources.map((text, idx) => (
+                  <div
+                    key={idx}
+                    className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
+                  >
+                    <div className="w-9/12">
+                      <button
+                        type="button"
+                        onClick={openEditForIndex(idx)}
+                        className="text-left decoration-dashed hover:underline hover:underline-offset-4"
+                      >
+                        {truncateFromMiddle(text.title)}
+                      </button>
+                    </div>
+
+                    <div className="flex w-2/12 items-center justify-center text-center">
+                      {text.status === "trained" ? (
+                        <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                          Trained
+                        </p>
+                      ) : text.status === "edited" ? (
+                        <p className="w-max rounded-md border border-[#FF7C0A] bg-[#FF7C0A]/10 px-2 py-0.5 text-xs font-medium text-[#FF7C0A]">
+                          Edited
+                        </p>
+                      ) : (
+                        <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                          New
+                        </p>
+                      )}
+                    </div>
+
+                    <p className="w-3/12 text-center">
+                      {convertBytesToUnits(text.size)}
+                    </p>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="w-1/12 cursor-pointer">
+                        <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem
+                          onClick={openEditForIndex(idx)}
+                          className="flex cursor-pointer items-center justify-between px-1.5"
+                        >
+                          <p>Edit Text</p>
+
+                          <IconEdit className="h-3.5 w-3.5" />
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={openDeleteConfirmForIndex(idx)}
+                          className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
+                        >
+                          <p>Delete Text</p>
+
+                          <IconTrash className="h-3.5 w-3.5" />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </ScrollArea>

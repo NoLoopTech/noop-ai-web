@@ -74,7 +74,7 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
       } else {
         setShowSelectWarning(false)
         setShowUrlWarning(false)
-        setWebsiteLinks(data.links.map(url => ({ url, selected: false })))
+        setWebsiteLinks(data.links.map(url => ({ url, selected: true })))
       }
     },
     [setShowUrlWarning, setWebsiteLinks]

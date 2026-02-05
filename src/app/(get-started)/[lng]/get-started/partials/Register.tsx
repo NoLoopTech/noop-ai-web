@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react"
 import { OnboardingSteps, useOnboardingStore } from "../store/onboarding.store"
+import { POST_AUTH_STEP_STORAGE_KEY } from "./hooks/usePostAuthStepHydrator"
 import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import AuthForm from "@/components/layout/auth/AuthForm"
@@ -27,7 +28,11 @@ const Register = () => {
     if (typeof window !== "undefined") {
       try {
         sessionStorage.setItem(
-          "onboarding:postAuthStep",
+          POST_AUTH_STEP_STORAGE_KEY,
+          OnboardingSteps.PRICING
+        )
+        localStorage.setItem(
+          POST_AUTH_STEP_STORAGE_KEY,
           OnboardingSteps.PRICING
         )
       } catch {}

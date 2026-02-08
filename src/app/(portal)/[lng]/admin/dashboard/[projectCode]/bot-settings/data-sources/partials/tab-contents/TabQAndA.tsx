@@ -38,7 +38,9 @@ import {
 } from "@tabler/icons-react"
 import { motion, Variants } from "motion/react"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
-import { useState, useMemo } from "react"
+import { useState } from "react"
+import useSearch from "@/hooks/useSearch"
+import useStatusFilter from "@/hooks/useStatusFilter"
 import { Separator } from "@/components/ui/separator"
 import { usePathname, useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
@@ -57,22 +59,19 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
   const [title, setTitle] = useState("")
   const [question, setQuestion] = useState("")
   const [answer, setAnswer] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<
-    "default" | "new" | "edited" | "trained"
-  >("default")
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filteredItems: searchedQAndAs
+  } = useSearch(qAndAs, { keys: ["title"] })
 
-  const filteredQAndAs = useMemo(() => {
-    let qList = qAndAs.filter(q =>
-      q.title?.toLowerCase().includes(searchQuery.trim().toLowerCase())
-    )
+  const {
+    statusFilter,
+    setStatusFilter,
+    filteredItems: statusFilteredQAndAs
+  } = useStatusFilter(searchedQAndAs)
 
-    if (statusFilter !== "default") {
-      qList = qList.filter(q => (q.status ?? "new") === statusFilter)
-    }
-
-    return qList
-  }, [qAndAs, searchQuery, statusFilter])
+  const filteredQAndAs = statusFilteredQAndAs
 
   const router = useRouter()
   const pathname = usePathname()
@@ -91,14 +90,6 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setAnswer(e.target.value)
-  }
-
-  const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
-  }
-
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value as "default" | "new" | "edited" | "trained")
   }
 
   const handleAddQAndA = () => {
@@ -237,14 +228,16 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
               <Input
                 placeholder="Search by title"
                 value={searchQuery}
-                onChange={handleSearchQueryChange}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchQuery(e.target.value)
+                }
                 className="w-72"
               />
 
               <div className="flex items-center space-x-2">
                 <Select
                   value={statusFilter}
-                  onValueChange={handleStatusFilterChange}
+                  onValueChange={v => setStatusFilter(v)}
                 >
                   <SelectTrigger className="h-10 w-32">
                     <SelectValue placeholder="Default" />
@@ -281,67 +274,78 @@ const TabQAndA = ({ motionVariants }: TabQAndAProps) => {
                   </p>
                 </div>
               ) : (
-                filteredQAndAs.map((qAndA, idx) => (
-                  <div
-                    key={idx}
-                    className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
-                  >
-                    <div className="w-9/12">
-                      <button
-                        type="button"
-                        onClick={openEditForIndex(idx)}
-                        className="text-left decoration-dashed hover:underline hover:underline-offset-4"
-                      >
-                        {truncateFromMiddle(qAndA.title)}
-                      </button>
-                    </div>
+                filteredQAndAs.map((qAndA, idx) => {
+                  const originalIdx = (qAndAs || []).findIndex(
+                    q =>
+                      q.title === qAndA.title &&
+                      q.question === qAndA.question &&
+                      q.answer === qAndA.answer &&
+                      q.size === qAndA.size
+                  )
+                  const actualIdx = originalIdx !== -1 ? originalIdx : idx
 
-                    <div className="flex w-2/12 items-center justify-center text-center">
-                      {qAndA.status === "trained" ? (
-                        <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
-                          Trained
-                        </p>
-                      ) : qAndA.status === "edited" ? (
-                        <p className="w-max rounded-md border border-[#FF7C0A] bg-[#FF7C0A]/10 px-2 py-0.5 text-xs font-medium text-[#FF7C0A]">
-                          Edited
-                        </p>
-                      ) : (
-                        <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
-                          New
-                        </p>
-                      )}
-                    </div>
-
-                    <p className="w-3/12 text-center">
-                      {convertBytesToUnits(qAndA.size)}
-                    </p>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                        <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuItem
-                          onClick={openEditForIndex(idx)}
-                          className="flex cursor-pointer items-center justify-between px-1.5"
+                  return (
+                    <div
+                      key={idx}
+                      className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
+                    >
+                      <div className="w-9/12">
+                        <button
+                          type="button"
+                          onClick={openEditForIndex(actualIdx)}
+                          className="text-left decoration-dashed hover:underline hover:underline-offset-4"
                         >
-                          <p>Edit Q&A</p>
+                          {truncateFromMiddle(qAndA.title)}
+                        </button>
+                      </div>
 
-                          <IconEdit className="h-3.5 w-3.5" />
-                        </DropdownMenuItem>
+                      <div className="flex w-2/12 items-center justify-center text-center">
+                        {qAndA.status === "trained" ? (
+                          <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                            Trained
+                          </p>
+                        ) : qAndA.status === "edited" ? (
+                          <p className="w-max rounded-md border border-[#FF7C0A] bg-[#FF7C0A]/10 px-2 py-0.5 text-xs font-medium text-[#FF7C0A]">
+                            Edited
+                          </p>
+                        ) : (
+                          <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                            New
+                          </p>
+                        )}
+                      </div>
 
-                        <DropdownMenuItem
-                          onClick={openDeleteConfirmForIndex(idx)}
-                          className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
-                        >
-                          <p>Delete Q&A</p>
+                      <p className="w-3/12 text-center">
+                        {convertBytesToUnits(qAndA.size)}
+                      </p>
 
-                          <IconTrash className="h-3.5 w-3.5" />
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ))
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="w-1/12 cursor-pointer">
+                          <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem
+                            onClick={openEditForIndex(actualIdx)}
+                            className="flex cursor-pointer items-center justify-between px-1.5"
+                          >
+                            <p>Edit Q&A</p>
+
+                            <IconEdit className="h-3.5 w-3.5" />
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={openDeleteConfirmForIndex(actualIdx)}
+                            className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
+                          >
+                            <p>Delete Q&A</p>
+
+                            <IconTrash className="h-3.5 w-3.5" />
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )
+                })
               )}
             </div>
           </div>

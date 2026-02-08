@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronDownIcon } from "lucide-react"
 import { motion, Variants, AnimatePresence } from "motion/react"
 import { useEffect, useState, useRef, useCallback } from "react"
+import useSearch from "@/hooks/useSearch"
 import { z } from "zod"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { useApiMutation } from "@/query"
@@ -50,7 +51,6 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const [showSelectWarning, setShowSelectWarning] = useState(false)
   const [isCrawling, setIsCrawling] = useState(false)
   const [isSocketRegistered, setIsSocketRegistered] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
 
   // WebSocket refs
   const socketRef = useRef<Socket | null>(null)
@@ -217,10 +217,6 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     }
   }
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
-  }
-
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setWebsiteLinks(
@@ -240,9 +236,14 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
   const allSelected = selectedCount === maxSelectable && maxSelectable > 0
 
   const linksWithIndex = websiteLinks.map((link, idx) => ({ ...link, idx }))
-  const filteredLinks = linksWithIndex.filter(l =>
-    l.url.toLowerCase().includes(searchQuery.trim().toLowerCase())
-  )
+
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filteredItems: searchedLinks
+  } = useSearch(linksWithIndex, { keys: ["url"] })
+
+  const filteredLinks = searchedLinks
 
   return (
     <TabsContent value="website">
@@ -396,7 +397,9 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                       <div className="mt-2 mb-3 px-0.5">
                         <Input
                           value={searchQuery}
-                          onChange={handleSearchChange}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setSearchQuery(e.target.value)
+                          }
                           placeholder="Search links..."
                           className="w-72"
                         />
@@ -434,21 +437,35 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                           </div>
                         ) : (
                           filteredLinks.map(link => {
+                            const originalIdx =
+                              typeof link.idx === "number"
+                                ? link.idx
+                                : websiteLinks.findIndex(
+                                    l => l.url === link.url
+                                  )
+
                             const isDisabled =
-                              !link.selected &&
+                              !(
+                                websiteLinks[originalIdx]?.selected ??
+                                link.selected
+                              ) &&
                               websiteLinks.filter(l => l.selected).length >= 10
+
+                            const checked =
+                              websiteLinks[originalIdx]?.selected ??
+                              link.selected
 
                             return (
                               <label
-                                key={link.url + "-" + link.idx}
+                                key={link.url + "-" + originalIdx}
                                 className={`flex h-12 items-center space-x-2 border-b border-zinc-200 pr-4 pl-[14.3px] dark:border-slate-700 ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                               >
                                 <Checkbox
-                                  id={`link-${link.idx}`}
-                                  checked={link.selected}
+                                  id={`link-${originalIdx}`}
+                                  checked={checked}
                                   disabled={isDisabled}
                                   onCheckedChange={handleToggleWebsiteLink(
-                                    link.idx
+                                    originalIdx
                                   )}
                                   className="dark:border-slate-700 dark:bg-slate-950 dark:text-zinc-400"
                                 />

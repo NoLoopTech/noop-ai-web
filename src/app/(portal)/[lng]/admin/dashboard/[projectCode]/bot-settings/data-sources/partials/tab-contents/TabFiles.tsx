@@ -24,7 +24,9 @@ import {
   AlertDialogDescription,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { useMemo, useState } from "react"
+import { useState } from "react"
+import useSearch from "@/hooks/useSearch"
+import useStatusFilter from "@/hooks/useStatusFilter"
 import { Separator } from "@/components/ui/separator"
 import {
   Select,
@@ -51,22 +53,21 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
     null
   )
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<
-    "default" | "new" | "edited" | "trained"
-  >("default")
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filteredItems: searchedFiles
+  } = useSearch(files || [], { keys: ["name"] })
 
-  const filteredFiles = useMemo(() => {
-    let fileList = files.filter(f =>
-      f.name?.toLowerCase().includes(searchQuery.trim().toLowerCase())
-    )
+  const {
+    statusFilter,
+    setStatusFilter,
+    filteredItems: statusFilteredFiles
+  } = useStatusFilter(searchedFiles, {
+    allowedValues: ["default", "new", "trained"]
+  })
 
-    if (statusFilter !== "default") {
-      fileList = fileList.filter(f => (f.status ?? "new") === statusFilter)
-    }
-
-    return fileList
-  }, [files, searchQuery, statusFilter])
+  const filteredFiles = statusFilteredFiles
 
   function handleFileChange(selectedFiles: File[] | null) {
     if (!selectedFiles || selectedFiles.length === 0) return
@@ -117,7 +118,7 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
   }
 
   const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value as "default" | "new" | "edited" | "trained")
+    setStatusFilter(value)
   }
 
   return (
@@ -179,7 +180,6 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
                   <SelectContent align="end">
                     <SelectItem value="default">Default</SelectItem>
                     <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="edited">Edited</SelectItem>
                     <SelectItem value="trained">Trained</SelectItem>
                   </SelectContent>
                 </Select>
@@ -208,48 +208,55 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
                   </p>
                 </div>
               ) : (
-                filteredFiles.map((file, idx) => (
-                  <div
-                    key={idx}
-                    className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
-                  >
-                    <p className="w-9/12 text-left">
-                      {truncateFromMiddle(file.name)}
-                    </p>
+                filteredFiles.map((file, idx) => {
+                  const originalIdx = (files || []).findIndex(
+                    f => f.name === file.name && f.size === file.size
+                  )
+                  const actualIdx = originalIdx !== -1 ? originalIdx : idx
 
-                    <div className="flex w-2/12 items-center justify-center text-center">
-                      {file.status === "trained" ? (
-                        <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
-                          Trained
-                        </p>
-                      ) : (
-                        <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
-                          New
-                        </p>
-                      )}
+                  return (
+                    <div
+                      key={idx}
+                      className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
+                    >
+                      <p className="w-9/12 text-left">
+                        {truncateFromMiddle(file.name)}
+                      </p>
+
+                      <div className="flex w-2/12 items-center justify-center text-center">
+                        {file.status === "trained" ? (
+                          <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                            Trained
+                          </p>
+                        ) : (
+                          <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                            New
+                          </p>
+                        )}
+                      </div>
+
+                      <p className="w-3/12 text-center">
+                        {convertBytesToUnits(file.size)}
+                      </p>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="w-1/12 cursor-pointer">
+                          <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem
+                            onClick={openDeleteConfirmForIndex(actualIdx)}
+                            className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
+                          >
+                            <p>Delete</p>
+
+                            <IconTrash className="h-3.5 w-3.5" />
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-
-                    <p className="w-3/12 text-center">
-                      {convertBytesToUnits(file.size)}
-                    </p>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                        <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuItem
-                          onClick={openDeleteConfirmForIndex(idx)}
-                          className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
-                        >
-                          <p>Delete</p>
-
-                          <IconTrash className="h-3.5 w-3.5" />
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>

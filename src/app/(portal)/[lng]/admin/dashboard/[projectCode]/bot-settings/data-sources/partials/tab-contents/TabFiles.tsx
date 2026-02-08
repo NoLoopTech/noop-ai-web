@@ -1,6 +1,10 @@
 import { TabsContent } from "@/components/ui/tabs"
 import { motion, Variants } from "motion/react"
-import { IconDotsVertical, IconTrash } from "@tabler/icons-react"
+import {
+  IconDotsVertical,
+  IconTrash,
+  IconZoomExclamation
+} from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +25,17 @@ import {
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
+import useSearch from "@/hooks/useSearch"
+import useStatusFilter from "@/hooks/useStatusFilter"
 import { Separator } from "@/components/ui/separator"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 
 interface TabFilesProps {
   motionVariants: Variants
@@ -39,6 +53,21 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
     null
   )
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filteredItems: searchedFiles
+  } = useSearch(files || [], { keys: ["name"] })
+
+  const {
+    statusFilter,
+    setStatusFilter,
+    filteredItems: statusFilteredFiles
+  } = useStatusFilter(searchedFiles, {
+    allowedValues: ["default", "new", "trained"]
+  })
+
+  const filteredFiles = statusFilteredFiles
 
   function handleFileChange(selectedFiles: File[] | null) {
     if (!selectedFiles || selectedFiles.length === 0) return
@@ -84,6 +113,14 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
     setIsConfirmSourceDeleteDialogOpen(false)
   }
 
+  const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+  }
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value)
+  }
+
   return (
     <TabsContent value="files">
       <motion.div
@@ -124,6 +161,31 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
               File sources
             </h2>
 
+            <div className="mx-0.5 mt-1 mb-3 flex items-center justify-between space-x-2">
+              <Input
+                placeholder="Search by title"
+                value={searchQuery}
+                onChange={handleSearchQueryChange}
+                className="w-72"
+              />
+
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={statusFilter}
+                  onValueChange={handleStatusFilterChange}
+                >
+                  <SelectTrigger className="h-10 w-32">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="trained">Trained</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div
               className={`mt-1 mb-2 flex h-10 items-center justify-between space-x-2 rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-4 text-sm font-normal text-zinc-500 dark:border-slate-700 dark:bg-slate-900 dark:text-zinc-400`}
             >
@@ -137,48 +199,65 @@ const TabFiles = ({ motionVariants }: TabFilesProps) => {
             </div>
 
             <div className="flex flex-col pb-5">
-              {files.map((file, idx) => (
-                <div
-                  key={idx}
-                  className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
-                >
-                  <p className="w-9/12 text-left">
-                    {truncateFromMiddle(file.name)}
+              {searchQuery && filteredFiles.length === 0 ? (
+                <div className="my-5 flex w-full flex-col items-center space-y-2.5">
+                  <IconZoomExclamation className="size-8 stroke-1 text-zinc-500" />
+
+                  <p className="px-4 text-center text-sm text-zinc-500">
+                    No results found for "{searchQuery}"
                   </p>
-
-                  <div className="flex w-2/12 items-center justify-center text-center">
-                    {file.status === "trained" ? (
-                      <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
-                        Trained
-                      </p>
-                    ) : (
-                      <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
-                        New
-                      </p>
-                    )}
-                  </div>
-
-                  <p className="w-3/12 text-center">
-                    {convertBytesToUnits(file.size)}
-                  </p>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="w-1/12 cursor-pointer">
-                      <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem
-                        onClick={openDeleteConfirmForIndex(idx)}
-                        className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
-                      >
-                        <p>Delete</p>
-
-                        <IconTrash className="h-3.5 w-3.5" />
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
-              ))}
+              ) : (
+                filteredFiles.map((file, idx) => {
+                  const originalIdx = (files || []).findIndex(
+                    f => f.name === file.name && f.size === file.size
+                  )
+                  const actualIdx = originalIdx !== -1 ? originalIdx : idx
+
+                  return (
+                    <div
+                      key={idx}
+                      className="flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 text-sm font-normal dark:border-slate-700"
+                    >
+                      <p className="w-9/12 text-left">
+                        {truncateFromMiddle(file.name)}
+                      </p>
+
+                      <div className="flex w-2/12 items-center justify-center text-center">
+                        {file.status === "trained" ? (
+                          <p className="w-max rounded-md border border-gray-500 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-500">
+                            Trained
+                          </p>
+                        ) : (
+                          <p className="w-max rounded-md border border-[#34C759] bg-[#34C759]/20 px-2 py-0.5 text-xs font-medium text-[#34C759]">
+                            New
+                          </p>
+                        )}
+                      </div>
+
+                      <p className="w-3/12 text-center">
+                        {convertBytesToUnits(file.size)}
+                      </p>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="w-1/12 cursor-pointer">
+                          <IconDotsVertical className="mx-auto h-4 w-4 text-zinc-500" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem
+                            onClick={openDeleteConfirmForIndex(actualIdx)}
+                            className="flex cursor-pointer items-center justify-between px-1.5 text-[#DC2626] hover:!text-[#DC2626]/80"
+                          >
+                            <p>Delete</p>
+
+                            <IconTrash className="h-3.5 w-3.5" />
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
         </ScrollArea>

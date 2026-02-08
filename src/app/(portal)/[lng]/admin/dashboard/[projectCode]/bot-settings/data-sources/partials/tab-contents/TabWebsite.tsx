@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronDownIcon } from "lucide-react"
 import { motion, Variants, AnimatePresence } from "motion/react"
 import { useEffect, useState, useRef, useCallback } from "react"
+import useSearch from "@/hooks/useSearch"
 import { z } from "zod"
 import { useBotSettingsFileSourcesStore } from "../../store/botSettingsFileSources.store"
 import { useApiMutation } from "@/query"
@@ -31,8 +32,9 @@ import {
   AlertDialogDescription,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { IconLoader } from "@tabler/icons-react"
+import { IconLoader, IconZoomExclamation } from "@tabler/icons-react"
 import { io, Socket } from "socket.io-client"
+import { Input } from "@/components/ui/input"
 
 interface TabWebsiteProps {
   motionVariants: Variants
@@ -215,6 +217,34 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
     }
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setWebsiteLinks(
+        websiteLinks.map((link, idx) => ({ url: link.url, selected: idx < 10 }))
+      )
+    } else {
+      setWebsiteLinks(
+        websiteLinks.map(link => ({ url: link.url, selected: false }))
+      )
+    }
+    setShowUrlWarning(false)
+    setShowSelectWarning(false)
+  }
+
+  const selectedCount = websiteLinks.filter(link => link.selected).length
+  const maxSelectable = Math.min(websiteLinks.length, 10)
+  const allSelected = selectedCount === maxSelectable && maxSelectable > 0
+
+  const linksWithIndex = websiteLinks.map((link, idx) => ({ ...link, idx }))
+
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filteredItems: searchedLinks
+  } = useSearch(linksWithIndex, { keys: ["url"] })
+
+  const filteredLinks = searchedLinks
+
   return (
     <TabsContent value="website">
       <motion.div
@@ -364,41 +394,89 @@ const TabWebsite = ({ motionVariants }: TabWebsiteProps) => {
                         Link sources
                       </h2>
 
+                      <div className="mt-2 mb-3 px-0.5">
+                        <Input
+                          value={searchQuery}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setSearchQuery(e.target.value)
+                          }
+                          placeholder="Search links..."
+                          className="w-72"
+                        />
+                      </div>
+
                       <div
                         className={`mt-1 mb-2 flex h-10 items-center justify-between rounded-t-lg border-b border-zinc-300 bg-zinc-100 px-3.5 text-sm font-normal dark:border-slate-700 dark:bg-slate-900 ${showUrlWarning ? "text-[#FF383C]" : "text-zinc-500 dark:text-zinc-400"}`}
                       >
-                        <p>
-                          {websiteLinks.filter(link => link.selected).length}
-                          <span className="px-0.5">/</span>
-                          {websiteLinks.length} links
-                        </p>
+                        <div className="flex items-center space-x-2">
+                          {websiteLinks.length > 0 && (
+                            <Checkbox
+                              id="select-all"
+                              checked={allSelected}
+                              onCheckedChange={handleSelectAll}
+                              className="dark:border-slate-700 dark:bg-slate-950 dark:text-zinc-400"
+                            />
+                          )}
+
+                          <p>
+                            {selectedCount}
+                            <span className="px-0.5">/</span>
+                            {websiteLinks.length} links
+                          </p>
+                        </div>
                       </div>
 
                       <div className="flex flex-col pb-5">
-                        {websiteLinks.map((link, idx) => {
-                          const isDisabled =
-                            !link.selected &&
-                            websiteLinks.filter(l => l.selected).length >= 10
+                        {searchQuery && filteredLinks.length === 0 ? (
+                          <div className="flex w-full flex-col items-center space-y-2.5 py-5">
+                            <IconZoomExclamation className="size-8 stroke-1 text-zinc-500" />
 
-                          return (
-                            <label
-                              key={link.url + idx}
-                              className={`flex h-12 items-center space-x-2 border-b border-zinc-200 px-4 dark:border-slate-700 ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-                            >
-                              <Checkbox
-                                id={`link-${idx}`}
-                                checked={link.selected}
-                                disabled={isDisabled}
-                                onCheckedChange={handleToggleWebsiteLink(idx)}
-                                className="dark:border-slate-700 dark:bg-slate-950 dark:text-zinc-400"
-                              />
+                            <p className="px-4 text-center text-sm text-zinc-500">
+                              No results found for "{searchQuery}"
+                            </p>
+                          </div>
+                        ) : (
+                          filteredLinks.map(link => {
+                            const originalIdx =
+                              typeof link.idx === "number"
+                                ? link.idx
+                                : websiteLinks.findIndex(
+                                    l => l.url === link.url
+                                  )
 
-                              <span className="text-sm font-normal select-none">
-                                {link.url}
-                              </span>
-                            </label>
-                          )
-                        })}
+                            const isDisabled =
+                              !(
+                                websiteLinks[originalIdx]?.selected ??
+                                link.selected
+                              ) &&
+                              websiteLinks.filter(l => l.selected).length >= 10
+
+                            const checked =
+                              websiteLinks[originalIdx]?.selected ??
+                              link.selected
+
+                            return (
+                              <label
+                                key={link.url + "-" + originalIdx}
+                                className={`flex h-12 items-center space-x-2 border-b border-zinc-200 pr-4 pl-[14.3px] dark:border-slate-700 ${isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                              >
+                                <Checkbox
+                                  id={`link-${originalIdx}`}
+                                  checked={checked}
+                                  disabled={isDisabled}
+                                  onCheckedChange={handleToggleWebsiteLink(
+                                    originalIdx
+                                  )}
+                                  className="dark:border-slate-700 dark:bg-slate-950 dark:text-zinc-400"
+                                />
+
+                                <span className="text-sm font-normal select-none">
+                                  {link.url}
+                                </span>
+                              </label>
+                            )
+                          })
+                        )}
                       </div>
                     </div>
                   </motion.div>
